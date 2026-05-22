@@ -6,8 +6,8 @@ export default function ForOperatorsPage() {
       eyebrow="01 / Operators"
       title="Accept Bookings"
       body="Keep booking acceptance in WhatsApp Business while BluePass coordinates traveller intent, PMS holds, payment readiness, and audit-friendly booking events."
-      primaryHref="/app"
-      primaryLabel="Open workspace"
+      primaryHref="/signup"
+      primaryLabel="Sign up BluePass"
       secondaryHref="/conservation"
       secondaryLabel="View model"
       features={[

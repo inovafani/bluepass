@@ -58,6 +58,12 @@ enum TransferStatus {
   FAILED
 }
 
+enum SignupRole {
+  OPERATOR
+  CREATOR
+  USER
+}
+
 model Operator {
   id           String                @id @default(cuid())
   name         String
@@ -171,4 +177,16 @@ model OperatorIntegration {
   operator             Operator    @relation(fields: [operatorId], references: [id])
 
   @@unique([operatorId, platform])
+}
+
+model SignupLead {
+  id        String     @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  role      SignupRole
+  createdAt DateTime   @default(now())
+
+  @@index([role, createdAt])
+  @@index([email])
 }

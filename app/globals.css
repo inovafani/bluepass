@@ -18,6 +18,12 @@ body {
   color: #092033;
 }
 
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -41,9 +47,9 @@ body {
 }
 
 body:has(.cinematic-page) .site-header {
-  position: absolute;
+  position: fixed;
   inset: 0 0 auto;
-  z-index: 20;
+  z-index: 80;
   border-color: transparent;
   background: transparent;
   color: white;

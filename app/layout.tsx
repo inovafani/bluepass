@@ -33,8 +33,8 @@ export default function RootLayout({
                 </Link>
               ))}
             </div>
-            <Link href="/for-operators" className="site-operator hidden text-sm text-slate-700 hover:text-bluepass-ocean sm:inline-flex">
-              For operators
+            <Link href="/signup" className="site-operator hidden text-sm text-slate-700 hover:text-bluepass-ocean sm:inline-flex">
+              Sign up BluePass
             </Link>
           </nav>
         </header>

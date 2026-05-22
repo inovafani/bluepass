@@ -52,10 +52,10 @@ export default function HomePage() {
               Start with Kai
             </Link>
             <Link
-              href="/for-operators"
+              href="/signup"
               className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black uppercase text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
             >
-              Explore trips
+              Sign up BluePass
             </Link>
           </div>
         </section>
