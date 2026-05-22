@@ -25,12 +25,12 @@ export default function HomePage() {
           type="video/mp4"
         />
       </video>
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.82),rgba(0,15,21,0.42)_45%,rgba(0,8,14,0.58)),linear-gradient(180deg,rgba(0,0,0,0.34),rgba(0,0,0,0.05)_38%,rgba(0,0,0,0.68))]" />
-      <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.68),rgba(0,15,21,0.28)_45%,rgba(0,8,14,0.44)),linear-gradient(180deg,rgba(0,0,0,0.22),rgba(0,0,0,0.02)_38%,rgba(0,0,0,0.54))]" />
+      <div className="absolute inset-0 bg-[#0c3b3a]/10 mix-blend-color" />
       <div className="bp-film-grain absolute inset-0" />
 
       <div className="relative z-10 h-full">
-        <section className="absolute inset-x-[var(--cinematic-screen-x)] bottom-[calc(7.5rem+env(safe-area-inset-bottom))] max-w-[560px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:bottom-auto md:left-[var(--cinematic-screen-x)] md:right-auto md:top-[8.5rem] md:w-[min(44vw,560px)] md:p-8 xl:p-9">
+        <section className="absolute inset-x-[var(--cinematic-screen-x)] top-1/2 max-w-[560px] -translate-y-1/2 border border-white/16 bg-[#03111d]/50 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:left-[var(--cinematic-screen-x)] md:right-auto md:top-[8.5rem] md:w-[min(44vw,560px)] md:translate-y-0 md:p-8 xl:p-9">
           <p className="mb-6 text-[10px] font-black uppercase text-white/60">
             WhatsApp booking
           </p>
@@ -102,13 +102,13 @@ export default function HomePage() {
         <div className="fixed bottom-4 right-4 z-[80] md:bottom-6 md:right-6">
           <Link
             href="https://wa.me/628213143342"
-            className="bp-focus-ring ml-auto flex h-16 items-center gap-3 rounded-full border border-white/15 bg-[#075e54] px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-transform hover:scale-[1.02] hover:bg-[#0b6f63]"
+            className="bp-focus-ring ml-auto flex h-16 min-w-[196px] items-center gap-3 rounded-full border border-white/15 bg-[#075e54] px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-transform hover:scale-[1.02] hover:bg-[#0b6f63]"
             aria-label="Open Kai chat"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d9fdd3] text-sm font-semibold text-[#075e54]">
               K
             </span>
-            <span className="hidden text-left sm:block">
+            <span className="block text-left">
               <span className="block text-sm font-semibold leading-none">
                 Ask Kai
               </span>
