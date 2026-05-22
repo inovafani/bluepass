@@ -46,7 +46,7 @@ export default function HomePage() {
           </div>
           <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
             <Link
-              href="/app"
+              href="https://wa.me/628213143342"
               className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
             >
               Start with Kai
@@ -101,7 +101,7 @@ export default function HomePage() {
 
         <div className="fixed bottom-4 right-4 z-[80] md:bottom-6 md:right-6">
           <Link
-            href="/app"
+            href="https://wa.me/628213143342"
             className="bp-focus-ring ml-auto flex h-16 items-center gap-3 rounded-full border border-white/15 bg-[#075e54] px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-transform hover:scale-[1.02] hover:bg-[#0b6f63]"
             aria-label="Open Kai chat"
           >

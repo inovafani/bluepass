@@ -6,7 +6,7 @@ export default function CreatorsPage() {
       eyebrow="03 / Creators"
       title="Share Ocean Stories"
       body="Creator attribution can share BluePass commission when stories lead to confirmed trips, while operators and travellers keep the booking path clear."
-      primaryHref="/app"
+      primaryHref="https://wa.me/628213143342"
       primaryLabel="Partner with Kai"
       secondaryHref="/conservation"
       secondaryLabel="Conservation"

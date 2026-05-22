@@ -46,6 +46,11 @@ body {
   pointer-events: none;
 }
 
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 720px;
+}
+
 .cinematic-app-grid {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),

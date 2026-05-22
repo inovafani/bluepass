@@ -20,7 +20,7 @@ export function CinematicMarketingPage({
   eyebrow,
   title,
   body,
-  primaryHref = "/app",
+  primaryHref = "https://wa.me/628213143342",
   primaryLabel = "Start with Kai",
   secondaryHref = "/",
   secondaryLabel = "Explore",

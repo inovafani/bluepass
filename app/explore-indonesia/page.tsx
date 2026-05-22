@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -175,6 +176,9 @@ const earlyPreviews = [
     price: "$2,600",
   },
 ];
+
+const earlyPreviewImage =
+  "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80";
 
 const conservationPartners = [
   {
@@ -361,7 +365,7 @@ export default function ExploreIndonesiaPage() {
             </div>
             <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
               <Link
-                href="/app"
+                href="https://wa.me/628213143342"
                 className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/90 active:scale-[0.98]"
               >
                 Get matched by Kai
@@ -383,7 +387,7 @@ export default function ExploreIndonesiaPage() {
               protection.
             </p>
             <Link
-              href="/app"
+              href="https://wa.me/628213143342"
               className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 bg-white px-5 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/90"
             >
               <MessageIcon />
@@ -408,7 +412,7 @@ export default function ExploreIndonesiaPage() {
             </p>
           </div>
           <Link
-            href="/app"
+            href="https://wa.me/628213143342"
             className="inline-flex h-11 items-center justify-center gap-2 bg-white px-5 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/90"
           >
             <MessageIcon />
@@ -458,7 +462,7 @@ export default function ExploreIndonesiaPage() {
           </div>
         </div>
 
-        <div className="mt-10">
+        <div className="content-visibility-auto mt-10">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#B89A5D]">
@@ -473,13 +477,14 @@ export default function ExploreIndonesiaPage() {
           <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {liveTrips.map((trip) => (
               <Link key={trip.href} href={trip.href} className="group block">
-                <article className="h-full overflow-hidden border border-white/12 bg-[#03111d]/58 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-all duration-300 group-hover:-translate-y-1 group-hover:border-white/24">
+                <article className="h-full overflow-hidden border border-white/12 bg-[#03111d]/90 shadow-[0_14px_44px_rgba(0,0,0,0.22)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:border-white/24">
                   <div className="relative aspect-[4/3] overflow-hidden bg-[#071827]/10">
-                    <div
-                      role="img"
-                      aria-label={trip.alt}
-                      className="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                      style={{ backgroundImage: `url('${trip.image}')` }}
+                    <Image
+                      src={trip.image}
+                      alt={trip.alt}
+                      fill
+                      sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                     />
                     <div className="absolute left-4 top-4 flex flex-wrap gap-2">
                       <span className="rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-white">
@@ -516,7 +521,7 @@ export default function ExploreIndonesiaPage() {
           </div>
         </div>
 
-        <div className="mt-14">
+        <div className="content-visibility-auto mt-14">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#B89A5D]">
@@ -533,17 +538,15 @@ export default function ExploreIndonesiaPage() {
               <Link
                 key={preview.href}
                 href={preview.href}
-                className="group overflow-hidden border border-white/12 bg-[#03111d]/58 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-transform hover:-translate-y-1 hover:border-white/24"
+                className="group overflow-hidden border border-white/12 bg-[#03111d]/90 shadow-[0_14px_44px_rgba(0,0,0,0.22)] transition-transform duration-200 hover:-translate-y-0.5 hover:border-white/24"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-[#071827]/10">
-                  <div
-                    role="img"
-                    aria-label="Island coastline with turquoise water"
-                    className="h-full w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                    style={{
-                      backgroundImage:
-                        "url('https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80')",
-                    }}
+                  <Image
+                    src={earlyPreviewImage}
+                    alt="Island coastline with turquoise water"
+                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                   />
                   <div className="absolute left-4 top-4">
                     <span className="rounded-full border border-[#B89A5D]/30 bg-[#B89A5D]/15 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-[#f4d891]">
@@ -687,7 +690,7 @@ export default function ExploreIndonesiaPage() {
 
       <div className="fixed bottom-4 right-4 z-[80] md:bottom-6 md:right-6">
         <Link
-          href="/app"
+          href="https://wa.me/628213143342"
           className="bp-focus-ring ml-auto flex h-16 items-center gap-3 rounded-full border border-white/15 bg-[#075e54] px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-transform hover:scale-[1.02] hover:bg-[#0b6f63]"
           aria-label="Open Kai chat"
         >
