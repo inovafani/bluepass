@@ -32,7 +32,7 @@ export default function HomePage() {
       <div className="relative z-10 h-full">
         <section className="absolute inset-x-[var(--cinematic-screen-x)] bottom-[calc(7.5rem+env(safe-area-inset-bottom))] max-w-[560px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:bottom-auto md:left-[var(--cinematic-screen-x)] md:right-auto md:top-[8.5rem] md:w-[min(44vw,560px)] md:p-8 xl:p-9">
           <p className="mb-6 text-[10px] font-black uppercase text-white/60">
-            03 / WhatsApp booking
+            WhatsApp booking
           </p>
           <h1 className="font-display text-[clamp(2.9rem,5vw,4.85rem)] font-black uppercase leading-[0.86] text-white">
             Plan With Kai
@@ -52,10 +52,10 @@ export default function HomePage() {
               Start with Kai
             </Link>
             <Link
-              href="/signup"
+              href="/explore-indonesia"
               className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black uppercase text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
             >
-              Sign up BluePass
+              Explore Indonesia
             </Link>
           </div>
         </section>
