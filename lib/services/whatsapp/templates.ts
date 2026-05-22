@@ -6,11 +6,14 @@ export const whatsappTemplateNames = {
 } as const;
 
 export type OperatorInquiryParams = {
-  operatorName: string;
-  tripTitle: string;
+  inquiryTitle: string;
   travellerName: string;
-  dateLabel: string;
-  totalLabel: string;
+  travellerPhone: string;
+  dateRange: string;
+  guests: string;
+  quote: string;
+  tripTitle: string;
+  notes: string;
 };
 
 export type TravellerQuoteParams = {
@@ -23,11 +26,14 @@ export type TravellerQuoteParams = {
 
 export function buildOperatorInquiryParams(input: OperatorInquiryParams): string[] {
   return [
-    input.operatorName,
-    input.tripTitle,
+    input.inquiryTitle,
     input.travellerName,
-    input.dateLabel,
-    input.totalLabel,
+    input.travellerPhone,
+    input.dateRange,
+    input.guests,
+    input.quote,
+    input.tripTitle,
+    input.notes,
   ];
 }
 
@@ -39,4 +45,16 @@ export function buildTravellerQuoteParams(input: TravellerQuoteParams): string[]
     input.totalLabel,
     input.conservationLabel,
   ];
+}
+
+export function buildAcceptPayload(bookingId: string): string {
+  return `accept:${bookingId.trim()}`;
+}
+
+export function buildDeclinePayload(bookingId: string): string {
+  return `decline:${bookingId.trim()}`;
+}
+
+export function buildCounterPayload(bookingId: string): string {
+  return `counter:${bookingId.trim()}`;
 }

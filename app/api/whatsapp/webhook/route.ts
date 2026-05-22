@@ -37,7 +37,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid signature." }, { status: 401 });
   }
 
-  void handleWhatsAppWebhook(rawBody);
+  try {
+    void handleWhatsAppWebhook(JSON.parse(rawBody) as unknown);
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
+  }
 
   return NextResponse.json({ ok: true });
 }
