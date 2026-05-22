@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OperatorStatus {
+  GHOST
+  CLAIMED
+  ACTIVE
+  SUSPENDED
+}
+
+enum PmsPlatform {
+  REZDY
+  FAREHARBOR
+  NATIVE
+}
+
+enum CertLevel {
+  NONE
+  OW
+  AOW
+  RESCUE
+  DIVEMASTER
+  INSTRUCTOR
+}
+
+enum BookingStatus {
+  QUOTE_DRAFTED
+  OPERATOR_NOTIFIED
+  OPERATOR_ACCEPTED
+  OPERATOR_DECLINED
+  COUNTER_REQUESTED
+  AUTO_DECLINED
+  PMS_HOLD_PLACED
+  AWAITING_PAYMENT
+  CONFIRMED
+  EXPIRED
+  CANCELLED
+  REFUNDED
+}
+
+enum ActorType {
+  TRAVELLER
+  OPERATOR
+  SYSTEM
+  KAI
+}
+
+enum TransferStatus {
+  QUEUED
+  SENT
+  CONFIRMED
+  FAILED
+}
+
+model Operator {
+  id           String                @id @default(cuid())
+  name         String
+  status       OperatorStatus        @default(GHOST)
+  whatsappE164 String?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  trips        Trip[]
+  bookings     Booking[]
+  integrations OperatorIntegration[]
+}
+
+model Trip {
+  id          String     @id @default(cuid())
+  operatorId  String
+  title       String
+  description String?
+  location    String?
+  currency    String     @default("USD")
+  priceCents  Int
+  minCert     CertLevel  @default(NONE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  operator    Operator   @relation(fields: [operatorId], references: [id])
+  bookings    Booking[]
+
+  @@index([operatorId])
+}
+
+model Traveller {
+  id           String       @id @default(cuid())
+  whatsappE164 String       @unique
+  displayName  String?
+  certLevel    CertLevel    @default(NONE)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  bookings     Booking[]
+  kaiSessions  KaiSession[]
+}
+
+model Booking {
+  id                     String                 @id @default(cuid())
+  operatorId             String
+  tripId                 String
+  travellerId            String
+  status                 BookingStatus          @default(QUOTE_DRAFTED)
+  totalCents             Int
+  currency               String                 @default("USD")
+  creatorAttributionCode String?
+  pmsPlatform            PmsPlatform            @default(NATIVE)
+  pmsHoldId              String?
+  pmsHoldExpiresAt       DateTime?
+  paymentLinkUrl         String?
+  confirmedAt            DateTime?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  operator               Operator               @relation(fields: [operatorId], references: [id])
+  trip                   Trip                   @relation(fields: [tripId], references: [id])
+  traveller              Traveller              @relation(fields: [travellerId], references: [id])
+  events                 BookingEvent[]
+  conservationTransfer   ConservationTransfer?
+
+  @@index([operatorId, status])
+  @@index([travellerId])
+  @@index([tripId])
+}
+
+model BookingEvent {
+  id         String        @id @default(cuid())
+  bookingId  String
+  fromStatus BookingStatus?
+  toStatus   BookingStatus
+  actorType  ActorType
+  payload    Json?
+  createdAt  DateTime      @default(now())
+  booking    Booking       @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId, createdAt])
+}
+
+model KaiSession {
+  id          String    @id @default(cuid())
+  travellerId String
+  slots       Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  traveller   Traveller @relation(fields: [travellerId], references: [id])
+
+  @@index([travellerId])
+}
+
+model ConservationTransfer {
+  id          String         @id @default(cuid())
+  bookingId   String         @unique
+  amountCents Int
+  currency    String         @default("USD")
+  status      TransferStatus @default(QUEUED)
+  payload     Json?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  booking     Booking        @relation(fields: [bookingId], references: [id])
+}
+
+model OperatorIntegration {
+  id                   String      @id @default(cuid())
+  operatorId           String
+  platform             PmsPlatform
+  encryptedCredentials String
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  operator             Operator    @relation(fields: [operatorId], references: [id])
+
+  @@unique([operatorId, platform])
+}
