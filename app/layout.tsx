@@ -8,12 +8,10 @@ export const metadata: Metadata = {
 };
 
 const navItems = [
-  { href: "/", label: "Home" },
+  { href: "/", label: "Explore" },
   { href: "/for-operators", label: "Operators" },
   { href: "/conservation", label: "Conservation" },
   { href: "/creators", label: "Creators" },
-  { href: "/about", label: "About" },
-  { href: "/app", label: "App" },
 ];
 
 export default function RootLayout({
@@ -22,18 +20,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">
-        <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-            <Link href="/" className="text-lg font-semibold tracking-tight">
-              BluePass
+        <header className="site-header border-b border-slate-200 bg-white/90 backdrop-blur">
+          <nav className="relative mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+            <Link href="/" className="site-brand flex items-center gap-2.5 text-lg font-semibold tracking-tight">
+              <span className="site-brand-mark">BP/</span>
+              <span className="site-brand-name">BluePass</span>
             </Link>
-            <div className="flex flex-wrap justify-end gap-4 text-sm text-slate-700">
+            <div className="site-nav flex flex-wrap justify-end gap-4 text-sm text-slate-700">
               {navItems.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-bluepass-ocean">
+                <Link key={`${item.href}-${item.label}`} href={item.href} className="hover:text-bluepass-ocean">
                   {item.label}
                 </Link>
               ))}
             </div>
+            <Link href="/for-operators" className="site-operator hidden text-sm text-slate-700 hover:text-bluepass-ocean sm:inline-flex">
+              For operators
+            </Link>
           </nav>
         </header>
         <main>{children}</main>

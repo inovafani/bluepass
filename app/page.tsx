@@ -2,55 +2,136 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <section className="mx-auto grid min-h-[calc(100vh-65px)] max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-[1.1fr_0.9fr]">
-      <div>
-        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-bluepass-ocean">
-          WhatsApp-first booking marketplace
-        </p>
-        <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-bluepass-ink md:text-6xl">
-          BluePass turns travel inquiries into accepted bookings inside WhatsApp.
-        </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700">
-          Travellers chat with Kai, operators respond from WhatsApp Business, and
-          BluePass coordinates holds, payment readiness, booking events, and the
-          conservation pledge behind the scenes.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/for-operators"
-            className="rounded-md bg-bluepass-ocean px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-bluepass-ink"
+    <section className="cinematic-page home-hero relative h-svh min-h-[680px] overflow-hidden bg-[#020b11] text-white">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 scale-105 bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://assets.mixkit.co/videos/36621/36621-thumb-720-0.jpg')",
+        }}
+      />
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        poster="https://assets.mixkit.co/videos/36621/36621-thumb-720-0.jpg"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+      >
+        <source
+          src="https://assets.mixkit.co/videos/36621/36621-360.mp4"
+          type="video/mp4"
+        />
+      </video>
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.82),rgba(0,15,21,0.42)_45%,rgba(0,8,14,0.58)),linear-gradient(180deg,rgba(0,0,0,0.34),rgba(0,0,0,0.05)_38%,rgba(0,0,0,0.68))]" />
+      <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
+      <div className="bp-film-grain absolute inset-0" />
+
+      <div className="relative z-10 h-full">
+        <section className="absolute inset-x-[var(--cinematic-screen-x)] bottom-[calc(7.5rem+env(safe-area-inset-bottom))] max-w-[560px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:bottom-auto md:left-[var(--cinematic-screen-x)] md:right-auto md:top-[8.5rem] md:w-[min(44vw,560px)] md:p-8 xl:p-9">
+          <p className="mb-6 text-[10px] font-black uppercase text-white/60">
+            03 / WhatsApp booking
+          </p>
+          <h1 className="font-display text-[clamp(2.9rem,5vw,4.85rem)] font-black uppercase leading-[0.86] text-white">
+            Plan With Kai
+          </h1>
+          <div className="mt-7 grid grid-cols-[2px_1fr] gap-5">
+            <span className="mt-1 h-20 w-px bg-white/70" aria-hidden="true" />
+            <p className="max-w-[27rem] text-sm leading-[1.75] text-white/78 md:text-[15px]">
+              Tell Kai where you want to go. BluePass matches the route, crew,
+              date, and booking path inside WhatsApp.
+            </p>
+          </div>
+          <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
+            <Link
+              href="/app"
+              className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
+            >
+              Start with Kai
+            </Link>
+            <Link
+              href="/for-operators"
+              className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black uppercase text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
+            >
+              Explore trips
+            </Link>
+          </div>
+        </section>
+
+        <div className="absolute bottom-[calc(2.2rem+env(safe-area-inset-bottom))] left-[var(--cinematic-screen-x)] z-30 flex items-center gap-4">
+          <button
+            type="button"
+            className="bp-focus-ring flex h-9 w-9 items-center justify-center border border-white/24 bg-black/26 text-white backdrop-blur-xl transition-colors hover:bg-white/10"
+            aria-label="Play BluePass preview"
           >
-            For operators
-          </Link>
-          <Link
-            href="/conservation"
-            className="rounded-md border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-800 hover:border-bluepass-ocean"
-          >
-            Conservation model
-          </Link>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="ml-[1px] h-3.5 w-3.5 fill-current"
+              aria-hidden="true"
+            >
+              <polygon points="6 3 20 12 6 21 6 3" />
+            </svg>
+          </button>
+          <span className="h-px w-20 overflow-hidden bg-white/25 sm:w-28 xl:w-56">
+            <span className="block h-full w-1/3 bg-white/86" />
+          </span>
         </div>
-      </div>
-      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="space-y-4">
-          <div className="rounded-md bg-slate-100 p-4">
-            <p className="text-sm font-medium text-slate-900">Kai</p>
-            <p className="mt-1 text-sm leading-6 text-slate-700">
-              Finds fitting trips, drafts quotes, and keeps travellers in WhatsApp.
-            </p>
-          </div>
-          <div className="rounded-md bg-bluepass-reef p-4">
-            <p className="text-sm font-medium text-slate-900">Operator action</p>
-            <p className="mt-1 text-sm leading-6 text-slate-700">
-              Accept, Decline, or Counter without leaving WhatsApp Business.
-            </p>
-          </div>
-          <div className="rounded-md bg-slate-100 p-4">
-            <p className="text-sm font-medium text-slate-900">Booking foundation</p>
-            <p className="mt-1 text-sm leading-6 text-slate-700">
-              State transitions are logged, PMS holds come before payment, and
-              conservation is queued after confirmation.
-            </p>
-          </div>
+
+        <div className="absolute bottom-[calc(2.2rem+env(safe-area-inset-bottom))] right-[var(--cinematic-screen-x)] z-30 flex items-center gap-1.5">
+          <span className="flex p-2">
+            <span className="h-1.5 w-8 bg-white" />
+          </span>
+          <span className="flex p-2">
+            <span className="h-1.5 w-1.5 bg-white/42" />
+          </span>
+          <span className="flex p-2">
+            <span className="h-1.5 w-1.5 bg-white/42" />
+          </span>
+        </div>
+
+        <div className="fixed bottom-4 right-4 z-[80] md:bottom-6 md:right-6">
+          <Link
+            href="/app"
+            className="bp-focus-ring ml-auto flex h-16 items-center gap-3 rounded-full border border-white/15 bg-[#075e54] px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-transform hover:scale-[1.02] hover:bg-[#0b6f63]"
+            aria-label="Open Kai chat"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d9fdd3] text-sm font-semibold text-[#075e54]">
+              K
+            </span>
+            <span className="hidden text-left sm:block">
+              <span className="block text-sm font-semibold leading-none">
+                Ask Kai
+              </span>
+              <span className="mt-1 block text-[11px] text-white/70">
+                In-app or WhatsApp
+              </span>
+            </span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              className="h-4 w-4"
+            >
+              <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+            </svg>
+          </Link>
         </div>
       </div>
     </section>

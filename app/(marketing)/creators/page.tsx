@@ -1,16 +1,29 @@
+import { CinematicMarketingPage } from "@/app/components/CinematicMarketingPage";
+
 export default function CreatorsPage() {
   return (
-    <section className="mx-auto max-w-4xl px-5 py-16">
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-bluepass-ocean">
-        Creators
-      </p>
-      <h1 className="mt-4 text-4xl font-semibold tracking-tight">
-        Creator attribution can share BluePass commission.
-      </h1>
-      <p className="mt-6 text-lg leading-8 text-slate-700">
-        When a confirmed booking is creator-attributed, the creator share is 50%
-        of BluePass commission. Commission remains capped at $400 per booking.
-      </p>
-    </section>
+    <CinematicMarketingPage
+      eyebrow="03 / Creators"
+      title="Share Ocean Stories"
+      body="Creator attribution can share BluePass commission when stories lead to confirmed trips, while operators and travellers keep the booking path clear."
+      primaryHref="/app"
+      primaryLabel="Partner with Kai"
+      secondaryHref="/conservation"
+      secondaryLabel="Conservation"
+      features={[
+        {
+          title: "Attribution",
+          body: "Creator-sourced bookings can carry a clear share of BluePass commission.",
+        },
+        {
+          title: "Aligned incentives",
+          body: "Stories, operators, and conservation can point toward the same confirmed trip.",
+        },
+        {
+          title: "Simple terms",
+          body: "Commission remains capped, with creator share calculated from BluePass commission.",
+        },
+      ]}
+    />
   );
 }
