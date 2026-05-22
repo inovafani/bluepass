@@ -5,17 +5,50 @@
 :root {
   color-scheme: light;
   --cinematic-screen-x: 1.25rem;
-  --font-display: Georgia, "Times New Roman", serif;
+  --bp-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --bp-font-wordmark: Georgia, "Times New Roman", serif;
+  --bp-font-display: var(--bp-font-sans);
+  --bp-font-mono: "SF Mono", "Cascadia Code", "Roboto Mono", Consolas,
+    "Liberation Mono", Menlo, monospace;
+  --font-display: var(--bp-font-display);
+  --bp-color-ink: 7 24 39;
+  --bp-color-muted: 87 102 116;
+  --bp-color-ocean: 0 111 142;
+  --bp-color-tide: 14 165 164;
+  --bp-color-reef: 236 253 245;
+  --bp-color-surface: 248 250 252;
+  --bp-color-gold: 184 154 93;
+  --bp-radius-sm: 0.5rem;
+  --bp-radius-md: 0.75rem;
+  --bp-radius-lg: 1rem;
+  --bp-radius-pill: 9999px;
+  --bp-shadow-soft: 0 12px 30px rgba(7, 24, 39, 0.08);
+  --bp-shadow-float: 0 24px 70px rgba(7, 24, 39, 0.16);
+  --bp-shadow-glass: inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 28px 100px rgba(0, 0, 0, 0.36);
+  --bp-type-tight: -0.012em;
+  --bp-type-body: 0;
 }
 
 html {
   scroll-behavior: smooth;
+  font-family: var(--bp-font-sans);
+  text-rendering: geometricPrecision;
 }
 
 body {
   margin: 0;
-  background: #f8fafc;
-  color: #092033;
+  background: rgb(var(--bp-color-surface));
+  color: rgb(var(--bp-color-ink));
+  font-family: var(--bp-font-sans);
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1,
+    "calt" 1;
+  letter-spacing: var(--bp-type-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .site-header {
@@ -24,12 +57,70 @@ body {
   z-index: 80;
 }
 
+.site-brand-name {
+  font-family: var(--bp-font-wordmark);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
 * {
   box-sizing: border-box;
 }
 
 .font-display {
   font-family: var(--font-display);
+  letter-spacing: var(--bp-type-tight);
+}
+
+.font-sans {
+  font-family: var(--bp-font-sans);
+}
+
+.bp-type-display {
+  font-family: var(--bp-font-display);
+  font-weight: 700;
+  letter-spacing: var(--bp-type-tight);
+}
+
+.bp-type-title {
+  font-family: var(--bp-font-display);
+  font-weight: 650;
+  letter-spacing: var(--bp-type-tight);
+}
+
+.bp-type-label {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.bp-surface-glass {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(3, 17, 29, 0.58);
+  box-shadow: var(--bp-shadow-glass);
+  backdrop-filter: blur(24px);
+}
+
+.bp-page-title {
+  font-family: var(--bp-font-wordmark);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.cinematic-hero-stage {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2rem;
+  padding: 8rem var(--cinematic-screen-x) 4rem;
+}
+
+.cinematic-hero-grid {
+  display: grid;
 }
 
 .bp-focus-ring:focus-visible {
@@ -109,9 +200,10 @@ body:has(.cinematic-page) .site-brand-mark {
 
 body:has(.cinematic-page) .site-brand-name {
   display: block;
-  font-family: var(--font-display);
+  font-family: var(--bp-font-wordmark);
   font-size: 1.125rem;
   font-weight: 400;
+  letter-spacing: 0;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 
@@ -260,7 +352,6 @@ body:has(.cinematic-page) .site-nav {
   margin-top: 0.5rem;
   background: #092033;
   color: white;
-  text-transform: uppercase;
   font-size: 0.6875rem;
   font-weight: 650;
   letter-spacing: 0.08em;
@@ -383,6 +474,11 @@ body:not(:has(.cinematic-page)) .site-operator:hover svg {
     --cinematic-screen-x: 3rem;
   }
 
+  .cinematic-hero-stage {
+    padding-top: 9rem;
+    padding-bottom: 4.5rem;
+  }
+
   body:has(.cinematic-page) .site-brand {
     top: 50%;
   }
@@ -391,6 +487,10 @@ body:not(:has(.cinematic-page)) .site-operator:hover svg {
 @media (min-width: 1280px) {
   :root {
     --cinematic-screen-x: 4rem;
+  }
+
+  .cinematic-hero-grid {
+    grid-template-columns: minmax(0, 680px) 360px;
   }
 }
 

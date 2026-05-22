@@ -11,6 +11,7 @@ export default function ConservationPage() {
       secondaryHref="/for-operators"
       secondaryLabel="For operators"
       backgroundImage="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1800&q=80"
+      titleClassName="text-[clamp(2.25rem,5vw,4rem)]"
       features={[
         {
           title: "After confirmation",

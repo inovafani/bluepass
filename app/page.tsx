@@ -29,12 +29,12 @@ export default function HomePage() {
       <div className="absolute inset-0 bg-[#0c3b3a]/10 mix-blend-color" />
       <div className="bp-film-grain absolute inset-0" />
 
-      <div className="relative z-10 h-full">
-        <section className="absolute inset-x-[var(--cinematic-screen-x)] top-1/2 max-w-[560px] -translate-y-1/2 border border-white/16 bg-[#03111d]/50 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:left-[var(--cinematic-screen-x)] md:right-auto md:top-[8.5rem] md:w-[min(44vw,560px)] md:translate-y-0 md:p-8 xl:p-9">
-          <p className="mb-6 text-[10px] font-black uppercase text-white/60">
+      <div className="cinematic-hero-stage">
+        <section className="w-full max-w-[560px] border border-white/16 bg-[#03111d]/50 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:w-[min(44vw,560px)] md:p-8 xl:p-9">
+          <p className="mb-6 text-[10px] font-black text-white/60">
             WhatsApp booking
           </p>
-          <h1 className="font-display text-[clamp(2.9rem,5vw,4.85rem)] font-black uppercase leading-[0.86] text-white">
+          <h1 className="bp-page-title text-[clamp(2.25rem,5vw,4rem)] leading-[0.96] text-white">
             Plan With Kai
           </h1>
           <div className="mt-7 grid grid-cols-[2px_1fr] gap-5">
@@ -47,13 +47,13 @@ export default function HomePage() {
           <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
             <Link
               href="https://wa.me/628213143342"
-              className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
+              className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
             >
               Start with Kai
             </Link>
             <Link
               href="/explore-indonesia"
-              className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black uppercase text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
+              className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
             >
               Explore Indonesia
             </Link>

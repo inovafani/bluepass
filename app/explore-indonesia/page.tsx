@@ -334,7 +334,7 @@ function IndonesiaMap() {
 export default function ExploreIndonesiaPage() {
   return (
     <main className="cinematic-page min-h-screen bg-[#020b11] text-white">
-      <section className="relative min-h-svh overflow-hidden bg-[#020b11] px-[var(--cinematic-screen-x)] pb-16 pt-32 text-white md:pt-36">
+      <section className="relative min-h-svh overflow-hidden bg-[#020b11] text-white">
         <div
           aria-hidden="true"
           className="absolute inset-0 scale-105 bg-cover bg-center"
@@ -347,12 +347,12 @@ export default function ExploreIndonesiaPage() {
         <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
         <div className="cinematic-app-grid absolute inset-0 opacity-35" />
         <div className="bp-film-grain absolute inset-0" />
-        <div className="relative z-10 grid min-h-[calc(100svh-9rem)] items-end gap-8 lg:grid-cols-[minmax(0,680px)_360px] lg:items-end">
+        <div className="cinematic-hero-stage cinematic-hero-grid">
           <section className="border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">
-            <p className="mb-6 text-[10px] font-black uppercase text-white/60">
+            <p className="mb-6 text-[10px] font-black text-white/60">
               Explore Indonesia
             </p>
-            <h1 className="font-display text-[clamp(3rem,6vw,5.9rem)] font-black uppercase leading-[0.88] text-white">
+            <h1 className="bp-page-title text-[clamp(3rem,6vw,4rem)] leading-[0.96] text-white">
               Dive, Sail, Surf
             </h1>
             <div className="mt-7 grid grid-cols-[2px_1fr] gap-5">
@@ -366,20 +366,20 @@ export default function ExploreIndonesiaPage() {
             <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
               <Link
                 href="https://wa.me/628213143342"
-                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/90 active:scale-[0.98]"
+                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/90 active:scale-[0.98]"
               >
                 Get matched by Kai
               </Link>
               <a
                 href="#ready-to-inquire"
-                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black uppercase text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
+                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
               >
                 Browse trips
               </a>
             </div>
           </section>
           <aside className="border border-white/12 bg-black/20 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#B89A5D]">
+            <p className="text-[11px] font-black tracking-[0.18em] text-[#B89A5D]">
               Conservation pledge
             </p>
             <p className="text-sm leading-6 text-white/70">
@@ -388,7 +388,7 @@ export default function ExploreIndonesiaPage() {
             </p>
             <Link
               href="https://wa.me/628213143342"
-              className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 bg-white px-5 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/90"
+              className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 bg-white px-5 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/90"
             >
               <MessageIcon />
               Get matched by Kai
@@ -397,13 +397,16 @@ export default function ExploreIndonesiaPage() {
         </div>
       </section>
 
-      <section id="ready-to-inquire" className="px-[var(--cinematic-screen-x)] py-12 md:py-16">
+      <section
+        id="ready-to-inquire"
+        className="px-[var(--cinematic-screen-x)] py-12 md:py-16"
+      >
         <div className="mb-5 grid gap-4 border border-white/12 bg-black/20 p-5 text-white shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl md:grid-cols-[1fr_auto] md:items-center md:p-6">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#B89A5D]">
+            <p className="text-[11px] font-black tracking-[0.18em] text-[#B89A5D]">
               Kai can match while you browse
             </p>
-            <h2 className="mt-2 font-display text-3xl font-black uppercase leading-none text-white md:text-4xl">
+            <h2 className="mt-2 font-display text-3xl font-black leading-none text-white md:text-4xl">
               Tell Kai what you want. Browse while we check the path.
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/60">
@@ -413,7 +416,7 @@ export default function ExploreIndonesiaPage() {
           </div>
           <Link
             href="https://wa.me/628213143342"
-            className="inline-flex h-11 items-center justify-center gap-2 bg-white px-5 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/90"
+            className="inline-flex h-11 items-center justify-center gap-2 bg-white px-5 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/90"
           >
             <MessageIcon />
             Ask Kai to match
@@ -465,10 +468,10 @@ export default function ExploreIndonesiaPage() {
         <div className="content-visibility-auto mt-10">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#B89A5D]">
+              <p className="text-[11px] font-black tracking-[0.18em] text-[#B89A5D]">
                 Live trips
               </p>
-              <h2 className="mt-3 font-display text-4xl font-black uppercase text-white">
+              <h2 className="mt-3 font-display text-4xl font-black text-white">
                 Ready to inquire
               </h2>
             </div>
@@ -487,20 +490,20 @@ export default function ExploreIndonesiaPage() {
                       className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                     />
                     <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-white">
+                      <span className="rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-[11px] font-medium tracking-[0.14em] text-white">
                         {trip.badge}
                       </span>
-                      <span className="rounded-full border border-[#B89A5D]/30 bg-[#B89A5D]/15 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-[#f4d891]">
+                      <span className="rounded-full border border-[#B89A5D]/30 bg-[#B89A5D]/15 px-2.5 py-1 text-[11px] font-medium tracking-[0.14em] text-[#f4d891]">
                         5% reef restoration
                       </span>
                     </div>
                     <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#061827]/70 to-transparent" />
                   </div>
                   <div className="p-5">
-                    <p className="text-xs uppercase tracking-[0.16em] text-[#B89A5D]">
+                    <p className="text-xs tracking-[0.16em] text-[#B89A5D]">
                       {trip.operator}
                     </p>
-                    <h3 className="mt-2 font-display text-2xl font-black uppercase leading-none text-white">
+                    <h3 className="mt-2 font-display text-2xl font-black leading-none text-white">
                       {trip.title}
                     </h3>
                     <p className="mt-3 text-sm leading-6 text-white/64">
@@ -524,10 +527,10 @@ export default function ExploreIndonesiaPage() {
         <div className="content-visibility-auto mt-14">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#B89A5D]">
+              <p className="text-[11px] font-black tracking-[0.18em] text-[#B89A5D]">
                 Early previews
               </p>
-              <h2 className="mt-3 font-display text-4xl font-black uppercase text-white">
+              <h2 className="mt-3 font-display text-4xl font-black text-white">
                 Curated operators being reviewed
               </h2>
             </div>
@@ -549,16 +552,16 @@ export default function ExploreIndonesiaPage() {
                     className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                   />
                   <div className="absolute left-4 top-4">
-                    <span className="rounded-full border border-[#B89A5D]/30 bg-[#B89A5D]/15 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-[#f4d891]">
+                    <span className="rounded-full border border-[#B89A5D]/30 bg-[#B89A5D]/15 px-2.5 py-1 text-[11px] font-medium tracking-[0.14em] text-[#f4d891]">
                       Early preview
                     </span>
                   </div>
                 </div>
                 <div className="p-5">
-                  <p className="text-xs uppercase tracking-[0.16em] text-[#B89A5D]">
+                  <p className="text-xs tracking-[0.16em] text-[#B89A5D]">
                     {preview.location}
                   </p>
-                  <h3 className="mt-2 font-display text-2xl font-black uppercase leading-none text-white">
+                  <h3 className="mt-2 font-display text-2xl font-black leading-none text-white">
                     {preview.title}
                   </h3>
                   <p className="mt-3 text-sm leading-6 text-white/64">
@@ -581,7 +584,7 @@ export default function ExploreIndonesiaPage() {
       <footer className="bg-[#04111d] text-white">
         <div className="border-t border-white/10 bg-[#04111d] px-5">
           <div className="mx-auto max-w-6xl py-10 md:py-14">
-            <p className="text-center text-[10px] font-medium uppercase tracking-[0.32em] text-white/45">
+            <p className="text-center text-[10px] font-medium tracking-[0.32em] text-white/45">
               The water we work in
             </p>
             <IndonesiaMap />
@@ -592,13 +595,15 @@ export default function ExploreIndonesiaPage() {
           <div className="mx-auto max-w-6xl py-12 md:py-16">
             <div className="grid gap-8 md:grid-cols-[1.15fr_2fr] md:gap-12">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#B89A5D]">
+                <p className="text-[11px] font-semibold tracking-[0.22em] text-[#B89A5D]">
                   Reef restoration
                 </p>
                 <p className="mt-4 font-display text-3xl font-normal leading-[1.08] text-white md:text-4xl">
                   5% of every booking
                   <br />
-                  <span className="text-white/65">goes to a named partner.</span>
+                  <span className="text-white/65">
+                    goes to a named partner.
+                  </span>
                 </p>
                 <p className="mt-4 max-w-md text-sm leading-6 text-white/65">
                   We will not ask travellers to trust anonymous conservation
@@ -608,7 +613,7 @@ export default function ExploreIndonesiaPage() {
                 </p>
                 <Link
                   href="/conservation"
-                  className="mt-6 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-[#B89A5D] transition-colors hover:text-white"
+                  className="mt-6 inline-flex items-center gap-2 text-xs font-medium tracking-[0.18em] text-[#B89A5D] transition-colors hover:text-white"
                 >
                   See how the 5% flows
                 </Link>
@@ -622,13 +627,13 @@ export default function ExploreIndonesiaPage() {
                     <p className="text-sm font-medium text-white">
                       {partner.name}
                     </p>
-                    <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/55">
+                    <p className="mt-1 text-[11px] tracking-[0.16em] text-white/55">
                       {partner.location}
                     </p>
                     <p className="mt-3 text-xs leading-5 text-white/65">
                       {partner.body}
                     </p>
-                    <p className="mt-4 flex items-baseline justify-between border-t border-white/10 pt-3 text-[11px] uppercase tracking-[0.16em]">
+                    <p className="mt-4 flex items-baseline justify-between border-t border-white/10 pt-3 text-[11px] tracking-[0.16em]">
                       <span className="text-white/45">Next report</span>
                       <span className="text-[#B89A5D]">{partner.report}</span>
                     </p>
@@ -649,12 +654,12 @@ export default function ExploreIndonesiaPage() {
               matching, vetted operators, a referral mesh that keeps trips alive
               when one crew is full, and 5% of every booking back to the reef.
             </p>
-            <p className="mt-4 text-[11px] uppercase tracking-[0.18em] text-white/40">
+            <p className="mt-4 text-[11px] tracking-[0.18em] text-white/40">
               Indonesia-first · Founding cohort 2026
             </p>
           </div>
           <div className="grid gap-2">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#B89A5D]">
+            <p className="text-xs font-medium tracking-[0.18em] text-[#B89A5D]">
               Marketplace
             </p>
             <Link href="/explore-indonesia">Trips</Link>
@@ -662,7 +667,7 @@ export default function ExploreIndonesiaPage() {
             <Link href="/explore-indonesia">Destinations</Link>
           </div>
           <div className="grid gap-2">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#B89A5D]">
+            <p className="text-xs font-medium tracking-[0.18em] text-[#B89A5D]">
               Company
             </p>
             <Link href="/about">About</Link>
@@ -670,7 +675,7 @@ export default function ExploreIndonesiaPage() {
             <Link href="/creators">Creators</Link>
           </div>
           <div className="grid gap-2">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#B89A5D]">
+            <p className="text-xs font-medium tracking-[0.18em] text-[#B89A5D]">
               Operators
             </p>
             <Link href="/for-operators">BluePass for Operators</Link>
@@ -679,7 +684,7 @@ export default function ExploreIndonesiaPage() {
           </div>
         </div>
         <div className="border-t border-white/10 px-5">
-          <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-2 py-5 text-[11px] uppercase tracking-[0.18em] text-white/35 md:flex-row md:items-center">
+          <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-2 py-5 text-[11px] tracking-[0.18em] text-white/35 md:flex-row md:items-center">
             <span>© 2026 BluePass — Marine Tourism Operator OS</span>
             <span className="text-white/30">
               Built in Indonesia · for Indonesia&apos;s ocean

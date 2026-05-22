@@ -69,7 +69,9 @@ export function SiteHeader() {
         <button
           type="button"
           className="site-menu-button bp-focus-ring xl:hidden"
-          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-label={
+            menuOpen ? "Close navigation menu" : "Open navigation menu"
+          }
           aria-expanded={menuOpen}
           aria-controls="mobile-navigation"
           onClick={() => setMenuOpen((open) => !open)}
@@ -133,10 +135,10 @@ function SignupLink({
       className={
         mobile
           ? "mobile-menu-cta"
-          : "site-operator inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.02em] text-slate-800 shadow-sm transition-colors hover:border-bluepass-ocean hover:text-bluepass-ocean"
+          : "site-operator inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold tracking-[0.02em] text-slate-800 shadow-sm transition-colors hover:border-bluepass-ocean hover:text-bluepass-ocean"
       }
     >
-      <span>Sign up BluePass</span>
+      <span>Join BluePass</span>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="16"

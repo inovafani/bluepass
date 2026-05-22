@@ -6,7 +6,7 @@ const signupSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(180),
   phone: z.string().trim().min(6).max(40),
-  role: z.enum(["OPERATOR", "CREATOR", "USER"]),
+  roles: z.array(z.enum(["OPERATOR", "CREATOR"])).min(1).max(2),
 });
 
 export async function POST(request: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     data: parsed.data,
     select: {
       id: true,
-      role: true,
+      roles: true,
       createdAt: true,
     },
   });

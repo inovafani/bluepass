@@ -16,6 +16,7 @@ type CinematicMarketingPageProps = {
   secondaryLabel?: string;
   features?: Feature[];
   backgroundImage?: string;
+  titleClassName?: string;
 };
 
 export function CinematicMarketingPage({
@@ -28,6 +29,7 @@ export function CinematicMarketingPage({
   secondaryLabel = "Explore",
   features = [],
   backgroundImage = "https://assets.mixkit.co/videos/9774/9774-thumb-720-0.jpg",
+  titleClassName = "text-[clamp(2.25rem,5vw,4rem)]",
 }: CinematicMarketingPageProps) {
   return (
     <>
@@ -43,19 +45,18 @@ export function CinematicMarketingPage({
         <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
         <div className="bp-film-grain absolute inset-0" />
 
-        <div className="relative z-10 flex min-h-svh flex-col justify-center gap-8 px-[var(--cinematic-screen-x)] pb-12 pt-32 md:pt-36">
+        <div className="cinematic-hero-stage">
           <section className="max-w-[640px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">
-            <p className="mb-6 text-[10px] font-black uppercase text-white/60">
+            <p className="mb-6 text-[10px] font-black text-white/60">
               {eyebrow}
             </p>
-            <h1 className="font-display text-[clamp(3rem,6vw,5.9rem)] font-black uppercase leading-[0.88] text-white">
+            <h1
+              className={`bp-page-title ${titleClassName} leading-[0.96] text-white`}
+            >
               {title}
             </h1>
             <div className="mt-7 grid grid-cols-[2px_1fr] gap-5">
-              <span
-                className="mt-1 h-20 w-px bg-white/70"
-                aria-hidden="true"
-              />
+              <span className="mt-1 h-20 w-px bg-white/70" aria-hidden="true" />
               <p className="max-w-[29rem] text-sm leading-[1.75] text-white/78 md:text-[15px]">
                 {body}
               </p>
@@ -63,13 +64,13 @@ export function CinematicMarketingPage({
             <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
               <Link
                 href={primaryHref}
-                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black uppercase text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
+                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
               >
                 {primaryLabel}
               </Link>
               <Link
                 href={secondaryHref}
-                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black uppercase text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
+                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
               >
                 {secondaryLabel}
               </Link>
@@ -83,7 +84,7 @@ export function CinematicMarketingPage({
                   key={feature.title}
                   className="border border-white/12 bg-black/20 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl"
                 >
-                  <h2 className="text-[11px] font-black uppercase text-white/82">
+                  <h2 className="text-[11px] font-black text-white/82">
                     {feature.title}
                   </h2>
                   <p className="mt-3 text-sm leading-6 text-white/64">

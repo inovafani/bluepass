@@ -13,12 +13,12 @@ export function BluePassFooter() {
             matching, vetted operators, and 5% of every booking back to the
             reef.
           </p>
-          <p className="mt-4 text-[11px] uppercase tracking-[0.18em] text-white/40">
+          <p className="mt-4 text-[11px] tracking-[0.18em] text-white/40">
             Indonesia-first - Founding cohort 2026
           </p>
         </div>
         <div className="grid gap-2">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#B89A5D]">
+          <p className="text-xs font-medium tracking-[0.18em] text-[#B89A5D]">
             Marketplace
           </p>
           <Link href="/explore-indonesia">Trips</Link>
@@ -26,7 +26,7 @@ export function BluePassFooter() {
           <Link href="/explore-indonesia">Destinations</Link>
         </div>
         <div className="grid gap-2">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#B89A5D]">
+          <p className="text-xs font-medium tracking-[0.18em] text-[#B89A5D]">
             Company
           </p>
           <Link href="/about">About</Link>
@@ -34,7 +34,7 @@ export function BluePassFooter() {
           <Link href="/creators">Creators</Link>
         </div>
         <div className="grid gap-2">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#B89A5D]">
+          <p className="text-xs font-medium tracking-[0.18em] text-[#B89A5D]">
             Operators
           </p>
           <Link href="/for-operators">BluePass for Operators</Link>
@@ -43,7 +43,7 @@ export function BluePassFooter() {
         </div>
       </div>
       <div className="border-t border-white/10 px-5">
-        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-2 py-5 text-[11px] uppercase tracking-[0.18em] text-white/35 md:flex-row md:items-center">
+        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-2 py-5 text-[11px] tracking-[0.18em] text-white/35 md:flex-row md:items-center">
           <span>Copyright 2026 BluePass - Marine Tourism Operator OS</span>
           <span className="text-white/30">
             Built in Indonesia - for Indonesia&apos;s ocean

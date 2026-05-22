@@ -61,7 +61,6 @@ enum TransferStatus {
 enum SignupRole {
   OPERATOR
   CREATOR
-  USER
 }
 
 model Operator {
@@ -184,9 +183,9 @@ model SignupLead {
   name      String
   email     String
   phone     String
-  role      SignupRole
+  roles     SignupRole[] @default([])
   createdAt DateTime   @default(now())
 
-  @@index([role, createdAt])
+  @@index([createdAt])
   @@index([email])
 }
