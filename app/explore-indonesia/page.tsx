@@ -364,7 +364,7 @@ export default function ExploreIndonesiaPage() {
       <section className="relative min-h-svh overflow-hidden bg-[#020b11] text-white">
         <div
           aria-hidden="true"
-          className="absolute inset-0 scale-105 bg-cover bg-center"
+          className="absolute inset-0 scale-105 bg-cover bg-top"
           style={{
             backgroundImage: "url('/explore/explore-header.jpg')",
           }}

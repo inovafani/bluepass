@@ -21,7 +21,7 @@ export default function HomePage() {
         preload="metadata"
       >
         <source
-          src="https://assets.mixkit.co/videos/36621/36621-360.mp4"
+          src="https://assets.mixkit.co/videos/36621/36621-1080.mp4"
           type="video/mp4"
         />
       </video>
@@ -56,33 +56,6 @@ export default function HomePage() {
             </Link>
           </div>
         </section>
-
-        <div className="absolute bottom-[calc(2.2rem+env(safe-area-inset-bottom))] left-[var(--cinematic-screen-x)] z-30 flex items-center gap-4">
-          <button
-            type="button"
-            className="bp-focus-ring bp-sharp flex h-9 w-9 items-center justify-center border border-white/24 bg-black/26 text-white backdrop-blur-xl transition-colors hover:bg-white/10"
-            aria-label="Play BluePass preview"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="ml-[1px] h-3.5 w-3.5 fill-current"
-              aria-hidden="true"
-            >
-              <polygon points="6 3 20 12 6 21 6 3" />
-            </svg>
-          </button>
-          <span className="h-px w-20 overflow-hidden bg-white/25 sm:w-28 xl:w-56">
-            <span className="block h-full w-1/3 bg-white/86" />
-          </span>
-        </div>
 
         <div className="absolute bottom-[calc(2.2rem+env(safe-area-inset-bottom))] right-[var(--cinematic-screen-x)] z-30 flex items-center gap-1.5">
           <span className="flex p-2">
