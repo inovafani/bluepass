@@ -62,21 +62,33 @@ const previews = [
     name: "Scuba Republic (Jaya + Epica)",
     href: "/preview/scuba-republic-jaya-plus-epica",
     body: "Scuba Republic (Jaya + Epica) is staged for BluePass onboarding as a liveaboard + dive center with T1 priority.",
+    image:
+      "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?auto=format&fit=crop&w=1600&q=80",
+    alt: "Diver swimming beside a reef wall",
   },
   {
     name: "Mermaid Liveaboards (I + II)",
     href: "/preview/mermaid-liveaboards-i-plus-ii",
     body: "Mermaid Liveaboards (I + II) is staged for BluePass onboarding as a luxury liveaboard with T1 priority.",
+    image:
+      "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1600&q=80",
+    alt: "Luxury yacht moving through open water",
   },
   {
     name: "Samambaia Liveaboard",
     href: "/preview/samambaia-liveaboard",
     body: "Samambaia Liveaboard is staged for BluePass onboarding as a luxury phinisi with T1 priority.",
+    image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+    alt: "Warm sunset over a tropical shore",
   },
   {
     name: "La Galigo Liveaboard",
     href: "/preview/la-galigo-liveaboard",
     body: "La Galigo Liveaboard is staged for BluePass onboarding as a phinisi liveaboard with T1 priority.",
+    image:
+      "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80",
+    alt: "Turquoise island coastline from above",
   },
 ];
 
@@ -125,9 +137,6 @@ export default function ForOperatorsPage() {
                   Browse operators
                 </Link>
               </div>
-              <p className="mt-7 text-[11px] font-light tracking-[0.18em] text-[#B89A5D]">
-                Operator catalog
-              </p>
             </section>
           </div>
         </section>
@@ -229,8 +238,8 @@ export default function ForOperatorsPage() {
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-white/5">
                     <Image
-                      src={accessImage}
-                      alt="Island coastline with turquoise water"
+                      src={preview.image}
+                      alt={preview.alt}
                       fill
                       sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"

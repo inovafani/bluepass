@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 const heroImage = "/creators/hero.jpg";
+const creatorPageImage = "/creators/creator-page.jpg";
 
 const steps = [
   {
@@ -30,18 +31,22 @@ const creatorBenefits = [
   {
     title: "Your ocean page",
     body: "A polished trip page for your favorite operators, routes, and stories.",
+    icon: "page",
   },
   {
     title: "Clean attribution",
     body: "Followers book from your link. No messy tracking pitch needed.",
+    icon: "link",
   },
   {
     title: "Creator earnings",
     body: "Commission comes from BluePass, with reef funding still included.",
+    icon: "earn",
   },
   {
     title: "Operator access",
     body: "Warm intros to crews when the trip fits your audience.",
+    icon: "access",
   },
 ];
 
@@ -141,15 +146,20 @@ export default function CreatorsPage() {
             </div>
 
             <div className="mt-8 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-              <div
-                className="bp-rounded-surface min-h-[420px] border border-white/12 bg-cover bg-center p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] md:p-8"
-                style={{ backgroundImage: `url('${heroImage}')` }}
-              >
-                <div className="bp-rounded-surface flex h-full min-h-[360px] flex-col justify-end bg-[linear-gradient(180deg,transparent,rgba(0,7,12,0.78))] p-5">
+              <div className="relative min-h-[420px] overflow-hidden rounded-[var(--bp-radius-md)] bg-cover bg-center shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+                <div
+                  className="absolute inset-0 bg-cover bg-[center_70%]"
+                  style={{ backgroundImage: `url('${creatorPageImage}')` }}
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/72 via-black/34 to-transparent"
+                />
+                <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
                   <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
                     BluePass creator page
                   </p>
-                  <p className="bp-page-title mt-3 max-w-md text-xl leading-none text-white/82 md:text-2xl">
+                  <p className="bp-page-title mt-3 max-w-md text-xl leading-none text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.75)] md:text-2xl">
                     One link for the trips you believe in.
                   </p>
                 </div>
@@ -195,7 +205,7 @@ export default function CreatorsPage() {
                   key={benefit.title}
                   className="min-h-[170px] border border-white/12 bg-white/[0.035] p-5 transition-colors hover:border-white/24"
                 >
-                  <CheckIcon />
+                  <BenefitIcon type={benefit.icon} />
                   <p className="bp-page-title mt-5 text-xl leading-none text-white/82">
                     {benefit.title}
                   </p>
@@ -209,26 +219,21 @@ export default function CreatorsPage() {
         </section>
 
         <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
-          <div className="bp-rounded-surface mx-auto grid max-w-6xl gap-8 border border-white/12 bg-[#03111d]/70 p-6 md:p-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <h2 className="bp-page-title text-xl leading-none text-white/82 md:text-2xl">
-              Built for real ocean people.
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {[
-                "Dive instructors",
-                "Ocean photographers",
-                "Travel filmmakers",
-                "Sailing storytellers",
-                "Conservation educators",
-              ].map((item) => (
-                <span
-                  key={item}
-                  className="rounded-full border border-white/14 bg-white/[0.035] px-3 py-2 text-sm font-light text-white/62"
-                >
-                  {item}
-                </span>
-              ))}
+          <div className="relative mx-auto grid max-w-6xl gap-8 overflow-hidden border-y border-white/10 py-12 md:grid-cols-[0.82fr_1.18fr] md:gap-16 md:py-16">
+            <OceanCurrentOrnament />
+            <div className="relative">
+              <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
+                Who it is for
+              </p>
+              <h2 className="bp-page-title mt-4 max-w-xl text-2xl leading-none text-white/86 md:text-3xl">
+                Real ocean people with real trust.
+              </h2>
             </div>
+            <p className="relative max-w-3xl text-base font-light leading-8 text-white/62 md:text-lg">
+              BluePass is for dive instructors, ocean photographers, travel
+              writers, sailors with audiences, and conservation educators. We do
+              not take influencers we cannot verify took the trip.
+            </p>
           </div>
         </section>
 
@@ -285,7 +290,7 @@ export default function CreatorsPage() {
               Want your ocean stories to move bookings and fund reefs?
             </h2>
             <Link
-              href="mailto:jeff@bluepass.travel?subject=BluePass%20creator%20program"
+              href="/signup"
               className="bp-focus-ring mt-8 inline-flex h-12 items-center justify-center gap-2 bg-white px-6 text-sm font-medium text-[#071827] transition-colors hover:bg-white/90"
             >
               Apply to be a creator
@@ -299,7 +304,39 @@ export default function CreatorsPage() {
   );
 }
 
-function CheckIcon() {
+function BenefitIcon({ type }: { type: string }) {
+  const paths = {
+    page: (
+      <>
+        <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7Z" />
+        <path d="M14 2v5h5" />
+        <path d="M9 13h6" />
+        <path d="M9 17h4" />
+      </>
+    ),
+    link: (
+      <>
+        <path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L11 4.93" />
+        <path d="M14 11a5 5 0 0 0-7.07 0L4.81 13.12a5 5 0 0 0 7.07 7.07L13 19.07" />
+      </>
+    ),
+    earn: (
+      <>
+        <circle cx="12" cy="12" r="8" />
+        <path d="M12 8v8" />
+        <path d="M9.5 10.5c.5-1 1.4-1.5 2.5-1.5 1.4 0 2.5.8 2.5 2s-1.1 2-2.5 2-2.5.8-2.5 2 1.1 2 2.5 2c1.1 0 2-.5 2.5-1.5" />
+      </>
+    ),
+    access: (
+      <>
+        <path d="M16 3h5v5" />
+        <path d="m21 3-7 7" />
+        <path d="M10 6H6a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h9a3 3 0 0 0 3-3v-4" />
+        <path d="M8 14h5" />
+      </>
+    ),
+  } as const;
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -314,8 +351,43 @@ function CheckIcon() {
       className="h-5 w-5 text-[#B89A5D]"
       aria-hidden="true"
     >
-      <circle cx="12" cy="12" r="10" />
-      <path d="m9 12 2 2 4-4" />
+      {paths[type as keyof typeof paths] ?? paths.page}
+    </svg>
+  );
+}
+
+function OceanCurrentOrnament() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute -right-12 top-1/2 hidden h-48 w-[58%] -translate-y-1/2 text-white/10 md:block"
+      viewBox="0 0 720 220"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M8 72C96 22 174 28 242 70C326 122 414 116 510 62C578 24 650 24 712 54"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 122C110 78 194 84 266 126C344 172 438 166 526 116C600 74 660 78 710 106"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.72"
+      />
+      <path
+        d="M38 166C120 136 190 142 256 174C330 210 416 208 500 168C580 130 648 130 704 152"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.45"
+      />
+      <circle cx="586" cy="78" r="4" fill="#B89A5D" opacity="0.62" />
+      <circle cx="626" cy="94" r="2.5" fill="#B89A5D" opacity="0.42" />
+      <circle cx="536" cy="146" r="3" fill="#B89A5D" opacity="0.48" />
     </svg>
   );
 }

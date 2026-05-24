@@ -15,7 +15,7 @@ export default function SignupPage() {
       <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
       <div className="bp-film-grain absolute inset-0" />
 
-      <div className="relative z-10 flex min-h-svh items-center justify-center px-[var(--cinematic-screen-x)] pb-14 pt-28 sm:pb-16 sm:pt-32">
+      <div className="relative left-1/2 z-10 flex min-h-svh w-screen -translate-x-1/2 items-center justify-center px-[var(--cinematic-screen-x)] pb-14 pt-28 sm:pb-16 sm:pt-32">
         <SignupForm />
       </div>
     </section>

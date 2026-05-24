@@ -94,6 +94,9 @@ const earlyPreviews = [
     summary:
       "Liveaboard + Dive Center experience across Raja Ampat + Komodo. Multi-destination, year-round, strong reviews.",
     price: "$2,600",
+    image:
+      "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?auto=format&fit=crop&w=1600&q=80",
+    alt: "Diver swimming beside a coral reef wall",
   },
   {
     href: "/preview/mermaid-liveaboards-i-plus-ii",
@@ -102,6 +105,9 @@ const earlyPreviews = [
     summary:
       "Luxury Liveaboard experience across Komodo, Raja Ampat, Banda Sea, Alor, Halmahera. Covers every BluePass destination. Nine awards..",
     price: "$2,600",
+    image:
+      "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1600&q=80",
+    alt: "Luxury yacht crossing clear tropical water",
   },
   {
     href: "/preview/samambaia-liveaboard",
@@ -110,6 +116,9 @@ const earlyPreviews = [
     summary:
       "Luxury Phinisi experience across Raja Ampat, Komodo, Alor, Flores, Banda, Triton Bay. Full East Indonesia circuit. Premium positioning..",
     price: "$2,600",
+    image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+    alt: "Golden beach at sunset",
   },
   {
     href: "/preview/la-galigo-liveaboard",
@@ -118,6 +127,9 @@ const earlyPreviews = [
     summary:
       "Phinisi Liveaboard experience across Komodo, Raja Ampat, Lembeh, Halmahera. Heritage vessel plus conservation positioning.",
     price: "$2,600",
+    image:
+      "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80",
+    alt: "Turquoise island coastline from above",
   },
   {
     href: "/preview/scuba-junkie-klm-eliya",
@@ -126,6 +138,9 @@ const earlyPreviews = [
     summary:
       "Liveaboard + Resort chain experience across Komodo, Raja Ampat, Banda Sea. Already GF Gold. Expanding Raja Ampat in 2026..",
     price: "$2,600",
+    image:
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
+    alt: "Remote lagoon with white sand and blue water",
   },
   {
     href: "/preview/mikumba-diving-jelajahi-laut",
@@ -134,6 +149,9 @@ const earlyPreviews = [
     summary:
       "Expedition Liveaboard experience across Komodo, Raja Ampat, Banda, Halmahera, Sulawesi, Ambon. Niche routes across Halmahera and Sulawesi.",
     price: "$2,200",
+    image:
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1600&q=80",
+    alt: "Scuba diver with schooling fish on a reef",
   },
   {
     href: "/preview/ayo-divers-ratu-laut",
@@ -142,6 +160,9 @@ const earlyPreviews = [
     summary:
       "Phinisi Liveaboard experience across Raja Ampat + Komodo. Heritage phinisi operators are core to the BluePass brand.",
     price: "$2,200",
+    image:
+      "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1600&q=80",
+    alt: "Wooden boat near a tropical island",
   },
   {
     href: "/preview/blue-manta-explorer",
@@ -150,6 +171,9 @@ const earlyPreviews = [
     summary:
       "Luxury Steel Liveaboard experience across Raja Ampat, Komodo, Ambon. Scale fill rate with conservation-oriented bookings.",
     price: "$2,200",
+    image:
+      "https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?auto=format&fit=crop&w=1600&q=80",
+    alt: "Deep blue ocean seen from above",
   },
   {
     href: "/preview/calico-jack",
@@ -158,6 +182,9 @@ const earlyPreviews = [
     summary:
       "Liveaboard experience across Raja Ampat, Triton Bay, Banda Sea, Ambon. Focused on remote Indonesia diving.",
     price: "$2,200",
+    image:
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
+    alt: "Tropical island shore with warm light",
   },
   {
     href: "/preview/indo-master",
@@ -347,8 +374,8 @@ export default function ExploreIndonesiaPage() {
         <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
         <div className="cinematic-app-grid absolute inset-0 opacity-35" />
         <div className="bp-film-grain absolute inset-0" />
-        <div className="cinematic-hero-stage cinematic-hero-grid">
-          <section className="border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">
+        <div className="cinematic-hero-stage">
+          <section className="max-w-[640px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">
             <h1 className="bp-page-title text-[clamp(3rem,6vw,4rem)] leading-[0.96] text-white">
               Dive, Sail, Surf
             </h1>
@@ -375,22 +402,6 @@ export default function ExploreIndonesiaPage() {
               </a>
             </div>
           </section>
-          <aside className="border border-white/12 bg-black/20 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-            <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-              Conservation pledge
-            </p>
-            <p className="text-sm leading-6 text-white/70">
-              Every booking reserves 5% for reef restoration and ocean
-              protection.
-            </p>
-            <Link
-              href="https://wa.me/628213143342"
-              className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 bg-white px-5 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
-            >
-              <MessageIcon />
-              Get matched by Kai
-            </Link>
-          </aside>
         </div>
       </section>
 
@@ -477,13 +488,15 @@ export default function ExploreIndonesiaPage() {
           <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {liveTrips.map((trip) => (
               <Link key={trip.href} href={trip.href} className="group block">
-                <article className="h-full overflow-hidden border border-white/12 bg-[#03111d]/90 shadow-[0_14px_44px_rgba(0,0,0,0.22)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:border-white/24">
+                <article className="bp-fast-card h-full overflow-hidden border border-white/12 bg-[#03111d]/90 shadow-[0_14px_44px_rgba(0,0,0,0.22)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:border-white/24">
                   <div className="relative aspect-[4/3] overflow-hidden bg-[#071827]/10">
                     <Image
                       src={trip.image}
                       alt={trip.alt}
                       fill
                       sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                      loading="lazy"
+                      quality={68}
                       className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                     />
                     <div className="absolute left-4 top-4 flex flex-wrap gap-2">
@@ -538,14 +551,16 @@ export default function ExploreIndonesiaPage() {
               <Link
                 key={preview.href}
                 href={preview.href}
-                className="group overflow-hidden border border-white/12 bg-[#03111d]/90 shadow-[0_14px_44px_rgba(0,0,0,0.22)] transition-transform duration-200 hover:-translate-y-0.5 hover:border-white/24"
+                className="bp-fast-card group overflow-hidden border border-white/12 bg-[#03111d]/90 shadow-[0_14px_44px_rgba(0,0,0,0.22)] transition-transform duration-200 hover:-translate-y-0.5 hover:border-white/24"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-[#071827]/10">
                   <Image
-                    src={earlyPreviewImage}
-                    alt="Island coastline with turquoise water"
+                    src={preview.image ?? earlyPreviewImage}
+                    alt={preview.alt ?? "Island coastline with turquoise water"}
                     fill
                     sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                    loading="lazy"
+                    quality={68}
                     className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                   />
                   <div className="absolute left-4 top-4">
