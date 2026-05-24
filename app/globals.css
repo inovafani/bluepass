@@ -104,6 +104,8 @@ body {
 .cinematic-page :where(article, aside, form),
 .cinematic-page a[class*="group"],
 .cinematic-page div[class*="aspect-"][class*="overflow-hidden"],
+.cinematic-page div[class*=" border "][class*=" bg-"],
+.cinematic-page div[class*=" border "][class*=" bg-["],
 .cinematic-page .cinematic-hero-stage > section,
 .cinematic-page .bp-rounded-surface {
   overflow: hidden;

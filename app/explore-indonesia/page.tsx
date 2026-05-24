@@ -420,7 +420,7 @@ export default function ExploreIndonesiaPage() {
           </Link>
         </div>
 
-        <div className="border border-white/12 bg-[#03111d]/58 p-3 shadow-[0_28px_100px_rgba(0,0,0,0.32)] backdrop-blur-2xl md:p-4">
+        <div className="bp-rounded-surface border border-white/12 bg-[#03111d]/58 p-3 shadow-[0_28px_100px_rgba(0,0,0,0.32)] backdrop-blur-2xl md:p-4">
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">
             <label className="relative block">
               <span className="sr-only">Search trips</span>
@@ -444,7 +444,7 @@ export default function ExploreIndonesiaPage() {
                 </svg>
               </span>
             </label>
-            <div className="grid grid-cols-3 gap-2 border border-white/16 bg-black/25 p-1">
+            <div className="bp-rounded-surface grid grid-cols-3 gap-2 border border-white/16 bg-black/25 p-1">
               {["All", "Live", "Early"].map((filter) => (
                 <button
                   key={filter}
