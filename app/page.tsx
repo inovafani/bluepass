@@ -63,7 +63,7 @@ export default function HomePage() {
         <div className="absolute bottom-[calc(2.2rem+env(safe-area-inset-bottom))] left-[var(--cinematic-screen-x)] z-30 flex items-center gap-4">
           <button
             type="button"
-            className="bp-focus-ring flex h-9 w-9 items-center justify-center border border-white/24 bg-black/26 text-white backdrop-blur-xl transition-colors hover:bg-white/10"
+            className="bp-focus-ring bp-sharp flex h-9 w-9 items-center justify-center border border-white/24 bg-black/26 text-white backdrop-blur-xl transition-colors hover:bg-white/10"
             aria-label="Play BluePass preview"
           >
             <svg
