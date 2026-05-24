@@ -3,7 +3,6 @@ import { CinematicMarketingPage } from "@/app/components/CinematicMarketingPage"
 export default function ConservationPage() {
   return (
     <CinematicMarketingPage
-      eyebrow="02 / Conservation"
       title="Fund The Water"
       body="Five percent of every confirmed booking is pledged to conservation, queued after confirmation, and tracked separately from booking state."
       primaryHref="https://wa.me/628213143342"

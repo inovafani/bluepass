@@ -3,7 +3,6 @@ import { CinematicMarketingPage } from "@/app/components/CinematicMarketingPage"
 export default function ForOperatorsPage() {
   return (
     <CinematicMarketingPage
-      eyebrow="01 / Operators"
       title="Accept Bookings"
       body="Keep booking acceptance in WhatsApp Business while BluePass coordinates traveller intent, PMS holds, payment readiness, and audit-friendly booking events."
       primaryHref="/signup"

@@ -31,9 +31,6 @@ export default function HomePage() {
 
       <div className="cinematic-hero-stage">
         <section className="w-full max-w-[560px] border border-white/16 bg-[#03111d]/50 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:w-[min(44vw,560px)] md:p-8 xl:p-9">
-          <p className="mb-6 text-[10px] font-black text-white/60">
-            WhatsApp booking
-          </p>
           <h1 className="bp-page-title text-[clamp(2.25rem,5vw,4rem)] leading-[0.96] text-white">
             Plan With Kai
           </h1>

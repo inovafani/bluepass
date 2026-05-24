@@ -349,9 +349,6 @@ export default function ExploreIndonesiaPage() {
         <div className="bp-film-grain absolute inset-0" />
         <div className="cinematic-hero-stage cinematic-hero-grid">
           <section className="border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">
-            <p className="mb-6 text-[10px] font-normal text-white/60">
-              Explore Indonesia
-            </p>
             <h1 className="bp-page-title text-[clamp(3rem,6vw,4rem)] leading-[0.96] text-white">
               Dive, Sail, Surf
             </h1>

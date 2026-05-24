@@ -7,7 +7,6 @@ type Feature = {
 };
 
 type CinematicMarketingPageProps = {
-  eyebrow: string;
   title: string;
   body: string;
   primaryHref?: string;
@@ -20,7 +19,6 @@ type CinematicMarketingPageProps = {
 };
 
 export function CinematicMarketingPage({
-  eyebrow,
   title,
   body,
   primaryHref = "https://wa.me/628213143342",
@@ -47,9 +45,6 @@ export function CinematicMarketingPage({
 
         <div className="cinematic-hero-stage">
           <section className="max-w-[640px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">
-            <p className="mb-6 text-[10px] font-normal text-white/60">
-              {eyebrow}
-            </p>
             <h1
               className={`bp-page-title ${titleClassName} leading-[0.96] text-white`}
             >

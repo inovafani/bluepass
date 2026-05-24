@@ -88,9 +88,6 @@ export default function CreatorsPage() {
 
           <div className="cinematic-hero-stage">
             <section className="max-w-[640px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">
-              <p className="mb-6 text-[10px] font-normal text-[#B89A5D]">
-                Creators
-              </p>
               <h1 className="bp-page-title text-[clamp(2.25rem,5vw,4rem)] leading-[0.96] text-white">
                 Curate.
                 <br />

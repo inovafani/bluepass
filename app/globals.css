@@ -174,18 +174,6 @@ textarea {
   border-radius: var(--bp-radius-lg);
 }
 
-@keyframes bp-page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes bp-surface-enter {
   from {
     opacity: 0;
@@ -198,10 +186,6 @@ textarea {
   }
 }
 
-body > main {
-  animation: bp-page-enter 520ms ease-out both;
-}
-
 .cinematic-page :where(article, aside, form),
 .cinematic-page .cinematic-hero-stage > section,
 .cinematic-page .bp-rounded-surface {
@@ -209,7 +193,6 @@ body > main {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body > main,
   .cinematic-page :where(article, aside, form),
   .cinematic-page .cinematic-hero-stage > section,
   .cinematic-page .bp-rounded-surface {
