@@ -9,8 +9,7 @@ export const metadata: Metadata = {
     "Browse vetted and claimable Indonesia marine operators on BluePass.",
 };
 
-const heroImage =
-  "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=2200&q=82";
+const heroImage = "/operator/operator-header.jpg";
 const accessImage =
   "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=2200&q=82";
 

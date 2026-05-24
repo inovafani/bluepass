@@ -366,13 +366,11 @@ export default function ExploreIndonesiaPage() {
           aria-hidden="true"
           className="absolute inset-0 scale-105 bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1800&q=80')",
+            backgroundImage: "url('/explore/explore-header.jpg')",
           }}
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.88),rgba(0,15,21,0.5)_48%,rgba(0,8,14,0.72)),linear-gradient(180deg,rgba(0,0,0,0.48),rgba(0,0,0,0.08)_38%,rgba(0,0,0,0.74))]" />
         <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
-        <div className="cinematic-app-grid absolute inset-0 opacity-35" />
         <div className="bp-film-grain absolute inset-0" />
         <div className="cinematic-hero-stage">
           <section className="max-w-[640px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">

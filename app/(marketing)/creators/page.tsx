@@ -113,7 +113,7 @@ export default function CreatorsPage() {
               </div>
               <div className="mt-9 flex flex-wrap gap-3">
                 <Link
-                  href="mailto:jeff@bluepass.travel?subject=BluePass%20creator%20program"
+                  href="/signup"
                   className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
                 >
                   Apply to create
