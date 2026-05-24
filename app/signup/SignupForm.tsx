@@ -75,7 +75,7 @@ export function SignupForm() {
 
       <div className="mt-8 space-y-4">
         <label className="block">
-          <span className="text-[11px] font-black text-white/60">
+          <span className="text-sm font-medium text-white/72">
             Name
           </span>
           <input
@@ -90,7 +90,7 @@ export function SignupForm() {
         </label>
 
         <label className="block">
-          <span className="text-[11px] font-black text-white/60">
+          <span className="text-sm font-medium text-white/72">
             Email
           </span>
           <input
@@ -104,7 +104,7 @@ export function SignupForm() {
         </label>
 
         <label className="block">
-          <span className="text-[11px] font-black text-white/60">
+          <span className="text-sm font-medium text-white/72">
             Phone
           </span>
           <input
@@ -120,14 +120,14 @@ export function SignupForm() {
       </div>
 
       <fieldset className="mt-6">
-        <legend className="text-[11px] font-black text-white/60">
+        <legend className="text-sm font-medium text-white/72">
           I am joining as
         </legend>
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
           {roles.map((item) => (
             <label
               key={item.value}
-              className="flex min-h-12 cursor-pointer items-center justify-center border border-white/20 bg-black/25 px-3 text-center text-[11px] font-black text-white/70 transition-colors hover:border-white/40 hover:bg-white/10 has-[:checked]:border-white has-[:checked]:bg-white has-[:checked]:text-[#071827]"
+              className="flex min-h-14 cursor-pointer items-center justify-center border border-white/20 bg-black/25 px-4 text-center text-sm font-normal text-white/72 transition-colors hover:border-white/40 hover:bg-white/10 has-[:checked]:border-white has-[:checked]:bg-white has-[:checked]:text-[#071827]"
             >
               <input
                 type="radio"
@@ -146,7 +146,7 @@ export function SignupForm() {
       <button
         type="submit"
         disabled={state === "submitting"}
-        className="bp-focus-ring mt-8 inline-flex h-12 w-full items-center justify-center bg-white px-6 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/50"
+        className="bp-focus-ring mt-8 inline-flex h-14 w-full items-center justify-center bg-white px-6 text-sm font-medium text-[#071827] transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/50"
       >
         {state === "submitting" ? "Submitting" : "Join Us"}
       </button>

@@ -47,7 +47,7 @@ export function CinematicMarketingPage({
 
         <div className="cinematic-hero-stage">
           <section className="max-w-[640px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">
-            <p className="mb-6 text-[10px] font-black text-white/60">
+            <p className="mb-6 text-[10px] font-normal text-white/60">
               {eyebrow}
             </p>
             <h1
@@ -64,13 +64,13 @@ export function CinematicMarketingPage({
             <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
               <Link
                 href={primaryHref}
-                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
+                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
               >
                 {primaryLabel}
               </Link>
               <Link
                 href={secondaryHref}
-                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-black text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
+                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-medium text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
               >
                 {secondaryLabel}
               </Link>
@@ -84,7 +84,7 @@ export function CinematicMarketingPage({
                   key={feature.title}
                   className="border border-white/12 bg-black/20 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl"
                 >
-                  <h2 className="text-[11px] font-black text-white/82">
+                  <h2 className="bp-page-title text-xl leading-none text-white/82">
                     {feature.title}
                   </h2>
                   <p className="mt-3 text-sm leading-6 text-white/64">
