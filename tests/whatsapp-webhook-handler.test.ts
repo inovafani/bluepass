@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { handleWhatsAppWebhook } from "@/lib/services/whatsapp/webhook-handler";
 
-function metaPayload(payload: string, type = "button") {
+function metaPayload(payload: string, type = "button", phoneNumberId = "shared_phone_id") {
   return {
     object: "whatsapp_business_account",
     entry: [
@@ -9,6 +9,9 @@ function metaPayload(payload: string, type = "button") {
         changes: [
           {
             value: {
+              metadata: {
+                phone_number_id: phoneNumberId,
+              },
               messages: [
                 {
                   from: "628213143342",
@@ -53,6 +56,17 @@ describe("handleWhatsAppWebhook", () => {
     );
     expect(options.orchestrator.declineByOperator).not.toHaveBeenCalled();
     expect(options.orchestrator.requestCounterOffer).not.toHaveBeenCalled();
+  });
+
+  it("treats accept button payloads as operator actions in one-number mode", async () => {
+    const options = mockOptions();
+
+    await handleWhatsAppWebhook(metaPayload("accept:booking_123", "button", "kai_and_ops"), options);
+
+    expect(options.orchestrator.acceptByOperator).toHaveBeenCalledWith(
+      "booking_123",
+      expect.objectContaining({ source: "whatsapp" }),
+    );
   });
 
   it("calls decline orchestrator for decline button payloads", async () => {

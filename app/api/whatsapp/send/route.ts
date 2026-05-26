@@ -5,6 +5,7 @@ import { sendWhatsAppText } from "@/lib/services/whatsapp/client";
 const sendRequestSchema = z.object({
   to: z.string().min(5),
   body: z.string().min(1),
+  role: z.enum(["kai", "ops"]).optional().default("kai"),
 });
 
 export async function POST(request: NextRequest) {

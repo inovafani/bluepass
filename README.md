@@ -9,7 +9,7 @@ npm install
 npx prisma generate
 ```
 
-Copy `.env.example` to `.env` and fill in local values before running database-backed flows.
+Fill in local values in `.env` before running database-backed flows.
 
 ## Development
 
@@ -26,6 +26,19 @@ npm test
 npm run lint
 npm run build
 ```
+
+## WhatsApp number setup for MVP
+
+BluePass currently supports one-number MVP mode. Set `WHATSAPP_PHONE_ID_KAI`
+to the Meta `phone_number_id` for the Kai/OpenKai WhatsApp Business number.
+Set `WHATSAPP_PHONE_ID_OPS` to the same value, or leave it empty so operator
+messages fall back to `WHATSAPP_PHONE_ID_KAI`.
+
+In one-number mode, Kai and operator notifications come from the same WhatsApp
+number. Later, BluePass can split Kai and Ops by setting different values for
+`WHATSAPP_PHONE_ID_KAI` and `WHATSAPP_PHONE_ID_OPS`. Backend routing in
+one-number mode should rely on sender identity and booking/session context, not
+the destination phone number.
 
 ## Current Phase
 

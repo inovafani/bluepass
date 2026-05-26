@@ -1,9 +1,42 @@
 import crypto from "node:crypto";
 
+export type WhatsAppSenderRole = "kai" | "ops";
+
 export type WhatsAppTextMessage = {
   to: string;
   body: string;
+  role?: WhatsAppSenderRole;
 };
+
+function presentEnvValue(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+export function resolveWhatsAppPhoneId(role: WhatsAppSenderRole): string {
+  const kaiPhoneId = presentEnvValue(process.env.WHATSAPP_PHONE_ID_KAI);
+
+  if (role === "kai") {
+    if (!kaiPhoneId) {
+      throw new Error("WHATSAPP_PHONE_ID_KAI is required for Kai WhatsApp sends.");
+    }
+
+    return kaiPhoneId;
+  }
+
+  const opsPhoneId = presentEnvValue(process.env.WHATSAPP_PHONE_ID_OPS);
+  if (opsPhoneId) {
+    return opsPhoneId;
+  }
+
+  if (kaiPhoneId) {
+    return kaiPhoneId;
+  }
+
+  throw new Error(
+    "WHATSAPP_PHONE_ID_OPS is not set and WHATSAPP_PHONE_ID_KAI fallback is unavailable for Ops WhatsApp sends.",
+  );
+}
 
 export function verifyMetaSignature({
   appSecret,
@@ -32,8 +65,10 @@ export function verifyMetaSignature({
   );
 }
 
-export async function sendWhatsAppText(_message: WhatsAppTextMessage): Promise<void> {
-  void _message;
+export async function sendWhatsAppText(message: WhatsAppTextMessage): Promise<void> {
+  const phoneId = resolveWhatsAppPhoneId(message.role ?? "kai");
+  void phoneId;
+  void message;
 
   throw new Error("Not implemented yet");
 }

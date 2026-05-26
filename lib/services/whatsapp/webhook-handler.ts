@@ -34,6 +34,8 @@ type IncomingWhatsAppMessage = {
   buttonPayload?: string;
 };
 
+type IncomingMessageRoute = "operator_action" | "traveller_or_unclassified";
+
 const defaultOrchestrator: OrchestratorDeps = {
   acceptByOperator,
   declineByOperator,
@@ -117,6 +119,14 @@ function buildActorPayload(message: IncomingWhatsAppMessage): ActorPayload {
   };
 }
 
+function classifyIncomingMessage(message: IncomingWhatsAppMessage): IncomingMessageRoute {
+  if (message.buttonPayload) {
+    return "operator_action";
+  }
+
+  return "traveller_or_unclassified";
+}
+
 export async function handleWhatsAppWebhook(
   payload: unknown,
   options: WhatsAppWebhookHandlerOptions = {},
@@ -134,7 +144,18 @@ export async function handleWhatsAppWebhook(
 
   for (const message of messages) {
     try {
-      if (!message.buttonPayload) {
+      const route = classifyIncomingMessage(message);
+
+      /*
+       * In one-number MVP mode, Kai conversations and operator notifications can share
+       * the same Meta phone_number_id. Inbound routing must therefore be based on the
+       * sender and booking/session context instead of the destination phone number:
+       * if the sender matches an Operator.whatsappNumber or has an active operator
+       * action context, route to operator flow; otherwise route to traveller Kai flow.
+       * Sprint 2 only supports operator button payloads, so quick replies remain
+       * operator actions regardless of the destination phone_number_id.
+       */
+      if (route !== "operator_action" || !message.buttonPayload) {
         logger.info("whatsapp.webhook.ignored_message", {
           messageType: message.type ?? "unknown",
           hasButtonPayload: false,
