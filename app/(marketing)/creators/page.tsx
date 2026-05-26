@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
+import { ReelsCarousel } from "./ReelsCarousel";
 
 export const metadata: Metadata = {
   title: "Creators | BluePass",
@@ -74,6 +75,57 @@ const creators = [
     role: "Travel and filmmaking creator behind Lost LeBlanc, built around cinematic guides and creator education.",
     href: "https://www.instagram.com/lostleblanc?igsh=MWw1eG5vdmQxeHEzYg==",
     image: "/creators/lostleblanc.jpg",
+  },
+  {
+    name: "Story of Sage",
+    handle: "@storyofsage",
+    location: "Indonesia",
+    role: "Ocean and travel storyteller with a soft, cinematic lens on slow island life.",
+    href: "https://www.instagram.com/storyofsage/",
+    image: "/creators/storyofsage.jpg",
+  },
+];
+
+const featuredReels = [
+  {
+    creator: "Story of Sage",
+    handle: "@storyofsage",
+    title: "Island light, reef days, quiet blue moments",
+    views: "Most viewed",
+    reelHref: "https://www.instagram.com/reel/DE0a2Z7xSQL/",
+    videoSrc: "",
+  },
+  {
+    creator: "Josiah William Gordon",
+    handle: "@josiahwg",
+    title: "Cinematic coastlines through a fine-art lens",
+    views: "Most viewed",
+    reelHref: "https://www.instagram.com/reel/CPBJDTmjKS_/",
+    videoSrc: "",
+  },
+  {
+    creator: "Cam Vaughne",
+    handle: "@camvaughne",
+    title: "Remote Indonesia by sail, film, and sea",
+    views: "Most viewed",
+    reelHref: "https://www.instagram.com/reel/Ck8BkRDhLhy/",
+    videoSrc: "",
+  },
+  {
+    creator: "Christian LeBlanc",
+    handle: "@lostleblanc",
+    title: "Travel stories built for cinematic discovery",
+    views: "Most viewed",
+    reelHref: "https://www.instagram.com/reel/DXO0GAiiYWz/",
+    videoSrc: "",
+  },
+  {
+    creator: "Cam Vaughne",
+    handle: "@camvaughne",
+    title: "Remote Indonesia by sail, film, and sea",
+    views: "Most viewed",
+    reelHref: "https://www.instagram.com/reel/DBvwGTlPQsA/",
+    videoSrc: "",
   },
 ];
 
@@ -248,7 +300,7 @@ export default function CreatorsPage() {
             <h2 className="bp-page-title mt-4 max-w-3xl text-xl leading-none text-white/82 md:text-2xl">
               The kind of taste BluePass is built for.
             </h2>
-            <div className="mt-8 grid gap-5 md:grid-cols-3">
+            <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {creators.map((creator) => (
                 <Link
                   key={creator.name}
@@ -281,6 +333,29 @@ export default function CreatorsPage() {
                 </Link>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] py-14 md:py-20">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(184,154,93,0.16),transparent_28%),linear-gradient(180deg,rgba(4,17,29,0),rgba(7,24,39,0.42)_48%,rgba(2,11,17,0))]" />
+          <div className="relative mx-auto max-w-6xl">
+            <div className="grid gap-5 md:grid-cols-[0.72fr_1.28fr] md:items-end">
+              <div>
+                <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
+                  Most viewed reels
+                </p>
+                <h2 className="bp-page-title mt-4 max-w-xl text-2xl leading-none text-white/86 md:text-3xl">
+                  A carousel for the clips that move people.
+                </h2>
+              </div>
+              <p className="max-w-2xl text-sm font-light leading-6 text-white/56 md:text-[15px]">
+                Feature handpicked Instagram reels from each creator in a
+                swipe-friendly strip built to feel like a premium editorial
+                shelf.
+              </p>
+            </div>
+
+            <ReelsCarousel reels={featuredReels} />
           </div>
         </section>
 
