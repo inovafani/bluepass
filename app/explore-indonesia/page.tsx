@@ -407,7 +407,7 @@ export default function ExploreIndonesiaPage() {
         id="ready-to-inquire"
         className="px-[var(--cinematic-screen-x)] py-12 md:py-16"
       >
-        <div className="mb-5 grid gap-4 border border-white/12 bg-black/20 p-5 text-white shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl md:grid-cols-[1fr_auto] md:items-center md:p-6">
+        <div className="bp-reveal mb-5 grid gap-4 border border-white/12 bg-black/20 p-5 text-white shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl md:grid-cols-[1fr_auto] md:items-center md:p-6">
           <div>
             <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
               Kai can match while you browse
@@ -471,7 +471,7 @@ export default function ExploreIndonesiaPage() {
           </div>
         </div>
 
-        <div className="content-visibility-auto mt-10">
+        <div className="bp-reveal content-visibility-auto mt-10">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
@@ -532,7 +532,7 @@ export default function ExploreIndonesiaPage() {
           </div>
         </div>
 
-        <div className="content-visibility-auto mt-14">
+        <div className="bp-reveal content-visibility-auto mt-14">
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">

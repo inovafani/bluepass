@@ -1,78 +1,79 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname } from "next/navigation";
 
 /**
- * Scroll-reveal engine — zero dependencies, zero ongoing cost.
+ * Scroll-reveal engine. Runs once. MutationObserver handles everything else.
  *
- * Strategy (prevents blank pages):
- * 1. Query every .bp-reveal element that hasn't animated yet.
- * 2. Pre-mark above-the-fold elements as .in-view BEFORE we add the
- *    "js-reveal" class to <html>. This way those elements are never hidden.
- * 3. Add "js-reveal" to <html> — only below-fold elements become opacity:0.
- * 4. IntersectionObserver watches the below-fold elements and adds .in-view
- *    as they enter the viewport, triggering the CSS fade-up transition.
- * 5. unobserve() fires immediately after — no ongoing observer cost.
+ * Why MutationObserver instead of usePathname:
+ *   usePathname fires when navigation STARTS — before the new page's DOM exists.
+ *   querySelectorAll at that moment finds nothing, so new-page elements stay
+ *   opacity:0 forever. MutationObserver fires after each DOM insertion, so it
+ *   catches new .bp-reveal nodes the moment Next.js places them in the tree.
  *
- * usePathname dependency means this re-runs on every client-side navigation,
- * so new page content is always handled correctly.
+ * Flash-of-invisible-content prevention:
+ *   1. Pre-mark every .bp-reveal already in the viewport as .in-view
+ *      BEFORE we add the "js-reveal" class that hides elements.
+ *   2. Only then add js-reveal — above-fold elements are already visible.
+ *   3. MutationObserver does the same check for each newly added node,
+ *      running synchronously before the browser paints.
  */
+
+function processEl(el: HTMLElement, io: IntersectionObserver) {
+  if (el.classList.contains("in-view")) return;
+  // 80px buffer so elements just below the fold appear instantly
+  if (el.getBoundingClientRect().top < window.innerHeight + 80) {
+    el.classList.add("in-view");
+  } else {
+    io.observe(el);
+  }
+}
+
 export function ScrollRevealInit() {
-  const pathname = usePathname();
-
   useEffect(() => {
-    const allElements = document.querySelectorAll<HTMLElement>(
-      ".bp-reveal:not(.in-view)",
-    );
-
-    // Always ensure js-reveal is set (needed after first mount).
-    // If there's nothing to animate just set the class and bail.
-    if (!allElements.length) {
-      document.documentElement.classList.add("js-reveal");
-      return;
-    }
-
-    // ── Step 1: pre-mark above-the-fold elements ──────────────────────────
-    // We do this BEFORE adding js-reveal so those elements are never hidden.
-    const belowFold: HTMLElement[] = [];
-    const vh = window.innerHeight;
-
-    allElements.forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      // Include a 120px buffer so elements near the fold look instant.
-      if (rect.top < vh + 120) {
-        el.classList.add("in-view");
-      } else {
-        belowFold.push(el);
-      }
-    });
-
-    // ── Step 2: enable the reveal CSS ────────────────────────────────────
-    // Above-fold elements already have .in-view so they won't flash invisible.
-    document.documentElement.classList.add("js-reveal");
-
-    if (!belowFold.length) return;
-
-    // ── Step 3: watch below-fold elements ────────────────────────────────
-    const observer = new IntersectionObserver(
+    // ── Intersection observer (scroll-triggered reveals) ───────────────────
+    const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
             entry.target.classList.add("in-view");
-            observer.unobserve(entry.target);
+            io.unobserve(entry.target);
           }
         }
       },
-      // threshold:0 = trigger the moment any pixel enters the viewport.
-      // rootMargin bottom offset triggers slightly before fully visible.
       { threshold: 0, rootMargin: "0px 0px -20px 0px" },
     );
 
-    belowFold.forEach((el) => observer.observe(el));
+    // ── Step 1: process elements already in the DOM ────────────────────────
+    document
+      .querySelectorAll<HTMLElement>(".bp-reveal")
+      .forEach((el) => processEl(el, io));
 
-    return () => observer.disconnect();
-  }, [pathname]);
+    // ── Step 2: enable hiding CSS — above-fold already have .in-view ───────
+    document.documentElement.classList.add("js-reveal");
+
+    // ── Step 3: watch for elements added later (navigation / streaming) ────
+    const mo = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (!(node instanceof HTMLElement)) continue;
+          // The node itself might be a reveal target
+          if (node.classList?.contains("bp-reveal")) processEl(node, io);
+          // Or it might contain reveal targets (e.g. a whole page section)
+          node
+            .querySelectorAll<HTMLElement>(".bp-reveal")
+            .forEach((el) => processEl(el, io));
+        }
+      }
+    });
+
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      io.disconnect();
+      mo.disconnect();
+    };
+  }, []); // Empty deps — runs once, MutationObserver handles the rest
 
   return null;
 }

@@ -119,7 +119,7 @@ export default function ConservationPage() {
         </section>
 
         <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
-          <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-3">
+          <div className="bp-reveal mx-auto grid max-w-6xl gap-4 md:grid-cols-3">
             {proofPoints.map((point) => (
               <article
                 key={point.title}
@@ -150,7 +150,7 @@ export default function ConservationPage() {
           />
           <div className="absolute inset-0 bg-black/30" />
           <div className="bp-film-grain absolute inset-0" />
-          <div className="relative mx-auto max-w-6xl">
+          <div className="bp-reveal relative mx-auto max-w-6xl">
             <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
               <div>
                 <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
@@ -192,7 +192,7 @@ export default function ConservationPage() {
         </section>
 
         <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
-          <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+          <div className="bp-reveal mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
             <div>
               <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
                 Monthly report
@@ -230,7 +230,7 @@ export default function ConservationPage() {
           />
           <div className="absolute inset-0 bg-black/30" />
           <div className="bp-film-grain absolute inset-0" />
-          <div className="bp-rounded-surface relative mx-auto max-w-4xl border border-white/12 bg-[#03111d]/72 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl md:p-10">
+          <div className="bp-reveal bp-rounded-surface relative mx-auto max-w-4xl border border-white/12 bg-[#03111d]/72 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl md:p-10">
             <h2 className="bp-page-title text-2xl leading-none text-white md:text-3xl">
               5% of every booking goes back to the ocean.
             </h2>
