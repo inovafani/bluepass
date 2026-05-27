@@ -57,7 +57,7 @@ const creators = [
     handle: "@josiahwg",
     location: "Indonesia / New Zealand",
     role: "Fine-art travel photographer with a cinematic, destination-led eye.",
-    href: "https://www.instagram.com/josiahwg?igsh=Y2J6cXVtcW55aHAy",
+    href: "https://www.instagram.com/josiahwg/",
     image: "/creators/josiahwg.jpg",
   },
   {
@@ -65,7 +65,7 @@ const creators = [
     handle: "@camvaughne",
     location: "Bali, Indonesia",
     role: "Photo and film creator documenting remote Indonesia, sailing, and ocean conservation.",
-    href: "https://www.instagram.com/camvaughne?igsh=ZjFtZzdhOXA4MzR1",
+    href: "https://www.instagram.com/camvaughne/",
     image: "/creators/camvaughne.jpg",
   },
   {
@@ -73,7 +73,7 @@ const creators = [
     handle: "@lostleblanc",
     location: "Global",
     role: "Travel and filmmaking creator behind Lost LeBlanc, built around cinematic guides and creator education.",
-    href: "https://www.instagram.com/lostleblanc?igsh=MWw1eG5vdmQxeHEzYg==",
+    href: "https://www.instagram.com/lostleblanc/",
     image: "/creators/lostleblanc.jpg",
   },
   {
@@ -181,87 +181,150 @@ export default function CreatorsPage() {
           </div>
         </section>
 
-        <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
-          <div className="mx-auto max-w-6xl">
-            <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-              <div>
-                <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                  Creator program
-                </p>
-                <h2 className="bp-page-title mt-4 max-w-xl text-xl leading-none text-white/82 md:text-2xl">
-                  Your taste becomes the trip plan.
-                </h2>
-              </div>
-              <p className="max-w-xl text-sm font-light leading-6 text-white/54 md:text-[15px]">
-                Keep the romance of storytelling. Add a booking path behind it.
-              </p>
-            </div>
+        <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] py-16 md:py-24">
+          {/* Ambient depth — gold from top-right, teal from bottom-left */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_78%_0%,rgba(184,154,93,0.07),transparent_48%),radial-gradient(ellipse_at_16%_100%,rgba(0,100,130,0.07),transparent_46%)]"
+          />
+          <div className="relative mx-auto max-w-6xl">
+            <div className="grid gap-5 md:gap-8 lg:grid-cols-2 lg:items-stretch">
 
-            <div className="mt-8 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-              <div className="relative min-h-[420px] overflow-hidden rounded-[var(--bp-radius-md)] bg-cover bg-center shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+              {/* Left — image panel fills the grid row height */}
+              <div className="relative min-h-[360px] overflow-hidden rounded-[var(--bp-radius-md)] shadow-[0_28px_90px_rgba(0,0,0,0.36)] lg:min-h-0">
                 <div
-                  className="absolute inset-0 bg-cover bg-[center_70%]"
+                  className="absolute inset-0 scale-105 bg-cover bg-[center_70%] transition-transform duration-700 hover:scale-[1.08]"
                   style={{ backgroundImage: `url('${creatorPageImage}')` }}
                 />
                 <div
                   aria-hidden="true"
-                  className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/72 via-black/34 to-transparent"
+                  className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.06),rgba(0,0,0,0.02)_45%,rgba(0,0,0,0.74))]"
                 />
-                <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-[#0c3b3a]/10 mix-blend-color"
+                />
+                <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
                   <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
                     BluePass creator page
                   </p>
-                  <p className="bp-page-title mt-3 max-w-md text-xl leading-none text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.75)] md:text-2xl">
+                  <p className="bp-page-title mt-3 max-w-md text-2xl leading-none text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.8)] md:text-3xl">
                     One link for the trips you believe in.
                   </p>
                 </div>
               </div>
 
-              <div className="grid gap-3">
-                {steps.map((step, index) => (
-                  <article
-                    key={step.verb}
-                    className="grid min-h-[132px] grid-cols-[3.25rem_1fr] items-center gap-4 border border-white/12 bg-[#03111d]/76 p-5 transition-colors hover:border-white/24 hover:bg-white/[0.035]"
-                  >
-                    <span className="grid h-11 w-11 place-items-center border border-[#B89A5D]/40 bg-[#B89A5D]/14 text-sm font-normal text-[#f4d891]">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                        {step.verb}
-                      </p>
-                      <p className="mt-2 max-w-md text-sm font-light leading-6 text-white/62 md:text-base">
-                        {step.title}
-                      </p>
+              {/* Right — header + editorial step list + CTA */}
+              <div className="flex flex-col justify-between gap-10 lg:py-2">
+
+                {/* Header */}
+                <div>
+                  <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
+                    Creator program
+                  </p>
+                  <h2 className="bp-page-title mt-4 text-[clamp(1.9rem,3.5vw,3rem)] leading-[0.94] text-white/88">
+                    Your taste becomes
+                    <br className="hidden sm:block" /> the trip plan.
+                  </h2>
+                  <p className="mt-5 max-w-xs text-sm font-light leading-[1.85] text-white/48">
+                    Keep the romance of storytelling.
+                    <br />
+                    Add a booking path behind it.
+                  </p>
+                </div>
+
+                {/* Editorial step list — no boxes, just clean divider rows */}
+                <div className="divide-y divide-white/[0.07]">
+                  {steps.map((step, index) => (
+                    <div key={step.verb} className="group flex items-start gap-5 py-6">
+                      {/* Large ambient step number — decorative, not a badge */}
+                      <span
+                        aria-hidden="true"
+                        className="min-w-[2.5rem] pt-0.5 text-[2.8rem] font-thin leading-none text-white/[0.10] transition-colors duration-300 group-hover:text-[#B89A5D]/32"
+                      >
+                        0{index + 1}
+                      </span>
+                      <div className="flex-1 pt-1">
+                        <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#B89A5D]">
+                          {step.verb}
+                        </p>
+                        <p className="mt-2 text-[15px] font-light leading-[1.7] text-white/68">
+                          {step.title}
+                        </p>
+                      </div>
                     </div>
-                  </article>
-                ))}
+                  ))}
+                </div>
+
+                {/* Closing CTA */}
+                <div className="flex flex-wrap items-center gap-4 border-t border-white/[0.08] pt-7">
+                  <Link
+                    href="/signup"
+                    className="bp-focus-ring inline-flex h-10 items-center justify-center gap-2 bg-white px-5 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
+                  >
+                    Apply to create
+                    <ArrowIcon />
+                  </Link>
+                  <p className="text-[11px] font-light text-white/32">
+                    Free to join. Commission on bookings only.
+                  </p>
+                </div>
               </div>
+
             </div>
           </div>
         </section>
 
-        <section className="border-y border-white/10 bg-[#04111d] px-[var(--cinematic-screen-x)] py-14 md:py-20">
-          <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-            <div>
+        <section className="relative overflow-hidden border-y border-white/10 bg-[#04111d] px-[var(--cinematic-screen-x)] py-20 md:py-28">
+          {/* Faint hero image as texture — very low opacity, just adds grain/depth */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-cover bg-[center_30%] opacity-[0.06] saturate-0"
+            style={{ backgroundImage: `url('${heroImage}')` }}
+          />
+          {/* Ambient teal glow top-right */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_10%,rgba(0,111,142,0.09),transparent_52%)]"
+          />
+          <OceanCurrentOrnament />
+
+          <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+            {/* Left — headline + anchor */}
+            <div className="lg:sticky lg:top-28">
               <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
                 What you get
               </p>
-              <h2 className="bp-page-title mt-4 max-w-md text-xl leading-none text-white/82 md:text-2xl">
+              <h2 className="bp-page-title mt-4 max-w-md text-[clamp(2rem,3.5vw,3.25rem)] leading-[0.95] text-white/88">
                 Creator tools without the ugly sales funnel.
               </h2>
+              <div className="mt-6 flex items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-1 h-10 w-px shrink-0 bg-gradient-to-b from-[#B89A5D]/60 to-transparent"
+                />
+                <p className="text-sm font-light leading-[1.8] text-white/44">
+                  Everything a storyteller needs. Nothing that makes your
+                  audience feel sold to.
+                </p>
+              </div>
             </div>
+
+            {/* Right — benefit cards */}
             <div className="grid gap-4 md:grid-cols-2">
               {creatorBenefits.map((benefit) => (
                 <article
                   key={benefit.title}
-                  className="min-h-[170px] border border-white/12 bg-white/[0.035] p-5 transition-colors hover:border-white/24"
+                  className="group min-h-[200px] border border-white/12 bg-white/[0.03] p-6 transition-all duration-200 hover:border-white/24 hover:bg-white/[0.055] hover:shadow-[0_12px_40px_rgba(0,0,0,0.22)]"
                 >
-                  <BenefitIcon type={benefit.icon} />
-                  <p className="bp-page-title mt-5 text-xl leading-none text-white/82">
+                  {/* Icon — framed in a gold-tinted box */}
+                  <div className="flex h-11 w-11 items-center justify-center rounded-[var(--bp-radius-sm)] border border-[#B89A5D]/28 bg-[#B89A5D]/10 transition-colors group-hover:border-[#B89A5D]/44 group-hover:bg-[#B89A5D]/16">
+                    <BenefitIcon type={benefit.icon} />
+                  </div>
+                  <p className="bp-page-title mt-6 text-xl leading-none text-white/88">
                     {benefit.title}
                   </p>
-                  <p className="mt-3 text-sm font-light leading-6 text-white/54">
+                  <p className="mt-3 text-sm font-light leading-[1.75] text-white/54">
                     {benefit.body}
                   </p>
                 </article>

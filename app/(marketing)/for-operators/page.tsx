@@ -101,7 +101,13 @@ export default function ForOperatorsPage() {
             className="absolute inset-0 scale-105 bg-cover bg-center saturate-[0.9]"
             style={{ backgroundImage: `url('${heroImage}')` }}
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.9),rgba(0,15,21,0.54)_48%,rgba(0,8,14,0.78)),linear-gradient(180deg,rgba(0,0,0,0.38),rgba(0,0,0,0.12)_36%,rgba(0,0,0,0.76))]" />
+          {/*
+            🎨 FOR-OPERATORS hero overlay — tune these numbers independently.
+            Left opacity  (first value): 0.9=very dark  0.72=balanced  0.55=light
+            Right opacity (second):      0.78=very dark 0.50=balanced  0.35=light
+            These ONLY affect this page — signup page has its own separate overlay.
+          */}
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.72),rgba(0,15,21,0.38)_48%,rgba(0,8,14,0.58)),linear-gradient(180deg,rgba(0,0,0,0.30),rgba(0,0,0,0.08)_36%,rgba(0,0,0,0.64))]" />
           <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
           <div className="bp-film-grain absolute inset-0" />
 
