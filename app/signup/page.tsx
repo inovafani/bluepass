@@ -131,7 +131,7 @@ export default function SignupPage() {
           />
 
           {/* Content */}
-          <div className="relative z-10 mx-auto max-w-6xl">
+          <div className="bp-reveal relative z-10 mx-auto max-w-6xl">
             {/* Header row */}
             <div className="grid gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:items-end">
               <div>
@@ -145,6 +145,13 @@ export default function SignupPage() {
                   <br />
                   who&apos;s been there.
                 </h2>
+                <a
+                  href="#join"
+                  className="bp-focus-ring mt-8 inline-flex h-11 items-center gap-2 bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
+                >
+                  Sign up now
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                </a>
               </div>
               <p className="max-w-xl text-sm font-light leading-[1.85] text-white/56 md:text-[15px]">
                 BluePass only partners with verified ocean creators — dive
@@ -227,7 +234,7 @@ export default function SignupPage() {
             {/* Story column */}
             <div className="relative flex items-center overflow-hidden bg-[#04111d] px-[var(--cinematic-screen-x)] py-16 lg:px-14 lg:py-20">
               <OceanCurrentOrnament />
-              <div className="relative max-w-xl">
+              <div className="bp-reveal relative max-w-xl">
                 <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
                   Built into every booking
                 </p>
@@ -299,7 +306,7 @@ export default function SignupPage() {
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_76%_0%,rgba(184,154,93,0.09),transparent_50%),radial-gradient(ellipse_at_18%_100%,rgba(0,100,130,0.09),transparent_48%)]"
           />
-          <div className="relative mx-auto max-w-6xl">
+          <div className="bp-reveal relative mx-auto max-w-6xl">
             <div className="grid gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:items-end">
               <div>
                 <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
@@ -423,7 +430,7 @@ export default function SignupPage() {
           <ReferralMeshWaves />
 
           <div className="relative z-10 px-[var(--cinematic-screen-x)] py-20 md:py-28">
-            <div className="mx-auto max-w-6xl">
+            <div className="bp-reveal mx-auto max-w-6xl">
               <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:items-center">
                 {/* Left: headline + copy */}
                 <div>
@@ -515,7 +522,7 @@ export default function SignupPage() {
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_110%,rgba(0,111,142,0.13),transparent_55%),radial-gradient(ellipse_at_50%_0%,rgba(184,154,93,0.05),transparent_50%)]"
           />
-          <div className="relative">
+          <div className="bp-reveal relative">
             <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
               You are one of the first
             </p>
@@ -535,7 +542,7 @@ export default function SignupPage() {
       </div>
 
       {/* ── EXISTING SIGNUP FORM — unchanged ─────────────── */}
-      <section className="cinematic-page relative min-h-svh overflow-hidden bg-[#020b11] text-white">
+      <section id="join" className="cinematic-page relative min-h-svh overflow-hidden bg-[#020b11] text-white">
         <div
           aria-hidden="true"
           className="absolute inset-0 scale-105 bg-cover bg-center"

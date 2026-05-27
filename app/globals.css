@@ -618,3 +618,39 @@ body:not(:has(.cinematic-page)) .site-operator:hover svg {
     display: flex;
   }
 }
+
+/* ── Scroll reveal ────────────────────────────────────────────────────────── */
+/*
+  ScrollRevealInit.tsx adds "js-reveal" to <html> AFTER it has already
+  pre-marked above-the-fold elements with .in-view. This means:
+  - Server-rendered HTML: no js-reveal class → all content fully visible (no FOIC)
+  - After hydration: js-reveal added → only below-fold elements are hidden
+  - On scroll: IntersectionObserver adds .in-view → fade-up transition plays
+*/
+html.js-reveal .bp-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 680ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 680ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.js-reveal .bp-reveal.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger helpers — apply alongside bp-reveal on sibling elements */
+html.js-reveal .bp-reveal-delay-1 { transition-delay: 90ms; }
+html.js-reveal .bp-reveal-delay-2 { transition-delay: 180ms; }
+html.js-reveal .bp-reveal-delay-3 { transition-delay: 270ms; }
+html.js-reveal .bp-reveal-delay-4 { transition-delay: 360ms; }
+
+/* Respect reduced-motion — always show content, never animate */
+@media (prefers-reduced-motion: reduce) {
+  html.js-reveal .bp-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

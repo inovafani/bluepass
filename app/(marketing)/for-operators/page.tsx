@@ -160,7 +160,7 @@ export default function ForOperatorsPage() {
               <p className="text-sm font-light text-white/46">4 operators</p>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="bp-reveal mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {liveOperators.map((operator) => (
                 <Link
                   key={operator.name}
@@ -234,7 +234,7 @@ export default function ForOperatorsPage() {
               </div>
             </div>
 
-            <div className="mt-9 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="bp-reveal mt-9 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {previews.map((preview) => (
                 <Link
                   key={preview.name}
@@ -272,7 +272,7 @@ export default function ForOperatorsPage() {
           id="claim"
           className="px-[var(--cinematic-screen-x)] py-16 text-center md:py-24"
         >
-          <div className="bp-rounded-surface mx-auto max-w-4xl border border-white/12 bg-[#03111d]/76 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl md:p-10">
+          <div className="bp-reveal bp-rounded-surface mx-auto max-w-4xl border border-white/12 bg-[#03111d]/76 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl md:p-10">
             <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
               Claim your business
             </p>

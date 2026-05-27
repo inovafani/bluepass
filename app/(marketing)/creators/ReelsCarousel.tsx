@@ -164,6 +164,17 @@ export function ReelsCarousel({ reels }: { reels: Reel[] }) {
             <div className="aspect-[9/16] max-h-[76vh] overflow-hidden rounded-[1.35rem] border border-white/16 bg-[#071827] shadow-[0_38px_120px_rgba(0,0,0,0.58)]">
               <ReelPlayer reel={openReel} />
             </div>
+            {openReel.reelHref ? (
+              <a
+                href={openReel.reelHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 flex items-center justify-center gap-2 text-[11px] font-light text-white/36 transition-colors hover:text-white/66"
+              >
+                <InstagramIcon />
+                Open on Instagram
+              </a>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -263,14 +274,15 @@ function ReelPlayer({ reel }: { reel: Reel }) {
     );
   }
 
+  // No containNavigation — the popup is a modal overlay, let Instagram behave natively.
+  // cropped=true (default) oversizes the iframe and clips the Instagram header/footer
+  // so only the video area is visible inside the rounded popup card.
   return (
     <InstagramMediaFrame
       reel={reel}
       className="h-full w-full"
       autoplay
       interactive
-      containNavigation
-      cropped={false}
     />
   );
 }
@@ -369,7 +381,7 @@ function InstagramMediaFrame({
         referrerPolicy="strict-origin-when-cross-origin"
         sandbox={
           containNavigation
-            ? "allow-same-origin allow-scripts allow-presentation"
+            ? "allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
             : undefined
         }
       />

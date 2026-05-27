@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/app/components/SiteHeader";
+import { ScrollRevealInit } from "@/app/components/ScrollRevealInit";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen antialiased">
         <SiteHeader />
+        <ScrollRevealInit />
         <main>{children}</main>
       </body>
     </html>

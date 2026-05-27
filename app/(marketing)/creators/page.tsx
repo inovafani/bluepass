@@ -215,7 +215,7 @@ export default function CreatorsPage() {
               </div>
 
               {/* Right — header + editorial step list + CTA */}
-              <div className="flex flex-col justify-between gap-10 lg:py-2">
+              <div className="bp-reveal bp-reveal-delay-1 flex flex-col justify-between gap-10 lg:py-2">
 
                 {/* Header */}
                 <div>
@@ -240,7 +240,7 @@ export default function CreatorsPage() {
                       {/* Large ambient step number — decorative, not a badge */}
                       <span
                         aria-hidden="true"
-                        className="min-w-[2.5rem] pt-0.5 text-[2.8rem] font-thin leading-none text-white/[0.10] transition-colors duration-300 group-hover:text-[#B89A5D]/32"
+                        className="min-w-[2.5rem] pt-0.5 text-[2.8rem] font-thin leading-none text-white/[0.10] transition-colors duration-300 group-hover:text-white/80"
                       >
                         0{index + 1}
                       </span>
@@ -311,7 +311,7 @@ export default function CreatorsPage() {
             </div>
 
             {/* Right — benefit cards */}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="bp-reveal grid gap-4 md:grid-cols-2">
               {creatorBenefits.map((benefit) => (
                 <article
                   key={benefit.title}
@@ -333,22 +333,53 @@ export default function CreatorsPage() {
           </div>
         </section>
 
-        <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
-          <div className="relative mx-auto grid max-w-6xl gap-8 overflow-hidden border-y border-white/10 py-12 md:grid-cols-[0.82fr_1.18fr] md:gap-16 md:py-16">
+        <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] py-14 md:py-20">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_28%_60%,rgba(0,100,130,0.07),transparent_50%),radial-gradient(ellipse_at_82%_20%,rgba(184,154,93,0.05),transparent_44%)]"
+          />
+          <div className="relative mx-auto max-w-6xl overflow-hidden border-y border-white/10 py-14 md:py-20">
             <OceanCurrentOrnament />
-            <div className="relative">
-              <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                Who it is for
-              </p>
-              <h2 className="bp-page-title mt-4 max-w-xl text-2xl leading-none text-white/86 md:text-3xl">
-                Real ocean people with real trust.
-              </h2>
+            <div className="bp-reveal relative grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-16">
+
+              {/* Left — headline */}
+              <div>
+                <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
+                  Who it is for
+                </p>
+                <h2 className="bp-page-title mt-4 text-[clamp(1.9rem,3.8vw,3.25rem)] leading-[0.95] text-white/88">
+                  Real ocean people with real trust.
+                </h2>
+                <div className="mt-6 flex items-start gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="mt-0.5 h-8 w-px shrink-0 bg-gradient-to-b from-[#B89A5D]/50 to-transparent"
+                  />
+                  <p className="text-[11px] font-light leading-[1.7] text-white/34">
+                    We do not take influencers we cannot verify took the trip.
+                  </p>
+                </div>
+              </div>
+
+              {/* Right — persona chips */}
+              <div className="flex flex-wrap gap-2.5">
+                {[
+                  "Dive instructors",
+                  "Ocean photographers",
+                  "Travel writers",
+                  "Sailors with audiences",
+                  "Conservation educators",
+                ].map((persona) => (
+                  <span
+                    key={persona}
+                    className="border border-white/12 bg-white/[0.03] px-4 py-2.5 text-sm font-light text-white/58 transition-all duration-200 hover:border-white/26 hover:bg-white/[0.07] hover:text-white/86"
+                  >
+                    {persona}
+                  </span>
+                ))}
+              </div>
+
             </div>
-            <p className="relative max-w-3xl text-base font-light leading-8 text-white/62 md:text-lg">
-              BluePass is for dive instructors, ocean photographers, travel
-              writers, sailors with audiences, and conservation educators. We do
-              not take influencers we cannot verify took the trip.
-            </p>
           </div>
         </section>
 
@@ -363,7 +394,7 @@ export default function CreatorsPage() {
             <h2 className="bp-page-title mt-4 max-w-3xl text-xl leading-none text-white/82 md:text-2xl">
               The kind of taste BluePass is built for.
             </h2>
-            <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <div className="bp-reveal mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {creators.map((creator) => (
                 <Link
                   key={creator.name}
@@ -402,7 +433,7 @@ export default function CreatorsPage() {
         <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] py-14 md:py-20">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(184,154,93,0.16),transparent_28%),linear-gradient(180deg,rgba(4,17,29,0),rgba(7,24,39,0.42)_48%,rgba(2,11,17,0))]" />
           <div className="relative mx-auto max-w-6xl">
-            <div className="grid gap-5 md:grid-cols-[0.72fr_1.28fr] md:items-end">
+            <div className="bp-reveal grid gap-5 md:grid-cols-[0.72fr_1.28fr] md:items-end">
               <div>
                 <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
                   Most viewed reels
