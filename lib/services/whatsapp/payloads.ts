@@ -1,15 +1,31 @@
 export type OperatorButtonAction = "accept" | "decline" | "counter";
 
+export type OperatorButtonPayload =
+  | {
+      action: OperatorButtonAction;
+      bookingId: string;
+      source: "structured_payload";
+    }
+  | {
+      action: OperatorButtonAction;
+      bookingId: null;
+      source: "button_text";
+    };
+
 const operatorButtonActions = new Set<OperatorButtonAction>([
   "accept",
   "decline",
   "counter",
 ]);
 
-export function parseOperatorButtonPayload(payload: string): {
-  action: OperatorButtonAction;
-  bookingId: string;
-} {
+const buttonTextActionMap: Record<string, OperatorButtonAction> = {
+  accept: "accept",
+  decline: "decline",
+  counter: "counter",
+  "counter-offer": "counter",
+};
+
+export function parseOperatorButtonPayload(payload: string): OperatorButtonPayload {
   const trimmed = payload.trim();
 
   if (!trimmed) {
@@ -18,7 +34,16 @@ export function parseOperatorButtonPayload(payload: string): {
 
   const separatorIndex = trimmed.indexOf(":");
   if (separatorIndex < 0) {
-    throw new Error("Invalid operator button payload: expected action:bookingId.");
+    const buttonTextAction = buttonTextActionMap[trimmed.toLowerCase()];
+    if (!buttonTextAction) {
+      throw new Error(`Invalid operator button payload action: ${trimmed}.`);
+    }
+
+    return {
+      action: buttonTextAction,
+      bookingId: null,
+      source: "button_text",
+    };
   }
 
   const action = trimmed.slice(0, separatorIndex).trim();
@@ -35,5 +60,6 @@ export function parseOperatorButtonPayload(payload: string): {
   return {
     action: action as OperatorButtonAction,
     bookingId,
+    source: "structured_payload",
   };
 }

@@ -29,6 +29,30 @@ function metaPayload(payload: string, type = "button", phoneNumberId = "shared_p
   };
 }
 
+function metaButtonTextOnlyPayload(text: string) {
+  return {
+    object: "whatsapp_business_account",
+    entry: [
+      {
+        changes: [
+          {
+            value: {
+              messages: [
+                {
+                  from: "628213143342",
+                  id: "wamid.test",
+                  type: "button",
+                  button: { text },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
+
 function mockOptions() {
   return {
     orchestrator: {
@@ -118,6 +142,33 @@ describe("handleWhatsAppWebhook", () => {
     expect(options.orchestrator.acceptByOperator).not.toHaveBeenCalled();
     expect(options.orchestrator.declineByOperator).not.toHaveBeenCalled();
     expect(options.orchestrator.requestCounterOffer).not.toHaveBeenCalled();
+  });
+
+  it("does not call orchestrator when button text has no booking id", async () => {
+    const options = mockOptions();
+
+    await handleWhatsAppWebhook(metaButtonTextOnlyPayload("Accept"), options);
+
+    expect(options.orchestrator.acceptByOperator).not.toHaveBeenCalled();
+    expect(options.orchestrator.declineByOperator).not.toHaveBeenCalled();
+    expect(options.orchestrator.requestCounterOffer).not.toHaveBeenCalled();
+  });
+
+  it("logs text-only operator buttons for future booking context resolution", async () => {
+    const options = mockOptions();
+
+    await handleWhatsAppWebhook(metaButtonTextOnlyPayload("Counter-offer"), options);
+
+    expect(options.logger.info).toHaveBeenCalledWith(
+      "whatsapp.operator_button_without_booking_context",
+      {
+        action: "counter",
+        sender: "********3342",
+        messageId: "wamid.test",
+        buttonPayloadOrText: "Counter-offer",
+        note: "Booking context resolution is required before processing this operator action.",
+      },
+    );
   });
 
   it("does not crash the handler for malformed button payloads", async () => {

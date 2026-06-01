@@ -11,6 +11,7 @@ describe("WhatsApp operator payloads", () => {
     expect(parseOperatorButtonPayload("accept:booking_123")).toEqual({
       action: "accept",
       bookingId: "booking_123",
+      source: "structured_payload",
     });
   });
 
@@ -18,6 +19,7 @@ describe("WhatsApp operator payloads", () => {
     expect(parseOperatorButtonPayload("decline:booking_123")).toEqual({
       action: "decline",
       bookingId: "booking_123",
+      source: "structured_payload",
     });
   });
 
@@ -25,7 +27,52 @@ describe("WhatsApp operator payloads", () => {
     expect(parseOperatorButtonPayload("counter:booking_123")).toEqual({
       action: "counter",
       bookingId: "booking_123",
+      source: "structured_payload",
     });
+  });
+
+  it("parses Meta quick reply button text", () => {
+    expect(parseOperatorButtonPayload("Accept")).toEqual({
+      action: "accept",
+      bookingId: null,
+      source: "button_text",
+    });
+    expect(parseOperatorButtonPayload("Decline")).toEqual({
+      action: "decline",
+      bookingId: null,
+      source: "button_text",
+    });
+    expect(parseOperatorButtonPayload("Counter-offer")).toEqual({
+      action: "counter",
+      bookingId: null,
+      source: "button_text",
+    });
+    expect(parseOperatorButtonPayload("Counter")).toEqual({
+      action: "counter",
+      bookingId: null,
+      source: "button_text",
+    });
+    expect(parseOperatorButtonPayload("accept")).toEqual({
+      action: "accept",
+      bookingId: null,
+      source: "button_text",
+    });
+    expect(parseOperatorButtonPayload("decline")).toEqual({
+      action: "decline",
+      bookingId: null,
+      source: "button_text",
+    });
+    expect(parseOperatorButtonPayload("counter")).toEqual({
+      action: "counter",
+      bookingId: null,
+      source: "button_text",
+    });
+  });
+
+  it("rejects empty payloads", () => {
+    expect(() => parseOperatorButtonPayload("")).toThrow(
+      "Invalid operator button payload: payload is empty.",
+    );
   });
 
   it("rejects invalid actions", () => {
@@ -44,6 +91,7 @@ describe("WhatsApp operator payloads", () => {
     expect(parseOperatorButtonPayload("  counter: booking_123  ")).toEqual({
       action: "counter",
       bookingId: "booking_123",
+      source: "structured_payload",
     });
   });
 

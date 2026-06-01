@@ -4,12 +4,16 @@ import {
   declineByOperator,
   requestCounterOffer,
 } from "@/lib/services/booking/orchestrator";
+import { maskPhoneNumber } from "@/lib/services/whatsapp/client";
 import {
   buildOperatorCounterPrompt,
   buildOperatorDeclinedFreeText,
   type FreeTextMessage,
 } from "@/lib/services/whatsapp/operator-dispatch";
-import { parseOperatorButtonPayload } from "@/lib/services/whatsapp/payloads";
+import {
+  parseOperatorButtonPayload,
+  type OperatorButtonPayload,
+} from "@/lib/services/whatsapp/payloads";
 
 type OrchestratorDeps = {
   acceptByOperator: (bookingId: string, actorPayload: ActorPayload) => Promise<unknown>;
@@ -31,7 +35,7 @@ type IncomingWhatsAppMessage = {
   id?: string;
   from?: string;
   type?: string;
-  buttonPayload?: string;
+  buttonPayloads: string[];
 };
 
 type IncomingMessageRoute = "operator_action" | "traveller_or_unclassified";
@@ -50,24 +54,60 @@ function asString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-function getButtonPayload(message: Record<string, unknown>): string | undefined {
+function addPayloadCandidate(candidates: string[], value: string | undefined) {
+  const trimmed = value?.trim();
+  if (trimmed && !candidates.includes(trimmed)) {
+    candidates.push(trimmed);
+  }
+}
+
+function getButtonPayloadCandidates(message: Record<string, unknown>): string[] {
+  const candidates: string[] = [];
   const button = message.button;
   if (isRecord(button)) {
-    const payload = asString(button.payload);
-    if (payload) {
-      return payload;
-    }
+    addPayloadCandidate(candidates, asString(button.payload));
+    addPayloadCandidate(candidates, asString(button.text));
   }
 
   const interactive = message.interactive;
   if (isRecord(interactive)) {
     const buttonReply = interactive.button_reply;
     if (isRecord(buttonReply)) {
-      return asString(buttonReply.id) ?? asString(buttonReply.payload);
+      addPayloadCandidate(candidates, asString(buttonReply.id));
+      addPayloadCandidate(candidates, asString(buttonReply.payload));
+      addPayloadCandidate(candidates, asString(buttonReply.title));
     }
   }
 
-  return undefined;
+  return candidates;
+}
+
+function maskOptionalPhone(value: string | undefined): string | null {
+  return value ? maskPhoneNumber(value) : null;
+}
+
+function parseOperatorButtonPayloadCandidates(message: IncomingWhatsAppMessage): {
+  parsedButton: OperatorButtonPayload;
+  buttonPayloadOrText: string;
+} {
+  let lastError: unknown;
+
+  for (const candidate of message.buttonPayloads) {
+    try {
+      return {
+        parsedButton: parseOperatorButtonPayload(candidate),
+        buttonPayloadOrText: candidate,
+      };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+
+  throw new Error("Invalid operator button payload: payload is empty.");
 }
 
 function extractIncomingMessages(payload: unknown): IncomingWhatsAppMessage[] {
@@ -101,7 +141,7 @@ function extractIncomingMessages(payload: unknown): IncomingWhatsAppMessage[] {
           id: asString(rawMessage.id),
           from: asString(rawMessage.from),
           type: asString(rawMessage.type),
-          buttonPayload: getButtonPayload(rawMessage),
+          buttonPayloads: getButtonPayloadCandidates(rawMessage),
         });
       }
     }
@@ -120,7 +160,7 @@ function buildActorPayload(message: IncomingWhatsAppMessage): ActorPayload {
 }
 
 function classifyIncomingMessage(message: IncomingWhatsAppMessage): IncomingMessageRoute {
-  if (message.buttonPayload) {
+  if (message.buttonPayloads.length > 0) {
     return "operator_action";
   }
 
@@ -155,7 +195,7 @@ export async function handleWhatsAppWebhook(
        * Sprint 2 only supports operator button payloads, so quick replies remain
        * operator actions regardless of the destination phone_number_id.
        */
-      if (route !== "operator_action" || !message.buttonPayload) {
+      if (route !== "operator_action" || message.buttonPayloads.length === 0) {
         logger.info("whatsapp.webhook.ignored_message", {
           messageType: message.type ?? "unknown",
           hasButtonPayload: false,
@@ -163,8 +203,28 @@ export async function handleWhatsAppWebhook(
         continue;
       }
 
-      const parsedButton = parseOperatorButtonPayload(message.buttonPayload);
+      const { parsedButton, buttonPayloadOrText } =
+        parseOperatorButtonPayloadCandidates(message);
       const actorPayload = buildActorPayload(message);
+
+      if (parsedButton.bookingId === null) {
+        /*
+         * TODO: Resolve booking context for Meta text-only quick replies. We need
+         * a future BookingOutboundMessage or WhatsAppOutboundMessage table keyed by
+         * outbound WhatsApp message id, bookingId, recipient phone, templateName,
+         * sentAt, and provider message id. Inbound button replies can then resolve
+         * the booking from the original outbound message or latest pending booking
+         * for that operator before mutating booking state.
+         */
+        logger.info("whatsapp.operator_button_without_booking_context", {
+          action: parsedButton.action,
+          sender: maskOptionalPhone(message.from),
+          messageId: message.id ?? null,
+          buttonPayloadOrText,
+          note: "Booking context resolution is required before processing this operator action.",
+        });
+        continue;
+      }
 
       if (parsedButton.action === "accept") {
         await orchestrator.acceptByOperator(parsedButton.bookingId, actorPayload);
