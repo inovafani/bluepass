@@ -1,3 +1,5 @@
+import { ConnectPmsForm } from "./ConnectPmsForm";
+
 export default function OperatorConnectPage() {
   return (
     <main className="min-h-screen bg-[#04111d] px-5 py-24 text-white">
@@ -10,36 +12,11 @@ export default function OperatorConnectPage() {
             Connect your booking system
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-white/65">
-            This screen prepares your BluePass operator setup. API credential
-            connection is coming next; no Rezdy or FareHarbor calls happen here
-            yet.
+            Connect inventory once. Operator review, acceptance, counter-offers,
+            payment, and confirmations still run through WhatsApp.
           </p>
 
-          <form className="mt-8 grid gap-5">
-            <label className="grid gap-2">
-              <span className="text-xs font-medium tracking-[0.16em] text-white/70">
-                Booking system
-              </span>
-              <select
-                className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Select PMS platform
-                </option>
-                <option value="REZDY">Rezdy</option>
-                <option value="FAREHARBOR">FareHarbor</option>
-                <option value="NATIVE">None / Native inventory</option>
-              </select>
-            </label>
-
-            <button
-              type="button"
-              className="mt-2 inline-flex h-12 w-full items-center justify-center bg-white px-6 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/90 md:w-auto"
-            >
-              Continue
-            </button>
-          </form>
+          <ConnectPmsForm />
         </div>
       </section>
     </main>

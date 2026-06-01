@@ -22,6 +22,7 @@ const activeCancellableStatuses: BookingStatus[] = [
   "COUNTER_REQUESTED",
   "PMS_HOLD_PLACED",
   "AWAITING_PAYMENT",
+  "CONFIRMED",
 ];
 
 const allowedTransitions = new Map<BookingStatus, BookingStatus[]>([

@@ -1,0 +1,100 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/db/prisma";
+import { encryptCredentials } from "@/lib/services/booking/adapters/credentials";
+import {
+  syncBokunCatalog,
+  validateBokunCredentials,
+} from "@/lib/services/booking/adapters/bokun-sync";
+
+const integrationSchema = z.object({
+  operatorId: z.string().trim().min(1),
+  platform: z.enum(["REZDY", "FAREHARBOR", "BOKUN", "NATIVE"]),
+  credentials: z
+    .object({
+      apiBase: z.string().trim().url().optional().or(z.literal("")),
+      accessToken: z.string().trim().optional(),
+      supplierId: z.string().trim().optional(),
+    })
+    .default({}),
+});
+
+export async function POST(request: NextRequest) {
+  const body: unknown = await request.json();
+  const parsed = integrationSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Please check the integration fields and try again." },
+      { status: 400 },
+    );
+  }
+
+  const { operatorId, platform, credentials } = parsed.data;
+  const operator = await prisma.operator.findUnique({
+    where: { id: operatorId },
+    select: { id: true },
+  });
+
+  if (!operator) {
+    return NextResponse.json({ error: "Operator was not found." }, { status: 404 });
+  }
+
+  if (platform === "BOKUN") {
+    if (!credentials.accessToken) {
+      return NextResponse.json(
+        { error: "Bokun access token is required." },
+        { status: 400 },
+      );
+    }
+
+    const bokunCredentials = {
+      apiBase: credentials.apiBase || undefined,
+      accessToken: credentials.accessToken,
+      supplierId: credentials.supplierId || undefined,
+    };
+
+    await validateBokunCredentials(bokunCredentials);
+
+    const integration = await prisma.operatorIntegration.upsert({
+      where: {
+        operatorId_platform: {
+          operatorId,
+          platform,
+        },
+      },
+      update: {
+        encryptedCredentials: encryptCredentials(bokunCredentials),
+      },
+      create: {
+        operatorId,
+        platform,
+        encryptedCredentials: encryptCredentials(bokunCredentials),
+      },
+      select: { id: true, platform: true, updatedAt: true },
+    });
+    const sync = await syncBokunCatalog(operatorId, bokunCredentials);
+
+    return NextResponse.json({ ok: true, integration, sync });
+  }
+
+  const integration = await prisma.operatorIntegration.upsert({
+    where: {
+      operatorId_platform: {
+        operatorId,
+        platform,
+      },
+    },
+    update: {
+      encryptedCredentials: encryptCredentials(credentials),
+    },
+    create: {
+      operatorId,
+      platform,
+      encryptedCredentials: encryptCredentials(credentials),
+    },
+    select: { id: true, platform: true, updatedAt: true },
+  });
+
+  return NextResponse.json({ ok: true, integration, sync: null });
+}

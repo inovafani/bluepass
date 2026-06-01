@@ -17,6 +17,7 @@ enum OperatorStatus {
 enum PmsPlatform {
   REZDY
   FAREHARBOR
+  BOKUN
   NATIVE
 }
 
@@ -78,6 +79,7 @@ model Operator {
 model Trip {
   id          String     @id @default(cuid())
   operatorId  String
+  externalId  String?
   title       String
   description String?
   location    String?
@@ -90,6 +92,7 @@ model Trip {
   bookings    Booking[]
 
   @@index([operatorId])
+  @@unique([operatorId, externalId])
 }
 
 model Traveller {

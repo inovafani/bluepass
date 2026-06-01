@@ -162,37 +162,50 @@ export default function ForOperatorsPage() {
 
             <div className="bp-reveal mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {liveOperators.map((operator) => (
-                <Link
-                  key={operator.name}
-                  href={operator.href}
-                  className="group overflow-hidden border border-white/12 bg-[#03111d]/76 shadow-[0_18px_60px_rgba(0,0,0,0.22)] transition-transform duration-300 hover:-translate-y-1 hover:border-white/24"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-white/5">
-                    <Image
-                      src={operator.image}
-                      alt={operator.alt}
-                      fill
-                      sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020b11]/92 via-[#020b11]/34 to-transparent p-4">
-                      <span className="inline-flex border border-[#B89A5D]/35 bg-[#B89A5D]/14 px-3 py-1 text-[11px] font-light tracking-[0.14em] text-[#f1d58a]">
-                        {operator.tag}
-                      </span>
+                <Link key={operator.name} href={operator.href} className="block">
+                  <article className="bp-tech-card group border border-white/[0.09]">
+                    <div className="relative aspect-[3/4] overflow-hidden">
+                      <Image
+                        src={operator.image}
+                        alt={operator.alt}
+                        fill
+                        sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                      />
+                      <div className="bp-scan-grid" />
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0"
+                        style={{
+                          background:
+                            "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.84) 32%, rgba(2,11,17,0.32) 58%, transparent 76%)",
+                        }}
+                      />
+                      <div className="absolute right-3 top-3 z-10">
+                        <span
+                          className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.14em] text-[#f1d58a]"
+                          style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                        >
+                          {operator.tag}
+                        </span>
+                      </div>
+                      <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+                        <h3 className="bp-page-title text-[1.2rem] leading-tight text-white/92">
+                          {operator.name}
+                        </h3>
+                        <p
+                          className="mt-1.5 flex items-center gap-1.5 text-[10px] tracking-[0.12em] text-white/42"
+                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                        >
+                          <MapPinIcon />
+                          {operator.location}
+                        </p>
+                        <p className="mt-2 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/56">
+                          {operator.body}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-5">
-                    <h3 className="bp-page-title text-xl leading-none text-white/84">
-                      {operator.name}
-                    </h3>
-                    <p className="mt-3 flex items-center gap-2 text-sm font-light text-white/44">
-                      <MapPinIcon />
-                      {operator.location}
-                    </p>
-                    <p className="mt-4 text-sm font-light leading-6 text-white/56">
-                      {operator.body}
-                    </p>
-                  </div>
+                  </article>
                 </Link>
               ))}
             </div>
@@ -202,10 +215,10 @@ export default function ForOperatorsPage() {
         <section className="relative overflow-hidden border-y border-white/10 px-[var(--cinematic-screen-x)] py-14 md:py-20">
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-cover bg-center"
+            className="absolute inset-0 bg-cover bg-center saturate-[0.7]"
             style={{ backgroundImage: `url('${accessImage}')` }}
           />
-          <div className="absolute inset-0 bg-black/35" />
+          <div className="absolute inset-0 bg-[#020b11]/82" />
           <div className="bp-film-grain absolute inset-0" />
 
           <div className="relative mx-auto max-w-6xl">
@@ -236,32 +249,43 @@ export default function ForOperatorsPage() {
 
             <div className="bp-reveal mt-9 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {previews.map((preview) => (
-                <Link
-                  key={preview.name}
-                  href={preview.href}
-                  className="group overflow-hidden border border-white/12 bg-[#03111d]/74 shadow-[0_18px_60px_rgba(0,0,0,0.24)] backdrop-blur-xl transition-transform duration-300 hover:-translate-y-1 hover:border-white/24"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-white/5">
-                    <Image
-                      src={preview.image}
-                      alt={preview.alt}
-                      fill
-                      sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#020b11]/76 to-transparent" />
-                  </div>
-                  <div className="p-5">
-                    <p className="text-[11px] font-light tracking-[0.14em] text-[#B89A5D]">
-                      Early preview
-                    </p>
-                    <h3 className="bp-page-title mt-3 text-xl leading-none text-white/84">
-                      {preview.name}
-                    </h3>
-                    <p className="mt-4 text-sm font-light leading-6 text-white/56">
-                      {preview.body}
-                    </p>
-                  </div>
+                <Link key={preview.name} href={preview.href} className="block">
+                  <article className="bp-tech-card group border border-white/[0.09]">
+                    <div className="relative aspect-[3/4] overflow-hidden">
+                      <Image
+                        src={preview.image}
+                        alt={preview.alt}
+                        fill
+                        sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                      />
+                      <div className="bp-scan-grid" />
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0"
+                        style={{
+                          background:
+                            "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.82) 30%, rgba(2,11,17,0.28) 56%, transparent 74%)",
+                        }}
+                      />
+                      <div className="absolute left-3 top-3 z-10">
+                        <span
+                          className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.13em] text-[#f4d891]"
+                          style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                        >
+                          Early preview
+                        </span>
+                      </div>
+                      <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+                        <h3 className="bp-page-title text-[1.2rem] leading-tight text-white/90">
+                          {preview.name}
+                        </h3>
+                        <p className="mt-2 line-clamp-3 text-[0.78rem] leading-[1.5] text-white/56">
+                          {preview.body}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
                 </Link>
               ))}
             </div>

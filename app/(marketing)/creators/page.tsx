@@ -86,6 +86,34 @@ const creators = [
   },
 ];
 
+const personas = [
+  {
+    label: "Dive instructors",
+    desc: "Teaching conservation from the reef up",
+    icon: "wave",
+  },
+  {
+    label: "Ocean photographers",
+    desc: "Documenting what needs protecting",
+    icon: "camera",
+  },
+  {
+    label: "Travel writers",
+    desc: "Stories that move people to go",
+    icon: "pen",
+  },
+  {
+    label: "Sailors with audiences",
+    desc: "Crews who inspire other crews",
+    icon: "compass",
+  },
+  {
+    label: "Conservation educators",
+    desc: "Building awareness through access",
+    icon: "leaf",
+  },
+];
+
 const featuredReels = [
   {
     creator: "Story of Sage",
@@ -340,42 +368,52 @@ export default function CreatorsPage() {
           />
           <div className="relative mx-auto max-w-6xl overflow-hidden border-y border-white/10 py-14 md:py-20">
             <OceanCurrentOrnament />
-            <div className="bp-reveal relative grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-16">
+            <div className="bp-reveal relative">
 
-              {/* Left — headline */}
-              <div>
-                <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                  Who it is for
-                </p>
-                <h2 className="bp-page-title mt-4 text-[clamp(1.9rem,3.8vw,3.25rem)] leading-[0.95] text-white/88">
-                  Real ocean people with real trust.
-                </h2>
-                <div className="mt-6 flex items-start gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="mt-0.5 h-8 w-px shrink-0 bg-gradient-to-b from-[#B89A5D]/50 to-transparent"
-                  />
-                  <p className="text-[11px] font-light leading-[1.7] text-white/34">
-                    We do not take influencers we cannot verify took the trip.
+              {/* Heading row */}
+              <div className="mb-10 grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
+                <div>
+                  <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
+                    Who it is for
                   </p>
+                  <h2 className="bp-page-title mt-4 text-[clamp(1.9rem,3.8vw,3.25rem)] leading-[0.95] text-white/88">
+                    Real ocean people with real trust.
+                  </h2>
                 </div>
+                <p className="max-w-[22rem] text-[11px] font-light leading-[1.75] text-white/32 md:text-right">
+                  We do not take influencers we cannot verify took the trip.
+                </p>
               </div>
 
-              {/* Right — persona chips */}
-              <div className="flex flex-wrap gap-2.5">
-                {[
-                  "Dive instructors",
-                  "Ocean photographers",
-                  "Travel writers",
-                  "Sailors with audiences",
-                  "Conservation educators",
-                ].map((persona) => (
-                  <span
-                    key={persona}
-                    className="border border-white/12 bg-white/[0.03] px-4 py-2.5 text-sm font-light text-white/58 transition-all duration-200 hover:border-white/26 hover:bg-white/[0.07] hover:text-white/86"
+              {/* Persona cards grid — 3 + 2 layout */}
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {personas.map((persona, i) => (
+                  <article
+                    key={persona.label}
+                    className={`bp-tech-card bp-card-quiet overflow-hidden border border-white/[0.09] ${
+                      i >= 3 ? "lg:col-span-1 sm:col-span-1" : ""
+                    }`}
                   >
-                    {persona}
-                  </span>
+                    {/* Header strip with grid texture */}
+                    <div className="relative flex items-center gap-3 border-b border-white/[0.07] bg-[#030d18] px-4 py-3.5">
+                      <div className="cinematic-app-grid absolute inset-0 opacity-40" />
+                      <div
+                        className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center border border-white/[0.10] bg-[#020b11]"
+                        style={{ borderRadius: "8px" }}
+                      >
+                        <PersonaIcon type={persona.icon} />
+                      </div>
+                      <p className="relative z-10 text-[13px] font-medium text-white/82">
+                        {persona.label}
+                      </p>
+                    </div>
+                    {/* Description */}
+                    <div className="px-4 py-3.5">
+                      <p className="text-[11px] font-light leading-[1.65] text-white/42">
+                        {persona.desc}
+                      </p>
+                    </div>
+                  </article>
                 ))}
               </div>
 
@@ -394,36 +432,51 @@ export default function CreatorsPage() {
             <h2 className="bp-page-title mt-4 max-w-3xl text-xl leading-none text-white/82 md:text-2xl">
               The kind of taste BluePass is built for.
             </h2>
-            <div className="bp-reveal mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <div className="bp-reveal mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {creators.map((creator) => (
-                <Link
-                  key={creator.name}
-                  href={creator.href}
-                  className="bp-rounded-surface group border border-white/12 bg-[#03111d]/90 shadow-[0_14px_44px_rgba(0,0,0,0.22)] transition-transform duration-200 hover:-translate-y-0.5 hover:border-white/24"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-[#071827]/20">
-                    <Image
-                      src={creator.image}
-                      alt={`${creator.name} Instagram profile picture`}
-                      fill
-                      sizes="(min-width: 768px) 33vw, 100vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                    />
-                  </div>
-                  <div className="p-5">
-                    <p className="text-xs tracking-[0.16em] text-[#B89A5D]">
-                      {creator.handle}
-                    </p>
-                    <p className="bp-page-title mt-2 text-xl leading-none text-white/82">
-                      {creator.name}
-                    </p>
-                    <p className="mt-2 text-sm font-light text-white/46">
-                      {creator.location}
-                    </p>
-                    <p className="mt-3 text-sm font-light leading-6 text-white/54">
-                      {creator.role}
-                    </p>
-                  </div>
+                <Link key={creator.name} href={creator.href} className="block">
+                  <article className="bp-tech-card group border border-white/[0.09]">
+                    <div className="relative aspect-[2/3] overflow-hidden">
+                      <Image
+                        src={creator.image}
+                        alt={`${creator.name} Instagram profile picture`}
+                        fill
+                        sizes="(min-width: 768px) 33vw, 100vw"
+                        className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
+                      />
+                      <div className="bp-scan-grid" />
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0"
+                        style={{
+                          background:
+                            "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.80) 28%, rgba(2,11,17,0.22) 52%, transparent 68%)",
+                        }}
+                      />
+                      <div className="absolute left-3 top-3 z-10">
+                        <span
+                          className="border border-white/14 bg-black/52 px-2 py-[3px] text-[10px] tracking-[0.13em] text-white/82"
+                          style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px", backdropFilter: "blur(6px)" }}
+                        >
+                          {creator.handle}
+                        </span>
+                      </div>
+                      <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+                        <p className="bp-page-title text-[1.2rem] leading-tight text-white/92">
+                          {creator.name}
+                        </p>
+                        <p
+                          className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/38"
+                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                        >
+                          {creator.location}
+                        </p>
+                        <p className="mt-2 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/56">
+                          {creator.role}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
                 </Link>
               ))}
             </div>
@@ -523,6 +576,42 @@ function BenefitIcon({ type }: { type: string }) {
       {paths[type as keyof typeof paths] ?? paths.page}
     </svg>
   );
+}
+
+function PersonaIcon({ type }: { type: string }) {
+  const cls = "h-4 w-4 text-[#B89A5D]";
+  if (type === "wave") return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
+      <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
+      <path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
+      <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
+    </svg>
+  );
+  if (type === "camera") return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
+      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+      <circle cx="12" cy="13" r="3" />
+    </svg>
+  );
+  if (type === "pen") return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      <path d="m15 5 4 4" />
+    </svg>
+  );
+  if (type === "compass") return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </svg>
+  );
+  if (type === "leaf") return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+    </svg>
+  );
+  return null;
 }
 
 function OceanCurrentOrnament() {

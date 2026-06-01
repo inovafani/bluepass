@@ -1,4 +1,5 @@
 import type { CertLevel } from "@prisma/client";
+import type { BookingAdapterPlatform } from "@/lib/services/booking/adapters/types";
 
 export type KaiSlots = {
   destination?: string;
@@ -15,4 +16,5 @@ export type MatchResult = {
   title: string;
   score: number;
   reason: string;
+  pmsPlatform?: BookingAdapterPlatform;
 };

@@ -483,47 +483,67 @@ export default function ExploreIndonesiaPage() {
             </div>
             <p className="text-sm text-white/50">5 trips</p>
           </div>
-          <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {liveTrips.map((trip) => (
-              <Link key={trip.href} href={trip.href} className="group block">
-                <article className="bp-fast-card h-full overflow-hidden border border-white/12 bg-[#03111d]/90 shadow-[0_14px_44px_rgba(0,0,0,0.22)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:border-white/24">
-                  <div className="relative aspect-[4/3] overflow-hidden bg-[#071827]/10">
+              <Link key={trip.href} href={trip.href} className="block">
+                <article className="bp-tech-card group h-full border border-white/[0.09]">
+                  <div className="relative aspect-[3/4] overflow-hidden">
                     <Image
                       src={trip.image}
                       alt={trip.alt}
                       fill
-                      sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                      sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
                       loading="lazy"
-                      quality={68}
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      quality={72}
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                     />
-                    <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-[11px] font-medium tracking-[0.14em] text-white">
+                    <div className="bp-scan-grid" />
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.86) 30%, rgba(2,11,17,0.34) 56%, transparent 76%)",
+                      }}
+                    />
+                    <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
+                      <span
+                        className="border border-white/14 bg-black/58 px-2 py-[3px] text-[10px] tracking-[0.13em] text-white/90"
+                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px", backdropFilter: "blur(8px)" }}
+                      >
                         {trip.badge}
                       </span>
-                      <span className="rounded-full border border-[#B89A5D]/30 bg-[#B89A5D]/15 px-2.5 py-1 text-[11px] font-medium tracking-[0.14em] text-[#f4d891]">
-                        5% reef restoration
+                      <span
+                        className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.13em] text-[#f4d891]"
+                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                      >
+                        5% reef
                       </span>
                     </div>
-                    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#061827]/70 to-transparent" />
-                  </div>
-                  <div className="p-5">
-                    <p className="text-xs tracking-[0.16em] text-[#B89A5D]">
-                      {trip.operator}
-                    </p>
-                    <h3 className="bp-page-title mt-2 text-2xl leading-none text-white">
-                      {trip.title}
-                    </h3>
-                    <p className="mt-3 text-sm leading-6 text-white/64">
-                      {trip.summary}
-                    </p>
-                    <div className="mt-5 grid grid-cols-2 gap-3 border-t border-white/10 pt-4 text-sm text-white/60">
-                      <span>{trip.duration}</span>
-                      <span>{trip.capacity}</span>
-                      <span>{trip.availability}</span>
-                      <span className="font-medium text-white">
-                        From {trip.price}
-                      </span>
+                    <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+                      <p
+                        className="text-[10px] uppercase tracking-[0.22em] text-[#B89A5D]"
+                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                      >
+                        {trip.operator}
+                      </p>
+                      <h3 className="bp-page-title mt-1.5 text-[1.2rem] leading-tight text-white">
+                        {trip.title}
+                      </h3>
+                      <p className="mt-1.5 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/58">
+                        {trip.summary}
+                      </p>
+                      <div
+                        className="mt-3 flex items-center border-t border-white/[0.08] pt-3"
+                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                      >
+                        <span className="text-[10px] text-white/44">{trip.duration}</span>
+                        <span className="mx-1.5 text-[10px] text-white/20">·</span>
+                        <span className="text-[10px] text-white/44">{trip.capacity}</span>
+                        <span className="ml-auto text-[0.8125rem] font-medium text-white">
+                          From {trip.price}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </article>
@@ -544,47 +564,64 @@ export default function ExploreIndonesiaPage() {
             </div>
             <p className="text-sm text-white/50">11 previews</p>
           </div>
-          <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {earlyPreviews.map((preview) => (
-              <Link
-                key={preview.href}
-                href={preview.href}
-                className="bp-fast-card group overflow-hidden border border-white/12 bg-[#03111d]/90 shadow-[0_14px_44px_rgba(0,0,0,0.22)] transition-transform duration-200 hover:-translate-y-0.5 hover:border-white/24"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden bg-[#071827]/10">
-                  <Image
-                    src={preview.image ?? earlyPreviewImage}
-                    alt={preview.alt ?? "Island coastline with turquoise water"}
-                    fill
-                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                    loading="lazy"
-                    quality={68}
-                    className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                  />
-                  <div className="absolute left-4 top-4">
-                    <span className="rounded-full border border-[#B89A5D]/30 bg-[#B89A5D]/15 px-2.5 py-1 text-[11px] font-medium tracking-[0.14em] text-[#f4d891]">
-                      Early preview
-                    </span>
+              <Link key={preview.href} href={preview.href} className="block">
+                <article className="bp-tech-card group border border-white/[0.09]">
+                  <div className="relative aspect-[3/4] overflow-hidden">
+                    <Image
+                      src={preview.image ?? earlyPreviewImage}
+                      alt={preview.alt ?? "Island coastline with turquoise water"}
+                      fill
+                      sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
+                      loading="lazy"
+                      quality={72}
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                    />
+                    <div className="bp-scan-grid" />
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.82) 32%, rgba(2,11,17,0.30) 58%, transparent 76%)",
+                      }}
+                    />
+                    <div className="absolute left-3 top-3 z-10">
+                      <span
+                        className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.13em] text-[#f4d891]"
+                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                      >
+                        Preview
+                      </span>
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+                      <p
+                        className="text-[10px] uppercase tracking-[0.18em] text-[#B89A5D]"
+                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                      >
+                        {preview.location}
+                      </p>
+                      <h3 className="bp-page-title mt-1.5 text-[1.2rem] leading-tight text-white">
+                        {preview.title}
+                      </h3>
+                      <p className="mt-1.5 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/56">
+                        {preview.summary}
+                      </p>
+                      <div className="mt-3 flex items-center justify-between border-t border-white/[0.08] pt-3">
+                        <span
+                          className="text-[10px] tracking-[0.14em] text-[#B89A5D]"
+                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                        >
+                          View preview →
+                        </span>
+                        <span className="text-[0.8125rem] font-medium text-white">
+                          From {preview.price}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="p-5">
-                  <p className="text-xs tracking-[0.16em] text-[#B89A5D]">
-                    {preview.location}
-                  </p>
-                  <h3 className="bp-page-title mt-2 text-2xl leading-none text-white">
-                    {preview.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-6 text-white/64">
-                    {preview.summary}
-                  </p>
-                  <p className="mt-4 text-sm font-medium text-white">
-                    From {preview.price}
-                  </p>
-                  <span className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-[#B89A5D]">
-                    View preview
-                    <ArrowIcon />
-                  </span>
-                </div>
+                </article>
               </Link>
             ))}
           </div>

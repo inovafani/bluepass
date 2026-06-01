@@ -18,6 +18,7 @@ describe("booking state machine", () => {
   it("allows active bookings to be cancelled", () => {
     expect(canTransition("QUOTE_DRAFTED", "CANCELLED")).toBe(true);
     expect(canTransition("AWAITING_PAYMENT", "CANCELLED")).toBe(true);
+    expect(canTransition("CONFIRMED", "CANCELLED")).toBe(true);
   });
 
   it("allows confirmed bookings to be refunded", () => {

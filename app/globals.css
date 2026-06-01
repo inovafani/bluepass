@@ -115,21 +115,30 @@ body {
 .cinematic-page :where(article, aside, form),
 .cinematic-page a[class*="group"],
 .cinematic-page .bp-rounded-surface {
-  border-color: transparent !important;
-  background-color: rgba(148, 163, 184, 0.18);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(18px) saturate(1.04);
+  border-color: rgba(255, 255, 255, 0.10);
+  background-color: rgba(4, 14, 23, 0.86);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: none;
+  transition: border-color 220ms ease, box-shadow 220ms ease;
 }
 
 .cinematic-page a[class*="group"] {
-  background: rgba(31, 41, 55, 0.82);
-  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(18px) saturate(1.06);
+  background: rgba(4, 14, 23, 0.84);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: none;
 }
 
 .cinematic-page .bp-fast-card {
+  background-color: rgba(4, 14, 23, 0.86) !important;
   backdrop-filter: none !important;
-  background-color: rgba(31, 41, 55, 0.9) !important;
+}
+
+.cinematic-page a[class*="group"]:hover,
+.cinematic-page :where(article, aside, form):hover,
+.cinematic-page .bp-fast-card:hover {
+  transform: translateY(0) !important;
+  border-color: rgba(255, 255, 255, 0.20) !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
 }
 
 .cinematic-page :where(article, aside, form)::before,
@@ -234,15 +243,13 @@ textarea {
 }
 
 .cinematic-page :where(article, aside, form),
-.cinematic-page .cinematic-hero-stage > section,
-.cinematic-page .bp-rounded-surface {
+.cinematic-page .cinematic-hero-stage > section {
   animation: bp-surface-enter 620ms ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cinematic-page :where(article, aside, form),
-  .cinematic-page .cinematic-hero-stage > section,
-  .cinematic-page .bp-rounded-surface {
+  .cinematic-page .cinematic-hero-stage > section {
     animation: none;
   }
 }
@@ -653,4 +660,98 @@ html.js-reveal .bp-reveal-delay-4 { transition-delay: 360ms; }
     transform: none;
     transition: none;
   }
+}
+
+/* ── Tech media card ─────────────────────────────────────────────────────── */
+
+.bp-tech-card {
+  position: relative;
+  overflow: hidden !important;
+  border-radius: 14px !important;
+  background: #020b11 !important;
+  box-shadow:
+    0 10px 36px rgba(0, 0, 0, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: none !important;
+  transition:
+    transform 280ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 280ms ease,
+    box-shadow 280ms ease !important;
+}
+
+/* Override inner image-container radius set by cinematic-page globals */
+.cinematic-page .bp-tech-card div[class*="aspect-"][class*="overflow-hidden"] {
+  border-radius: 0 !important;
+}
+
+.cinematic-page .bp-tech-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: rgba(0, 185, 165, 0.34) !important;
+  box-shadow:
+    0 0 0 1px rgba(0, 185, 165, 0.17),
+    0 28px 72px rgba(0, 0, 0, 0.60),
+    0 0 60px rgba(0, 155, 145, 0.08) !important;
+}
+
+/* Bottom accent line — slides in on hover */
+.bp-tech-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 185, 165, 0.70) 25%,
+    rgba(184, 154, 93, 0.70) 75%,
+    transparent 100%
+  );
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  pointer-events: none;
+  z-index: 20;
+}
+
+.bp-tech-card:hover::after {
+  transform: scaleX(1);
+}
+
+/* Scan-grid overlay — fades in on card hover */
+.bp-scan-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 420ms ease;
+  background-image:
+    linear-gradient(rgba(0, 200, 195, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 200, 195, 0.022) 1px, transparent 1px);
+  background-size: 38px 38px;
+  z-index: 2;
+}
+
+.bp-tech-card:hover .bp-scan-grid {
+  opacity: 1;
+}
+
+/* ── Quiet variant — no glow, no accent line, no scan grid ──────────────── */
+/* Higher specificity (4 classes) overrides the 3-class glow rules above.   */
+
+.bp-tech-card.bp-card-quiet::after {
+  display: none;
+}
+
+.bp-tech-card.bp-card-quiet .bp-scan-grid {
+  display: none;
+}
+
+.cinematic-page .bp-tech-card.bp-card-quiet:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgba(255, 255, 255, 0.20) !important;
+  box-shadow:
+    0 20px 56px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }

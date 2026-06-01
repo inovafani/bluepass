@@ -1,4 +1,4 @@
-export type BookingAdapterPlatform = "rezdy" | "fareharbor" | "native";
+export type BookingAdapterPlatform = "rezdy" | "fareharbor" | "bokun" | "native";
 
 export type AvailabilityInput = {
   operatorId: string;
@@ -22,6 +22,11 @@ export type ReleaseHoldInput = {
 
 export interface BookingAdapter {
   platform: BookingAdapterPlatform;
+  capabilities?: {
+    supportsHold: boolean;
+    supportsCancellation: boolean;
+    supportsLiveAvailability: boolean;
+  };
 
   checkAvailability(input: AvailabilityInput): Promise<{
     available: boolean;
