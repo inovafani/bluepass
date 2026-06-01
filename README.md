@@ -40,6 +40,53 @@ number. Later, BluePass can split Kai and Ops by setting different values for
 one-number mode should rely on sender identity and booking/session context, not
 the destination phone number.
 
+For local or staging send tests, set:
+
+```bash
+META_GRAPH_VERSION=v20.0
+WHATSAPP_ACCESS_TOKEN=your_meta_system_user_token
+WHATSAPP_PHONE_ID_KAI=1115079071692326
+WHATSAPP_PHONE_ID_OPS=1115079071692326
+INTERNAL_SERVICE_TOKEN=local-only-shared-secret
+```
+
+Send the Meta `hello_world` template to a test recipient:
+
+```bash
+curl -X POST http://localhost:3000/api/whatsapp/send \
+  -H "Authorization: Bearer local-only-shared-secret" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+628213143342",
+    "role": "kai",
+    "templateName": "hello_world",
+    "languageCode": "en_US"
+  }'
+```
+
+Build and send the future operator booking inquiry template payload:
+
+```bash
+curl -X POST http://localhost:3000/api/whatsapp/send \
+  -H "Authorization: Bearer local-only-shared-secret" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+628213143342",
+    "role": "ops",
+    "templateName": "booking_inquiry_operator",
+    "languageCode": "en",
+    "bookingId": "booking_123",
+    "inquiryTitle": "New Komodo inquiry",
+    "travellerName": "Ari",
+    "travellerPhone": "+628213143342",
+    "dateRange": "June 10-14",
+    "guests": "2",
+    "quote": "$1000",
+    "tripTitle": "Komodo Liveaboard",
+    "notes": "AOW divers"
+  }'
+```
+
 ## Current Phase
 
 Phase 1 is the production foundation. It includes:
@@ -51,6 +98,7 @@ Phase 1 is the production foundation. It includes:
 - Prisma schema for operators, trips, travellers, bookings, booking events, Kai sessions, conservation transfers, and encrypted operator integrations.
 - Booking orchestrator skeleton that updates status and writes `BookingEvent` rows inside a Prisma transaction.
 - WhatsApp webhook verification skeleton with Meta HMAC-SHA256 signature validation.
+- Safe Meta WhatsApp Cloud API template sending behind `INTERNAL_SERVICE_TOKEN`.
 - Typed WhatsApp template parameter builders.
 - PMS adapter interfaces and stubs for Rezdy, FareHarbor, and native inventory.
 - Kai slot, matching, and quote skeletons.
@@ -61,7 +109,6 @@ These are not implemented in Phase 1:
 
 - Rezdy and FareHarbor API calls.
 - Stripe payment links and webhook processing.
-- Actual Meta WhatsApp send API calls.
 - LLM-backed Kai logic.
 - Production migrations.
 - Conservation transfer execution.
