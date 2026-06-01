@@ -5,10 +5,12 @@ import { buildOperatorInquiryTemplatePayload } from "@/lib/services/whatsapp/ope
 
 const roleSchema = z.enum(["kai", "ops"]).optional().default("kai");
 
-const helloWorldRequestSchema = z.object({
+const noParameterTemplateNameSchema = z.enum(["hello_world", "bluepass_test_message"]);
+
+const noParameterTemplateRequestSchema = z.object({
   to: z.string().min(5),
   role: roleSchema,
-  templateName: z.literal("hello_world"),
+  templateName: noParameterTemplateNameSchema,
   languageCode: z.string().min(2).optional().default("en_US"),
 });
 
@@ -37,11 +39,17 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const templateName = z
-    .object({ templateName: z.enum(["hello_world", "booking_inquiry_operator"]) })
+    .object({
+      templateName: z.enum([
+        "hello_world",
+        "bluepass_test_message",
+        "booking_inquiry_operator",
+      ]),
+    })
     .parse(body).templateName;
 
-  if (templateName === "hello_world") {
-    const payload = helloWorldRequestSchema.parse(body);
+  if (noParameterTemplateNameSchema.safeParse(templateName).success) {
+    const payload = noParameterTemplateRequestSchema.parse(body);
     await sendTemplateMessage({
       to: payload.to,
       role: payload.role,

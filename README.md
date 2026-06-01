@@ -50,7 +50,7 @@ WHATSAPP_PHONE_ID_OPS=1115079071692326
 INTERNAL_SERVICE_TOKEN=local-only-shared-secret
 ```
 
-Send the Meta `hello_world` template to a test recipient:
+Send the approved production `bluepass_test_message` utility template to a test recipient:
 
 ```bash
 curl -X POST http://localhost:3000/api/whatsapp/send \
@@ -59,7 +59,7 @@ curl -X POST http://localhost:3000/api/whatsapp/send \
   -d '{
     "to": "+628213143342",
     "role": "kai",
-    "templateName": "hello_world",
+    "templateName": "bluepass_test_message",
     "languageCode": "en_US"
   }'
 ```
