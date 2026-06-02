@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { sanitizeObjectForResponse } from "@/lib/services/kai/json-safety";
 import { generateKaiReply } from "@/lib/services/kai/llm-provider";
 import { prismaKaiConversationStore } from "@/lib/services/kai/prisma-conversation-store";
 import { extractKaiTravelIntent } from "@/lib/services/kai/slot-extractor";
@@ -54,14 +55,29 @@ export function createKaiConversationService(
   return {
     async handleUserMessage(input) {
       const sessionId = input.sessionId ?? generateKaiSessionId();
+      logKaiStage("kai.web_chat.request_received", {
+        sessionId,
+        channel: input.channel,
+      });
       const previousContext = input.sessionId
         ? await store.getSessionContext?.({
             sessionId,
             channel: input.channel,
           })
         : undefined;
+      logKaiStage("kai.session.loaded_or_created", {
+        sessionId,
+        channel: input.channel,
+        hasExistingContext: Boolean(previousContext),
+      });
       const intent = extractKaiTravelIntent(input.message, previousContext?.intent, {
         lastAskedSlot: previousContext?.lastAskedSlot,
+      });
+      logKaiStage("kai.intent.extracted", {
+        sessionId,
+        channel: input.channel,
+        intentKeys: Object.keys(intent),
+        missingSlots: intent.missingSlots,
       });
       const deterministicReply = buildDeterministicReply(intent);
       const context = buildSessionContext(intent);
@@ -92,6 +108,11 @@ export function createKaiConversationService(
         channel: input.channel,
         deterministicReply,
       });
+      logKaiStage("kai.assistant_reply.generated", {
+        sessionId,
+        channel: input.channel,
+        replyLength: reply.length,
+      });
       const assistantMessage = buildMessage({
         sessionId,
         channel: input.channel,
@@ -100,21 +121,45 @@ export function createKaiConversationService(
         metadata: { intent, lastAskedSlot: context.lastAskedSlot },
       });
 
-      await store.upsertSession({
-        id: sessionId,
+      try {
+        await store.upsertSession({
+          id: sessionId,
+          channel: input.channel,
+          externalUserId: input.externalUserId,
+          travellerPhone: input.travellerPhone,
+          status: "open",
+          context,
+        });
+        logKaiStage("kai.session.context.persisted", {
+          sessionId,
+          channel: input.channel,
+        });
+      } catch (error) {
+        logPersistenceFailure("kai.session.context.persisted", sessionId, error);
+      }
+
+      try {
+        await store.addMessage(userMessage);
+        await store.addMessage(assistantMessage);
+        logKaiStage("kai.messages.persisted", {
+          sessionId,
+          channel: input.channel,
+          messageCount: 2,
+        });
+      } catch (error) {
+        logPersistenceFailure("kai.messages.persisted", sessionId, error);
+      }
+
+      logKaiStage("kai.web_chat.response_ready", {
+        sessionId,
         channel: input.channel,
-        externalUserId: input.externalUserId,
-        travellerPhone: input.travellerPhone,
-        status: "open",
-        context,
+        replyLength: assistantMessage.content.length,
       });
-      await store.addMessage(userMessage);
-      await store.addMessage(assistantMessage);
 
       return {
         sessionId,
         reply: assistantMessage.content,
-        intent,
+        intent: sanitizeObjectForResponse(intent),
         messages: [userMessage, assistantMessage],
       };
     },
@@ -216,6 +261,30 @@ function normalizeAssistantReply(reply: unknown) {
   const normalized = reply.trim();
 
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function logKaiStage(stage: string, data: Record<string, unknown>) {
+  console.info(stage, {
+    ...data,
+    sessionId: maskSessionId(data.sessionId),
+  });
+}
+
+function logPersistenceFailure(stage: string, sessionId: string, error: unknown) {
+  console.warn("kai.persistence.failed", {
+    stage,
+    sessionId: maskSessionId(sessionId),
+    errorName: error instanceof Error ? error.name : "UnknownError",
+    message: error instanceof Error ? error.message : "Unknown persistence error",
+  });
+}
+
+function maskSessionId(sessionId: unknown) {
+  if (typeof sessionId !== "string") {
+    return undefined;
+  }
+
+  return `${sessionId.slice(0, 8)}...${sessionId.slice(-4)}`;
 }
 
 function buildMessage(

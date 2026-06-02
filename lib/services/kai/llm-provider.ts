@@ -161,7 +161,18 @@ async function generateOpenAIReply(input: GenerateKaiReplyInput) {
     const body = (await response.json()) as OpenAIResponse;
     const reply = extractOpenAIText(body);
 
-    return reply || input.deterministicReply;
+    if (!reply) {
+      return input.deterministicReply;
+    }
+
+    console.info("kai.llm.openai.success", {
+      provider: "openai",
+      model: resolveKaiLlmModel(DEFAULT_OPENAI_MODEL),
+      status: response.status,
+      replyLength: reply.length,
+    });
+
+    return reply;
   } catch (error) {
     console.warn("Kai LLM request failed; using deterministic fallback.", {
       error: error instanceof Error ? error.message : "unknown error",

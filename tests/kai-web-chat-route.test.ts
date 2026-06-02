@@ -254,6 +254,60 @@ describe("POST /api/kai/web-chat", () => {
       }),
     );
   });
+
+  it("does not persist undefined assistant content when LLM returns nullish output", async () => {
+    llmMocks.generateKaiReply.mockResolvedValue(undefined);
+
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_null_llm_session",
+        message: "I want a Komodo sailing trip",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(storeMocks.addMessage).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        role: "assistant",
+        content: expect.stringContaining("How many people"),
+      }),
+    );
+  });
+
+  it("returns 200 and logs the failed stage when persistence fails after LLM success", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    llmMocks.generateKaiReply.mockResolvedValue("LLM reply after Groq success.");
+    storeMocks.addMessage.mockRejectedValue(new Error("Prisma JSON field rejected undefined"));
+
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_persist_failure_session",
+        message: "I want a Komodo sailing trip",
+      }),
+    );
+
+    await expect(response.json()).resolves.toEqual(
+      expect.objectContaining({
+        sessionId: "kai_persist_failure_session",
+        reply: "LLM reply after Groq success.",
+        intent: expect.objectContaining({
+          destination: "Komodo",
+          tripType: "sailing",
+        }),
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(warnSpy).toHaveBeenCalledWith("kai.persistence.failed", {
+      stage: "kai.messages.persisted",
+      sessionId: "kai_pers...sion",
+      errorName: "Error",
+      message: "Prisma JSON field rejected undefined",
+    });
+    expect(JSON.stringify(warnSpy.mock.calls)).not.toContain("GROQ_API_KEY");
+
+    warnSpy.mockRestore();
+  });
 });
 
 describe("GET /api/kai/web-chat/history", () => {

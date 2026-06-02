@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { sanitizeJsonForPrisma } from "@/lib/services/kai/json-safety";
 import type { KaiConversationStore } from "@/lib/services/kai/conversation-service";
 import type {
   KaiChannel,
@@ -47,7 +48,7 @@ export const prismaKaiConversationStore: KaiConversationStore = {
         externalUserId: session.externalUserId,
         travellerPhone: session.travellerPhone,
         status: toPrismaStatus(session.status),
-        slots: session.context as Prisma.InputJsonValue | undefined,
+        slots: sanitizeJsonForPrisma(session.context) as Prisma.InputJsonValue | undefined,
         // TODO: Upgrade anonymous sessions with optional email/WhatsApp capture,
         // Traveller profiles, magic-link login, and cross-device session merge.
       },
@@ -56,7 +57,7 @@ export const prismaKaiConversationStore: KaiConversationStore = {
         externalUserId: session.externalUserId,
         travellerPhone: session.travellerPhone,
         status: toPrismaStatus(session.status),
-        slots: session.context as Prisma.InputJsonValue | undefined,
+        slots: sanitizeJsonForPrisma(session.context) as Prisma.InputJsonValue | undefined,
       },
     });
   },
@@ -69,7 +70,7 @@ export const prismaKaiConversationStore: KaiConversationStore = {
         channel: toPrismaChannel(message.channel),
         role: toPrismaRole(message.role),
         content: message.content,
-        metadata: message.metadata as Prisma.InputJsonValue | undefined,
+        metadata: sanitizeJsonForPrisma(message.metadata) as Prisma.InputJsonValue | undefined,
         createdAt: message.createdAt,
       },
     });
