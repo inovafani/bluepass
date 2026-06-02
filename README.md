@@ -60,6 +60,10 @@ KAI_LLM_MODEL=llama-3.3-70b-versatile
 GROQ_API_KEY=your-groq-api-key
 ```
 
+The Groq provider uses the OpenAI-compatible Chat Completions response shape and
+reads replies from `choices[0].message.content`. The OpenAI provider uses the
+Responses API parsing path.
+
 Deterministic-only mode:
 
 ```bash

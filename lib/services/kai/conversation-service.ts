@@ -197,13 +197,25 @@ function requiresCertification(tripType?: string) {
 
 async function generateReplySafely(input: Parameters<typeof generateKaiReply>[0]) {
   try {
-    return await generateKaiReply(input);
+    const reply = await generateKaiReply(input);
+
+    return normalizeAssistantReply(reply) ?? input.deterministicReply;
   } catch (error) {
     console.warn("Kai reply generation failed; using deterministic fallback.", {
       error: error instanceof Error ? error.message : "unknown error",
     });
     return input.deterministicReply;
   }
+}
+
+function normalizeAssistantReply(reply: unknown) {
+  if (typeof reply !== "string") {
+    return undefined;
+  }
+
+  const normalized = reply.trim();
+
+  return normalized.length > 0 ? normalized : undefined;
 }
 
 function buildMessage(

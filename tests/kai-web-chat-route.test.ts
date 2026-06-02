@@ -223,6 +223,37 @@ describe("POST /api/kai/web-chat", () => {
       }),
     );
   });
+
+  it("returns 200 with fallback when LLM output is invalid", async () => {
+    llmMocks.generateKaiReply.mockResolvedValue("");
+
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_invalid_llm_session",
+        message: "I want a Komodo sailing trip",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual(
+      expect.objectContaining({
+        sessionId: "kai_invalid_llm_session",
+        reply: expect.stringContaining("How many people"),
+        intent: expect.objectContaining({
+          destination: "Komodo",
+          tripType: "sailing",
+        }),
+      }),
+    );
+    expect(storeMocks.addMessage).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        role: "assistant",
+        content: expect.stringContaining("How many people"),
+      }),
+    );
+  });
 });
 
 describe("GET /api/kai/web-chat/history", () => {

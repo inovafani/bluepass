@@ -97,10 +97,12 @@ describe("generateKaiReply", () => {
     process.env.KAI_LLM_MODEL = "test-groq-model";
     process.env.OPENAI_API_KEY = "openai-key";
     process.env.GROQ_API_KEY = "groq-key";
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
+      status: 200,
       json: async () => ({
-        choices: [{ message: { content: "Groq Kai reply" } }],
+        choices: [{ message: { content: " Groq Kai reply " } }],
       }),
     } as Response);
 
@@ -115,6 +117,12 @@ describe("generateKaiReply", () => {
         body: expect.stringContaining('"model":"test-groq-model"'),
       }),
     );
+    expect(infoSpy).toHaveBeenCalledWith("kai.llm.groq.success", {
+      provider: "groq",
+      model: "test-groq-model",
+      status: 200,
+      replyLength: "Groq Kai reply".length,
+    });
   });
 
   it("uses Groq default model when KAI_LLM_MODEL is missing", async () => {
@@ -122,8 +130,10 @@ describe("generateKaiReply", () => {
     process.env.KAI_LLM_PROVIDER = "groq";
     delete process.env.KAI_LLM_MODEL;
     process.env.GROQ_API_KEY = "groq-key";
+    vi.spyOn(console, "info").mockImplementation(() => {});
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
+      status: 200,
       json: async () => ({
         choices: [{ message: { content: "Groq default model reply" } }],
       }),
@@ -169,13 +179,63 @@ describe("generateKaiReply", () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 429,
+      headers: new Headers({ "x-request-id": "req_123" }),
+      json: async () => ({
+        error: {
+          message: "rate limited",
+          type: "rate_limit",
+          code: "rate_limit_exceeded",
+        },
+      }),
     } as Response);
 
     await expect(generateKaiReply(baseInput)).resolves.toBe(baseInput.deterministicReply);
-    expect(warnSpy).toHaveBeenCalledWith(
-      "Kai LLM request failed with status 429; using fallback.",
-    );
+    expect(warnSpy).toHaveBeenCalledWith("kai.llm.groq.error", {
+      status: 429,
+      message: "rate limited",
+      type: "rate_limit",
+      code: "rate_limit_exceeded",
+      requestId: "req_123",
+    });
     expect(JSON.stringify(warnSpy.mock.calls)).not.toContain("groq-secret-key");
+  });
+
+  it("falls back when Groq returns 200 with malformed response", async () => {
+    process.env.KAI_LLM_ENABLED = "true";
+    process.env.KAI_LLM_PROVIDER = "groq";
+    process.env.GROQ_API_KEY = "groq-secret-key";
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "x-request-id": "req_malformed" }),
+      json: async () => ({ choices: [{}] }),
+    } as Response);
+
+    await expect(generateKaiReply(baseInput)).resolves.toBe(baseInput.deterministicReply);
+    expect(warnSpy).toHaveBeenCalledWith("kai.llm.groq.malformed_response", {
+      status: 200,
+      requestId: "req_malformed",
+    });
+    expect(JSON.stringify(warnSpy.mock.calls)).not.toContain("groq-secret-key");
+  });
+
+  it("falls back when Groq returns 200 with empty content", async () => {
+    process.env.KAI_LLM_ENABLED = "true";
+    process.env.KAI_LLM_PROVIDER = "groq";
+    process.env.GROQ_API_KEY = "groq-secret-key";
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ choices: [{ message: { content: "   " } }] }),
+    } as Response);
+
+    await expect(generateKaiReply(baseInput)).resolves.toBe(baseInput.deterministicReply);
+    expect(warnSpy).toHaveBeenCalledWith("kai.llm.groq.malformed_response", {
+      status: 200,
+      requestId: undefined,
+    });
   });
 
   it("falls back safely when OpenAI request fails", async () => {

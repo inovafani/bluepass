@@ -31,9 +31,14 @@ type OpenAIResponse = {
 type GroqChatCompletionResponse = {
   choices?: Array<{
     message?: {
-      content?: string;
+      content?: unknown;
     };
   }>;
+  error?: {
+    message?: string;
+    type?: string;
+    code?: string;
+  };
 };
 
 export async function generateKaiReply(input: GenerateKaiReplyInput): Promise<string> {
@@ -167,6 +172,7 @@ async function generateOpenAIReply(input: GenerateKaiReplyInput) {
 
 async function generateGroqReply(input: GenerateKaiReplyInput) {
   const apiKey = process.env.GROQ_API_KEY;
+  const model = resolveKaiLlmModel(DEFAULT_GROQ_MODEL);
 
   if (!apiKey) {
     return input.deterministicReply;
@@ -180,24 +186,46 @@ async function generateGroqReply(input: GenerateKaiReplyInput) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: resolveKaiLlmModel(DEFAULT_GROQ_MODEL),
+        model,
         messages: buildGroqMessages(input),
         max_tokens: 220,
       }),
     });
 
     if (!response.ok) {
-      console.warn(`Kai LLM request failed with status ${response.status}; using fallback.`);
+      const errorBody = await readGroqErrorBody(response);
+      console.warn("kai.llm.groq.error", {
+        status: response.status,
+        message: errorBody?.error?.message,
+        type: errorBody?.error?.type,
+        code: errorBody?.error?.code,
+        requestId: getResponseHeader(response, "x-request-id"),
+      });
       return input.deterministicReply;
     }
 
     const body = (await response.json()) as GroqChatCompletionResponse;
     const reply = extractGroqText(body);
 
-    return reply || input.deterministicReply;
+    if (!reply) {
+      console.warn("kai.llm.groq.malformed_response", {
+        status: response.status,
+        requestId: getResponseHeader(response, "x-request-id"),
+      });
+      return input.deterministicReply;
+    }
+
+    console.info("kai.llm.groq.success", {
+      provider: "groq",
+      model,
+      status: response.status,
+      replyLength: reply.length,
+    });
+
+    return reply;
   } catch (error) {
-    console.warn("Kai LLM request failed; using deterministic fallback.", {
-      error: error instanceof Error ? error.message : "unknown error",
+    console.warn("kai.llm.groq.error", {
+      message: error instanceof Error ? error.message : "unknown error",
     });
     return input.deterministicReply;
   }
@@ -219,5 +247,29 @@ function extractOpenAIText(response: OpenAIResponse) {
 }
 
 function extractGroqText(response: GroqChatCompletionResponse) {
-  return response.choices?.[0]?.message?.content?.trim();
+  const content = response.choices?.[0]?.message?.content;
+
+  if (typeof content !== "string") {
+    return undefined;
+  }
+
+  const reply = content.trim();
+
+  return reply.length > 0 ? reply : undefined;
+}
+
+async function readGroqErrorBody(response: Response): Promise<GroqChatCompletionResponse | undefined> {
+  try {
+    return (await response.json()) as GroqChatCompletionResponse;
+  } catch {
+    return undefined;
+  }
+}
+
+function getResponseHeader(response: Response, name: string) {
+  try {
+    return response.headers?.get(name) ?? undefined;
+  } catch {
+    return undefined;
+  }
 }
