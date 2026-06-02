@@ -64,6 +64,23 @@ enum SignupRole {
   CREATOR
 }
 
+enum KaiChannel {
+  WEB      @map("web")
+  WHATSAPP @map("whatsapp")
+}
+
+enum KaiSessionStatus {
+  OPEN    @map("open")
+  HANDOFF @map("handoff")
+  CLOSED  @map("closed")
+}
+
+enum KaiMessageRole {
+  USER      @map("user")
+  ASSISTANT @map("assistant")
+  SYSTEM    @map("system")
+}
+
 model Operator {
   id           String                @id @default(cuid())
   name         String
@@ -147,14 +164,36 @@ model BookingEvent {
 }
 
 model KaiSession {
-  id          String    @id @default(cuid())
-  travellerId String
-  slots       Json
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  traveller   Traveller @relation(fields: [travellerId], references: [id])
+  id             String           @id @default(cuid())
+  channel        KaiChannel
+  externalUserId String?
+  travellerId    String?
+  travellerPhone String?
+  status         KaiSessionStatus @default(OPEN)
+  slots          Json?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  traveller      Traveller?       @relation(fields: [travellerId], references: [id])
+  messages       KaiMessage[]
 
+  @@index([channel, status])
+  @@index([externalUserId])
   @@index([travellerId])
+  @@index([travellerPhone])
+}
+
+model KaiMessage {
+  id        String         @id @default(cuid())
+  sessionId String
+  channel   KaiChannel
+  role      KaiMessageRole
+  content   String
+  metadata  Json?
+  createdAt DateTime       @default(now())
+  session   KaiSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([channel, createdAt])
 }
 
 model ConservationTransfer {

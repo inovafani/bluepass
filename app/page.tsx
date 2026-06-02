@@ -68,41 +68,6 @@ export default function HomePage() {
             <span className="h-1.5 w-1.5 bg-white/42" />
           </span>
         </div>
-
-        <div className="fixed bottom-4 right-4 z-[80] md:bottom-6 md:right-6">
-          <Link
-            href="https://wa.me/628213143342"
-            className="bp-focus-ring ml-auto flex h-16 min-w-[196px] items-center gap-3 rounded-full border border-white/15 bg-[#075e54] px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-transform hover:scale-[1.02] hover:bg-[#0b6f63]"
-            aria-label="Open Kai chat"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d9fdd3] text-sm font-semibold text-[#075e54]">
-              K
-            </span>
-            <span className="block text-left">
-              <span className="block text-sm font-semibold leading-none">
-                Ask Kai
-              </span>
-              <span className="mt-1 block text-[11px] text-white/70">
-                In-app or WhatsApp
-              </span>
-            </span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-              className="h-4 w-4"
-            >
-              <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-            </svg>
-          </Link>
-        </div>
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { ScrollRevealInit } from "@/app/components/ScrollRevealInit";
+import { KaiWebChat } from "@/app/components/kai/KaiWebChat";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function RootLayout({
         <SiteHeader />
         <ScrollRevealInit />
         <main>{children}</main>
+        <KaiWebChat />
       </body>
     </html>
   );

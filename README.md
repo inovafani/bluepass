@@ -19,6 +19,41 @@ npm run dev
 
 The app runs at `http://localhost:3000` by default.
 
+## Kai chat channels
+
+Kai now has a multi-channel backend foundation. WhatsApp messages enter through
+the Meta webhook, and website chat messages can POST to `/api/kai/web-chat`.
+Both channels are intended to use the same future Kai conversation and
+orchestration layer for LLM reasoning, trip search, booking state, operator PMS
+adapters, and WhatsApp handoff.
+
+Website Kai MVP session model:
+
+- The browser keeps an anonymous `sessionId` in localStorage.
+- `/api/kai/web-chat` stores messages server-side as `KaiMessage` rows.
+- `/api/kai/web-chat/history?sessionId=...` returns recent web-channel messages
+  for that anonymous session.
+- Full login/auth is deferred until quote, booking, or cross-device history is
+  needed.
+
+Website chat request:
+
+```json
+{
+  "sessionId": "optional-existing-session-id",
+  "message": "I want to dive in Komodo"
+}
+```
+
+Website chat response:
+
+```json
+{
+  "sessionId": "kai_generated_or_existing_id",
+  "reply": "Thanks - I can help you find the right marine trip. Where are you hoping to go, and what kind of experience are you looking for?"
+}
+```
+
 ## Quality
 
 ```bash
