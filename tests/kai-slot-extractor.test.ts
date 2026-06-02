@@ -1,0 +1,145 @@
+import { describe, expect, it } from "vitest";
+import { extractKaiTravelIntent } from "@/lib/services/kai/slot-extractor";
+
+describe("extractKaiTravelIntent", () => {
+  it("extracts a Komodo diving request with date and guests", () => {
+    expect(extractKaiTravelIntent("I want to dive in Komodo in October for 2 people")).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "diving",
+        dateWindow: "October",
+        guests: 2,
+      }),
+    );
+  });
+
+  it("extracts Raja Ampat liveaboard preferences", () => {
+    expect(
+      extractKaiTravelIntent(
+        "Looking for a Raja Ampat liveaboard, advanced divers, love mantas and photography",
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "liveaboard",
+        certificationLevel: "advanced open water",
+        interests: expect.arrayContaining(["mantas", "underwater photography"]),
+      }),
+    );
+  });
+
+  it("extracts Bali beginners and snorkelling", () => {
+    expect(extractKaiTravelIntent("We are beginners in Bali and want snorkelling")).toEqual(
+      expect.objectContaining({
+        destination: "Bali",
+        tripType: "snorkelling",
+        certificationLevel: "beginner",
+        interests: expect.arrayContaining(["beginner-friendly"]),
+      }),
+    );
+  });
+
+  it("extracts a luxury sailing group around Labuan Bajo", () => {
+    expect(extractKaiTravelIntent("Luxury sailing trip for 4 guests around Labuan Bajo")).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "sailing",
+        guests: 4,
+        budget: "luxury",
+        interests: expect.arrayContaining(["luxury"]),
+      }),
+    );
+  });
+
+  it("marks Maldives as unsupported without setting it as a destination", () => {
+    const intent = extractKaiTravelIntent("I want to go to the Maldives");
+
+    expect(intent.unsupportedDestination).toBe("Maldives");
+    expect(intent.destination).toBeUndefined();
+  });
+
+  it("normalizes R4 to Raja Ampat", () => {
+    expect(extractKaiTravelIntent("R4 liveaboard for two advanced divers")).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "liveaboard",
+        guests: 2,
+        certificationLevel: "advanced open water",
+      }),
+    );
+  });
+
+  it("merges previous intent with a new answer", () => {
+    expect(
+      extractKaiTravelIntent("October for 2 people", {
+        destination: "Komodo",
+        tripType: "diving",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "diving",
+        dateWindow: "October",
+        guests: 2,
+      }),
+    );
+  });
+
+  it("uses lastAskedSlot to interpret a bare number as guests", () => {
+    expect(
+      extractKaiTravelIntent(
+        "2",
+        {
+          destination: "Nusa Penida",
+          tripType: "sailing",
+        },
+        { lastAskedSlot: "guests" },
+      ),
+    ).toEqual(
+      expect.objectContaining({
+        destination: "Nusa Penida",
+        tripType: "sailing",
+        guests: 2,
+      }),
+    );
+  });
+
+  it("uses lastAskedSlot to interpret a bare number word as guests", () => {
+    expect(
+      extractKaiTravelIntent(
+        "two",
+        {
+          destination: "Nusa Penida",
+          tripType: "sailing",
+        },
+        { lastAskedSlot: "guests" },
+      ).guests,
+    ).toBe(2);
+  });
+
+  it("does not interpret a bare number as guests without guests context", () => {
+    expect(extractKaiTravelIntent("2").guests).toBeUndefined();
+  });
+
+  it("extracts strongly implied guest counts", () => {
+    expect(extractKaiTravelIntent("we are 2").guests).toBe(2);
+    expect(extractKaiTravelIntent("there are two of us").guests).toBe(2);
+    expect(extractKaiTravelIntent("for 2").guests).toBe(2);
+  });
+
+  it("extracts simple relative and month date windows", () => {
+    expect(extractKaiTravelIntent("next month").dateWindow).toBe("next month");
+    expect(extractKaiTravelIntent("in October").dateWindow).toBe("October");
+    expect(extractKaiTravelIntent("Oct").dateWindow).toBe("October");
+    expect(extractKaiTravelIntent("July 2026").dateWindow).toBe("July 2026");
+    expect(extractKaiTravelIntent("14-21 Oct 2026").dateWindow).toBe("14-21 Oct 2026");
+  });
+
+  it("uses lastAskedSlot to interpret short certification answers", () => {
+    expect(
+      extractKaiTravelIntent("advanced", { destination: "Komodo", tripType: "diving" }, {
+        lastAskedSlot: "certificationLevel",
+      }).certificationLevel,
+    ).toBe("advanced open water");
+  });
+});

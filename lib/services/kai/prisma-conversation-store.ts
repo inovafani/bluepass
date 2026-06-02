@@ -1,6 +1,12 @@
 import type { Prisma } from "@prisma/client";
 import type { KaiConversationStore } from "@/lib/services/kai/conversation-service";
-import type { KaiChannel, KaiMessageRole, KaiSessionStatus } from "@/lib/services/kai/types";
+import type {
+  KaiChannel,
+  KaiMessageRole,
+  KaiSessionContext,
+  KaiSessionStatus,
+  KaiTravelIntent,
+} from "@/lib/services/kai/types";
 import { prisma } from "@/lib/db/prisma";
 
 const channelToPrisma = {
@@ -41,6 +47,7 @@ export const prismaKaiConversationStore: KaiConversationStore = {
         externalUserId: session.externalUserId,
         travellerPhone: session.travellerPhone,
         status: toPrismaStatus(session.status),
+        slots: session.context as Prisma.InputJsonValue | undefined,
         // TODO: Upgrade anonymous sessions with optional email/WhatsApp capture,
         // Traveller profiles, magic-link login, and cross-device session merge.
       },
@@ -49,6 +56,7 @@ export const prismaKaiConversationStore: KaiConversationStore = {
         externalUserId: session.externalUserId,
         travellerPhone: session.travellerPhone,
         status: toPrismaStatus(session.status),
+        slots: session.context as Prisma.InputJsonValue | undefined,
       },
     });
   },
@@ -65,6 +73,20 @@ export const prismaKaiConversationStore: KaiConversationStore = {
         createdAt: message.createdAt,
       },
     });
+  },
+
+  async getSessionContext(input) {
+    const session = await prisma.kaiSession.findFirst({
+      where: {
+        id: input.sessionId,
+        channel: toPrismaChannel(input.channel),
+      },
+      select: {
+        slots: true,
+      },
+    });
+
+    return normalizeSessionContext(session?.slots);
   },
 
   async listMessages(input) {
@@ -100,6 +122,35 @@ export const prismaKaiConversationStore: KaiConversationStore = {
     }));
   },
 };
+
+function normalizeSessionContext(value: unknown): KaiSessionContext | undefined {
+  if (isKaiSessionContext(value)) {
+    return value;
+  }
+
+  if (isKaiTravelIntent(value)) {
+    return {
+      intent: value,
+      missingSlots: value.missingSlots,
+    };
+  }
+
+  return undefined;
+}
+
+function isKaiSessionContext(value: unknown): value is KaiSessionContext {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    "intent" in value &&
+    isKaiTravelIntent((value as { intent?: unknown }).intent)
+  );
+}
+
+function isKaiTravelIntent(value: unknown): value is KaiTravelIntent {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
 
 function toPrismaChannel(channel: KaiChannel) {
   return channelToPrisma[channel];

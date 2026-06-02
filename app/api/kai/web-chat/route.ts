@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       sessionId: result.sessionId,
       reply: result.reply,
+      intent: result.intent,
     });
   } catch {
     return NextResponse.json({ error: "Unable to process chat message." }, { status: 500 });

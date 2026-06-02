@@ -755,3 +755,37 @@ html.js-reveal .bp-reveal-delay-4 { transition-delay: 360ms; }
     0 20px 56px rgba(0, 0, 0, 0.48),
     inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
+
+/* ── Kai web chat ────────────────────────────────────────────────────────── */
+
+/* Thin, dark-on-dark scrollbar for the message list */
+.kai-messages {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.10) transparent;
+}
+
+.kai-messages::-webkit-scrollbar {
+  width: 3px;
+}
+
+.kai-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kai-messages::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+
+.kai-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Hide scrollbar on the auto-resizing textarea */
+.kai-textarea {
+  scrollbar-width: none;
+}
+
+.kai-textarea::-webkit-scrollbar {
+  display: none;
+}

@@ -35,6 +35,21 @@ Website Kai MVP session model:
   for that anonymous session.
 - Full login/auth is deferred until quote, booking, or cross-device history is
   needed.
+- Kai currently uses deterministic, rule-based Indonesia-focused travel slot
+  extraction. This prepares the system for future LLM and tool-calling while
+  keeping MVP behavior safe and testable.
+- Kai LLM v1 is optional and only used for natural response generation. The
+  deterministic extractor remains the structured state layer, and PMS, payment,
+  booking confirmation, and tool-calling are not enabled yet.
+
+Optional Kai LLM env:
+
+```bash
+KAI_LLM_ENABLED=true
+KAI_LLM_PROVIDER=openai
+KAI_LLM_MODEL=gpt-4.1-mini
+OPENAI_API_KEY=your-openai-api-key
+```
 
 Website chat request:
 

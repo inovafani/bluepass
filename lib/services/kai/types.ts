@@ -16,6 +16,27 @@ export type KaiSlots = {
   activityType?: string;
 };
 
+export type KaiTravelIntent = {
+  destination?: string;
+  tripType?: string;
+  dateWindow?: string;
+  guests?: number;
+  budget?: string;
+  certificationLevel?: string;
+  interests?: string[];
+  conservationPreference?: string;
+  unsupportedDestination?: string;
+  missingSlots?: string[];
+};
+
+export type KaiMissingSlot = NonNullable<KaiTravelIntent["missingSlots"]>[number];
+
+export type KaiSessionContext = {
+  intent: KaiTravelIntent;
+  lastAskedSlot?: KaiMissingSlot;
+  missingSlots?: KaiMissingSlot[];
+};
+
 export type MatchResult = {
   tripId: string;
   operatorId: string;
@@ -55,5 +76,6 @@ export type KaiConversationInput = {
 export type KaiConversationResult = {
   sessionId: string;
   reply: string;
+  intent: KaiTravelIntent;
   messages: KaiConversationMessage[];
 };

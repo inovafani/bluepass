@@ -7,27 +7,66 @@ interface Message {
   content: string;
 }
 
-const INITIAL_MESSAGE: Message = {
+const GREETING: Message = {
   role: "assistant",
   content:
     "Hey, I'm Kai. Tell me what kind of ocean experience you're looking for — diving, liveaboards, sailing, eco resorts, or something more remote.",
 };
 
-const SESSION_KEY = "kai_web_session_id";
+const LS_KEY = "bluepass:kaiSessionId";
 const WA_HREF = "https://wa.me/628213143342";
 
 export function KaiWebChat() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // sessionId drives no rendering — ref avoids synchronous setState in effects
+  const sessionIdRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const didInit = useRef(false);
+
+  // On mount: restore session from localStorage and fetch history.
+  // All setState calls happen inside async .then()/.catch() — not synchronously
+  // in the effect body — satisfying the react-hooks/set-state-in-effect rule.
+  useEffect(() => {
+    if (didInit.current) return;
+    didInit.current = true;
+
+    const stored = localStorage.getItem(LS_KEY);
+    if (!stored) return;
+
+    sessionIdRef.current = stored;
+
+    fetch(`/api/kai/web-chat/history?sessionId=${encodeURIComponent(stored)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("history unavailable");
+        return res.json() as Promise<{
+          sessionId: string;
+          messages: Array<{ role: string; content: string; createdAt: string }>;
+        }>;
+      })
+      .then((data) => {
+        const visible = data.messages
+          .filter((m) => m.role === "user" || m.role === "assistant")
+          .map((m) => ({
+            role: m.role as "user" | "assistant",
+            content: m.content,
+          }));
+        if (visible.length > 0) setMessages(visible);
+      })
+      .catch(() => {
+        // History unavailable; messages stays as [GREETING]
+      });
+  }, []);
 
   useEffect(() => {
+    if (!isOpen) return;
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, [messages, isSending, isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -38,29 +77,34 @@ export function KaiWebChat() {
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
-    if (!text || isLoading) return;
+    if (!text || isSending) return;
 
     setInput("");
     setError(null);
     setMessages((prev) => [...prev, { role: "user", content: text }]);
-    setIsLoading(true);
+    setIsSending(true);
 
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
 
     try {
-      const sessionId = sessionStorage.getItem(SESSION_KEY) ?? undefined;
       const res = await fetch("/api/kai/web-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, message: text }),
+        body: JSON.stringify({
+          sessionId: sessionIdRef.current ?? undefined,
+          message: text,
+        }),
       });
 
       if (!res.ok) throw new Error("non-ok response");
 
       const data: { sessionId: string; reply: string } = await res.json();
-      sessionStorage.setItem(SESSION_KEY, data.sessionId);
+
+      if (data.sessionId !== sessionIdRef.current) {
+        sessionIdRef.current = data.sessionId;
+        localStorage.setItem(LS_KEY, data.sessionId);
+      }
+
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: data.reply },
@@ -68,9 +112,18 @@ export function KaiWebChat() {
     } catch {
       setError("Couldn't reach Kai right now. Please try again.");
     } finally {
-      setIsLoading(false);
+      setIsSending(false);
     }
-  }, [input, isLoading]);
+  }, [input, isSending]);
+
+  function startNewChat() {
+    localStorage.removeItem(LS_KEY);
+    sessionIdRef.current = null;
+    setMessages([GREETING]);
+    setInput("");
+    setError(null);
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
+  }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -79,21 +132,22 @@ export function KaiWebChat() {
     }
   }
 
-  function handleInput(e: React.FormEvent<HTMLTextAreaElement>) {
+  function handleTextareaInput(e: React.FormEvent<HTMLTextAreaElement>) {
     const t = e.currentTarget;
     t.style.height = "auto";
     t.style.height = `${Math.min(t.scrollHeight, 120)}px`;
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-[90] flex flex-col items-end gap-2 md:bottom-6 md:right-6">
-      {/* ── Chat panel ──────────────────────────────────────── */}
+    <div className="fixed bottom-4 right-4 z-[90] flex flex-col items-end gap-3 md:bottom-6 md:right-6">
+      {/* ── Chat panel ────────────────────────────────────────── */}
       {isOpen && (
         <div
           role="dialog"
           aria-label="Chat with Kai"
           aria-modal="true"
-          className="flex h-[520px] w-[360px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-white/16 bg-[#03111d] shadow-[0_28px_100px_rgba(0,0,0,0.62)]"
+          className="flex w-[390px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-white/16 bg-[#03111d] shadow-[0_28px_100px_rgba(0,0,0,0.62)]"
+          style={{ height: "min(560px, calc(100svh - 9rem))" }}
         >
           {/* Header */}
           <div className="flex flex-shrink-0 items-center gap-3 border-b border-white/10 px-4 py-3.5">
@@ -112,9 +166,30 @@ export function KaiWebChat() {
               </p>
             </div>
             <button
+              onClick={startNewChat}
+              aria-label="Start new chat"
+              title="New chat"
+              className="bp-focus-ring flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-white/35 transition-colors hover:bg-white/10 hover:text-white/75"
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            <button
               onClick={() => setIsOpen(false)}
               aria-label="Close chat"
-              className="bp-focus-ring flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-white/40 transition-colors hover:bg-white/10 hover:text-white/80"
+              className="bp-focus-ring flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-white/35 transition-colors hover:bg-white/10 hover:text-white/75"
             >
               <svg
                 width="12"
@@ -132,8 +207,8 @@ export function KaiWebChat() {
           </div>
 
           {/* Message list */}
-          <div className="flex-1 overflow-y-auto px-4 py-4">
-            <div className="flex flex-col gap-3">
+          <div className="kai-messages flex-1 overflow-y-auto px-4 py-5">
+            <div className="flex flex-col gap-4 pb-2">
               {messages.map((msg, i) => (
                 <div
                   key={i}
@@ -161,7 +236,7 @@ export function KaiWebChat() {
                 </div>
               ))}
 
-              {isLoading && (
+              {isSending && (
                 <div className="flex items-end gap-2">
                   <span
                     aria-hidden="true"
@@ -192,19 +267,20 @@ export function KaiWebChat() {
             </div>
           </div>
 
-          {/* Input row */}
-          <div className="flex-shrink-0 border-t border-white/10 p-3">
+          {/* Input area */}
+          <div className="flex-shrink-0 border-t border-white/10 px-3 pb-2.5 pt-3">
             <div className="flex items-end gap-2">
               <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onInput={handleInput}
-                placeholder="Ask about diving, liveaboards, sailing…"
+                onInput={handleTextareaInput}
+                placeholder="Ask Kai about Komodo, diving, liveaboards, sailing..."
                 rows={1}
                 aria-label="Message to Kai"
-                className="flex-1 resize-none rounded-xl border border-white/20 px-3.5 py-2.5 text-[13px] placeholder-white/40 outline-none transition-colors focus:border-white/35"
+                disabled={isSending}
+                className="kai-textarea flex-1 resize-none rounded-xl border border-white/20 px-3.5 py-2.5 text-[13px] placeholder-white/40 outline-none transition-colors focus:border-white/35 disabled:opacity-50"
                 style={{
                   minHeight: "40px",
                   maxHeight: "120px",
@@ -214,7 +290,7 @@ export function KaiWebChat() {
               />
               <button
                 onClick={() => void sendMessage()}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isSending}
                 aria-label="Send message"
                 className="bp-focus-ring flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#075e54] text-white transition-all hover:bg-[#0b6f63] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               >
@@ -233,13 +309,15 @@ export function KaiWebChat() {
                 </svg>
               </button>
             </div>
+            <p className="mt-2 text-center text-[10px] text-white/22">
+              Kai is currently in early preview.
+            </p>
           </div>
         </div>
       )}
 
-      {/* ── Launcher row — WhatsApp left, Ask Kai right ──────── */}
-      <div className="flex items-center gap-2">
-        {/* WhatsApp */}
+      {/* ── Launcher row ─────────────────────────────────────── */}
+      <div className="flex items-center gap-2.5">
         <a
           href={WA_HREF}
           target="_blank"
@@ -258,7 +336,6 @@ export function KaiWebChat() {
           <span className="text-[13px] font-semibold">WhatsApp</span>
         </a>
 
-        {/* Ask Kai — opens web chat */}
         <button
           onClick={() => setIsOpen((v) => !v)}
           aria-label={isOpen ? "Close Kai chat" : "Chat with Kai on bluepass.co"}
