@@ -6,7 +6,9 @@ import type {
 } from "@/lib/services/kai/types";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+const GROQ_CHAT_COMPLETIONS_URL = "https://api.groq.com/openai/v1/chat/completions";
 const DEFAULT_OPENAI_MODEL = "gpt-4.1-mini";
+const DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export type GenerateKaiReplyInput = {
   messages: KaiConversationMessage[];
@@ -26,52 +28,31 @@ type OpenAIResponse = {
   }>;
 };
 
+type GroqChatCompletionResponse = {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
+};
+
 export async function generateKaiReply(input: GenerateKaiReplyInput): Promise<string> {
   if (!isKaiLlmEnabled()) {
     return input.deterministicReply;
   }
 
-  if (resolveKaiLlmProvider() !== "openai") {
-    console.warn("Kai LLM provider is unsupported; using deterministic fallback.");
-    return input.deterministicReply;
+  const provider = resolveKaiLlmProvider();
+
+  if (provider === "openai") {
+    return generateOpenAIReply(input);
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    return input.deterministicReply;
+  if (provider === "groq") {
+    return generateGroqReply(input);
   }
 
-  try {
-    const response = await fetch(OPENAI_RESPONSES_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: resolveKaiLlmModel(),
-        instructions: buildKaiSystemInstructions(),
-        input: buildOpenAIInput(input),
-        max_output_tokens: 220,
-      }),
-    });
-
-    if (!response.ok) {
-      console.warn(`Kai LLM request failed with status ${response.status}; using fallback.`);
-      return input.deterministicReply;
-    }
-
-    const body = (await response.json()) as OpenAIResponse;
-    const reply = extractOpenAIText(body);
-
-    return reply || input.deterministicReply;
-  } catch (error) {
-    console.warn("Kai LLM request failed; using deterministic fallback.", {
-      error: error instanceof Error ? error.message : "unknown error",
-    });
-    return input.deterministicReply;
-  }
+  console.warn("Kai LLM provider is unsupported; using deterministic fallback.");
+  return input.deterministicReply;
 }
 
 export function isKaiLlmEnabled() {
@@ -82,8 +63,8 @@ function resolveKaiLlmProvider() {
   return process.env.KAI_LLM_PROVIDER ?? "openai";
 }
 
-function resolveKaiLlmModel() {
-  return process.env.KAI_LLM_MODEL ?? DEFAULT_OPENAI_MODEL;
+function resolveKaiLlmModel(defaultModel: string) {
+  return process.env.KAI_LLM_MODEL ?? defaultModel;
 }
 
 function buildKaiSystemInstructions() {
@@ -120,6 +101,108 @@ function buildOpenAIInput(input: GenerateKaiReplyInput) {
   ];
 }
 
+function buildGroqMessages(input: GenerateKaiReplyInput) {
+  const context = {
+    channel: input.channel,
+    intent: input.intent,
+    missingSlots: input.missingSlots ?? input.intent.missingSlots ?? [],
+    deterministicFallbackReply: input.deterministicReply,
+  };
+  const recentMessages = input.messages.slice(-8).map((message) => ({
+    role: message.role === "assistant" ? "assistant" : "user",
+    content: message.content,
+  }));
+
+  return [
+    {
+      role: "system",
+      content: buildKaiSystemInstructions(),
+    },
+    {
+      role: "user",
+      content: `Structured Kai context:\n${JSON.stringify(context, null, 2)}`,
+    },
+    ...recentMessages,
+  ];
+}
+
+async function generateOpenAIReply(input: GenerateKaiReplyInput) {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    return input.deterministicReply;
+  }
+
+  try {
+    const response = await fetch(OPENAI_RESPONSES_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: resolveKaiLlmModel(DEFAULT_OPENAI_MODEL),
+        instructions: buildKaiSystemInstructions(),
+        input: buildOpenAIInput(input),
+        max_output_tokens: 220,
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn(`Kai LLM request failed with status ${response.status}; using fallback.`);
+      return input.deterministicReply;
+    }
+
+    const body = (await response.json()) as OpenAIResponse;
+    const reply = extractOpenAIText(body);
+
+    return reply || input.deterministicReply;
+  } catch (error) {
+    console.warn("Kai LLM request failed; using deterministic fallback.", {
+      error: error instanceof Error ? error.message : "unknown error",
+    });
+    return input.deterministicReply;
+  }
+}
+
+async function generateGroqReply(input: GenerateKaiReplyInput) {
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!apiKey) {
+    return input.deterministicReply;
+  }
+
+  try {
+    const response = await fetch(GROQ_CHAT_COMPLETIONS_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: resolveKaiLlmModel(DEFAULT_GROQ_MODEL),
+        messages: buildGroqMessages(input),
+        max_tokens: 220,
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn(`Kai LLM request failed with status ${response.status}; using fallback.`);
+      return input.deterministicReply;
+    }
+
+    const body = (await response.json()) as GroqChatCompletionResponse;
+    const reply = extractGroqText(body);
+
+    return reply || input.deterministicReply;
+  } catch (error) {
+    console.warn("Kai LLM request failed; using deterministic fallback.", {
+      error: error instanceof Error ? error.message : "unknown error",
+    });
+    return input.deterministicReply;
+  }
+}
+
 function extractOpenAIText(response: OpenAIResponse) {
   if (typeof response.output_text === "string") {
     return response.output_text.trim();
@@ -133,4 +216,8 @@ function extractOpenAIText(response: OpenAIResponse) {
     .trim();
 
   return text;
+}
+
+function extractGroqText(response: GroqChatCompletionResponse) {
+  return response.choices?.[0]?.message?.content?.trim();
 }

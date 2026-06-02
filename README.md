@@ -42,13 +42,28 @@ Website Kai MVP session model:
   deterministic extractor remains the structured state layer, and PMS, payment,
   booking confirmation, and tool-calling are not enabled yet.
 
-Optional Kai LLM env:
+Optional Kai LLM env for OpenAI:
 
 ```bash
 KAI_LLM_ENABLED=true
 KAI_LLM_PROVIDER=openai
-KAI_LLM_MODEL=gpt-4.1-mini
+KAI_LLM_MODEL=gpt-4o-mini
 OPENAI_API_KEY=your-openai-api-key
+```
+
+Optional Kai LLM env for Groq:
+
+```bash
+KAI_LLM_ENABLED=true
+KAI_LLM_PROVIDER=groq
+KAI_LLM_MODEL=llama-3.3-70b-versatile
+GROQ_API_KEY=your-groq-api-key
+```
+
+Deterministic-only mode:
+
+```bash
+KAI_LLM_ENABLED=false
 ```
 
 Website chat request:
