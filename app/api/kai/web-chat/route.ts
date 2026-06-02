@@ -6,6 +6,7 @@ const webChatRequestSchema = z.object({
   sessionId: z.string().trim().min(1).optional(),
   message: z.string().trim().min(1),
 });
+const sessionIdSchema = z.string().regex(/^kai_[A-Za-z0-9_-]+$/);
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
   try {
     const result = await kaiConversationService.handleUserMessage({
       channel: "web",
-      sessionId: parsed.data.sessionId,
+      sessionId: normalizeSessionId(parsed.data.sessionId),
       message: parsed.data.message,
     });
 
@@ -37,4 +38,12 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Unable to process chat message." }, { status: 500 });
   }
+}
+
+function normalizeSessionId(sessionId?: string) {
+  if (!sessionId) {
+    return undefined;
+  }
+
+  return sessionIdSchema.safeParse(sessionId).success ? sessionId : undefined;
 }

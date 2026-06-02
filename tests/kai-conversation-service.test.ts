@@ -23,6 +23,52 @@ function buildStore(): KaiConversationStore {
   };
 }
 
+function buildInMemoryStore(): KaiConversationStore & {
+  sessions: Map<string, unknown>;
+  messages: Array<{ sessionId: string; role: string; content: string }>;
+} {
+  const sessions = new Map<string, unknown>();
+  const messages: Array<{ sessionId: string; role: string; content: string }> = [];
+
+  return {
+    sessions,
+    messages,
+    async upsertSession(session) {
+      sessions.set(session.id, session.context);
+    },
+    async addMessage(message) {
+      messages.push({
+        sessionId: message.sessionId,
+        role: message.role,
+        content: message.content,
+      });
+    },
+    async persistTurn(input) {
+      sessions.set(input.session.id, input.session.context);
+      for (const message of input.messages) {
+        messages.push({
+          sessionId: message.sessionId,
+          role: message.role,
+          content: message.content,
+        });
+      }
+    },
+    async getSessionContext(input) {
+      return sessions.get(input.sessionId) as never;
+    },
+    async listMessages(input) {
+      return messages
+        .filter((message) => message.sessionId === input.sessionId)
+        .map((message) => ({
+          sessionId: message.sessionId,
+          channel: input.channel,
+          role: message.role as "user" | "assistant",
+          content: message.content,
+        }));
+    },
+  };
+}
+
 describe("Kai conversation service", () => {
   it("supports the web channel and asks for an Indonesia destination when missing", async () => {
     const store = buildStore();
@@ -308,5 +354,49 @@ describe("Kai conversation service", () => {
     );
 
     warnSpy.mockRestore();
+  });
+
+  it("creates a web session and appends messages across repeated turns", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+
+    const first = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_repeat_memory_session",
+      message: "Nusa Penida sailing",
+    });
+    const second = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_repeat_memory_session",
+      message: "2",
+    });
+
+    expect(first.sessionId).toBe("kai_repeat_memory_session");
+    expect(second.sessionId).toBe("kai_repeat_memory_session");
+    expect(store.sessions.has("kai_repeat_memory_session")).toBe(true);
+    expect(store.messages).toHaveLength(4);
+    expect(store.messages.map((message) => message.role)).toEqual([
+      "user",
+      "assistant",
+      "user",
+      "assistant",
+    ]);
+    expect(second.intent.guests).toBe(2);
+    expect(second.reply).toContain("When are you hoping to travel");
+  });
+
+  it("recovers a valid provided sessionId that has no stored session row", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_stale_local_storage",
+      message: "Komodo diving for 2 people in October",
+    });
+
+    expect(result.sessionId).toBe("kai_stale_local_storage");
+    expect(store.sessions.has("kai_stale_local_storage")).toBe(true);
+    expect(store.messages).toHaveLength(2);
   });
 });

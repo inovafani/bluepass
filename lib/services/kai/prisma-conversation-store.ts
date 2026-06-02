@@ -39,41 +39,22 @@ const roleFromPrisma = {
 } as const;
 
 export const prismaKaiConversationStore: KaiConversationStore = {
-  async upsertSession(session) {
-    await prisma.kaiSession.upsert({
-      where: { id: session.id },
-      create: {
-        id: session.id,
-        channel: toPrismaChannel(session.channel),
-        externalUserId: session.externalUserId,
-        travellerPhone: session.travellerPhone,
-        status: toPrismaStatus(session.status),
-        slots: sanitizeJsonForPrisma(session.context) as Prisma.InputJsonValue | undefined,
-        // TODO: Upgrade anonymous sessions with optional email/WhatsApp capture,
-        // Traveller profiles, magic-link login, and cross-device session merge.
-      },
-      update: {
-        channel: toPrismaChannel(session.channel),
-        externalUserId: session.externalUserId,
-        travellerPhone: session.travellerPhone,
-        status: toPrismaStatus(session.status),
-        slots: sanitizeJsonForPrisma(session.context) as Prisma.InputJsonValue | undefined,
-      },
+  async persistTurn(input) {
+    await prisma.$transaction(async (tx) => {
+      await upsertSessionWithClient(tx, input.session);
+
+      for (const message of input.messages) {
+        await createMessageWithClient(tx, message);
+      }
     });
   },
 
+  async upsertSession(session) {
+    await upsertSessionWithClient(prisma, session);
+  },
+
   async addMessage(message) {
-    await prisma.kaiMessage.create({
-      data: {
-        id: message.id,
-        sessionId: message.sessionId,
-        channel: toPrismaChannel(message.channel),
-        role: toPrismaRole(message.role),
-        content: message.content,
-        metadata: sanitizeJsonForPrisma(message.metadata) as Prisma.InputJsonValue | undefined,
-        createdAt: message.createdAt,
-      },
-    });
+    await createMessageWithClient(prisma, message);
   },
 
   async getSessionContext(input) {
@@ -123,6 +104,51 @@ export const prismaKaiConversationStore: KaiConversationStore = {
     }));
   },
 };
+
+type KaiPrismaWriteClient = Pick<typeof prisma, "kaiSession" | "kaiMessage">;
+
+async function upsertSessionWithClient(
+  client: Pick<KaiPrismaWriteClient, "kaiSession">,
+  session: Parameters<KaiConversationStore["upsertSession"]>[0],
+) {
+  await client.kaiSession.upsert({
+    where: { id: session.id },
+    create: {
+      id: session.id,
+      channel: toPrismaChannel(session.channel),
+      externalUserId: session.externalUserId,
+      travellerPhone: session.travellerPhone,
+      status: toPrismaStatus(session.status),
+      slots: sanitizeJsonForPrisma(session.context) as Prisma.InputJsonValue | undefined,
+      // TODO: Upgrade anonymous sessions with optional email/WhatsApp capture,
+      // Traveller profiles, magic-link login, and cross-device session merge.
+    },
+    update: {
+      channel: toPrismaChannel(session.channel),
+      externalUserId: session.externalUserId,
+      travellerPhone: session.travellerPhone,
+      status: toPrismaStatus(session.status),
+      slots: sanitizeJsonForPrisma(session.context) as Prisma.InputJsonValue | undefined,
+    },
+  });
+}
+
+async function createMessageWithClient(
+  client: Pick<KaiPrismaWriteClient, "kaiMessage">,
+  message: Parameters<KaiConversationStore["addMessage"]>[0],
+) {
+  await client.kaiMessage.create({
+    data: {
+      id: message.id,
+      sessionId: message.sessionId,
+      channel: toPrismaChannel(message.channel),
+      role: toPrismaRole(message.role),
+      content: message.content,
+      metadata: sanitizeJsonForPrisma(message.metadata) as Prisma.InputJsonValue | undefined,
+      createdAt: message.createdAt,
+    },
+  });
+}
 
 function normalizeSessionContext(value: unknown): KaiSessionContext | undefined {
   if (isKaiSessionContext(value)) {

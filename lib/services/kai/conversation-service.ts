@@ -26,9 +26,15 @@ type PersistSessionInput = {
   context?: KaiSessionContext;
 };
 
+type PersistTurnInput = {
+  session: PersistSessionInput;
+  messages: KaiConversationMessage[];
+};
+
 export type KaiConversationStore = {
   upsertSession(session: PersistSessionInput): Promise<void>;
   addMessage(message: KaiConversationMessage): Promise<void>;
+  persistTurn?(input: PersistTurnInput): Promise<void>;
   getSessionContext?(input: {
     sessionId: string;
     channel: KaiChannel;
@@ -121,33 +127,37 @@ export function createKaiConversationService(
         metadata: { intent, lastAskedSlot: context.lastAskedSlot },
       });
 
-      try {
-        await store.upsertSession({
+      const sessionToPersist = {
           id: sessionId,
           channel: input.channel,
           externalUserId: input.externalUserId,
           travellerPhone: input.travellerPhone,
           status: "open",
           context,
-        });
+        } satisfies PersistSessionInput;
+
+      try {
+        if (store.persistTurn) {
+          await store.persistTurn({
+            session: sessionToPersist,
+            messages: [userMessage, assistantMessage],
+          });
+        } else {
+          await store.upsertSession(sessionToPersist);
+          await store.addMessage(userMessage);
+          await store.addMessage(assistantMessage);
+        }
         logKaiStage("kai.session.context.persisted", {
           sessionId,
           channel: input.channel,
         });
-      } catch (error) {
-        logPersistenceFailure("kai.session.context.persisted", sessionId, error);
-      }
-
-      try {
-        await store.addMessage(userMessage);
-        await store.addMessage(assistantMessage);
         logKaiStage("kai.messages.persisted", {
           sessionId,
           channel: input.channel,
           messageCount: 2,
         });
       } catch (error) {
-        logPersistenceFailure("kai.messages.persisted", sessionId, error);
+        logPersistenceFailure("kai.turn.persisted", sessionId, input.channel, "persistTurn", error);
       }
 
       logKaiStage("kai.web_chat.response_ready", {
@@ -270,13 +280,32 @@ function logKaiStage(stage: string, data: Record<string, unknown>) {
   });
 }
 
-function logPersistenceFailure(stage: string, sessionId: string, error: unknown) {
+function logPersistenceFailure(
+  stage: string,
+  sessionId: string,
+  channel: KaiChannel,
+  operation: string,
+  error: unknown,
+) {
   console.warn("kai.persistence.failed", {
     stage,
     sessionId: maskSessionId(sessionId),
+    channel,
+    operation,
     errorName: error instanceof Error ? error.name : "UnknownError",
     message: error instanceof Error ? error.message : "Unknown persistence error",
+    prismaCode: getPrismaErrorCode(error),
   });
+}
+
+function getPrismaErrorCode(error: unknown) {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+
+    return typeof code === "string" ? code : undefined;
+  }
+
+  return undefined;
 }
 
 function maskSessionId(sessionId: unknown) {

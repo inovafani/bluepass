@@ -299,14 +299,32 @@ describe("POST /api/kai/web-chat", () => {
     );
     expect(response.status).toBe(200);
     expect(warnSpy).toHaveBeenCalledWith("kai.persistence.failed", {
-      stage: "kai.messages.persisted",
+      stage: "kai.turn.persisted",
       sessionId: "kai_pers...sion",
+      channel: "web",
+      operation: "persistTurn",
       errorName: "Error",
       message: "Prisma JSON field rejected undefined",
+      prismaCode: undefined,
     });
     expect(JSON.stringify(warnSpy.mock.calls)).not.toContain("GROQ_API_KEY");
 
     warnSpy.mockRestore();
+  });
+
+  it("ignores invalid localStorage sessionIds and returns a fresh sessionId", async () => {
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "not-a-safe-session-id",
+        message: "I want a Komodo sailing trip",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.sessionId).toEqual(expect.stringMatching(/^kai_/));
+    expect(body.sessionId).not.toBe("not-a-safe-session-id");
+    expect(storeMocks.getSessionContext).not.toHaveBeenCalled();
   });
 });
 
@@ -358,6 +376,51 @@ describe("GET /api/kai/web-chat/history", () => {
       sessionId: "kai_history_session",
       channel: "web",
     });
+  });
+
+  it("returns messages after multiple turns", async () => {
+    storeMocks.listMessages.mockResolvedValue([
+      {
+        sessionId: "kai_multi_history",
+        channel: "web",
+        role: "user",
+        content: "Nusa Penida sailing",
+        createdAt: new Date("2026-06-02T01:00:00.000Z"),
+      },
+      {
+        sessionId: "kai_multi_history",
+        channel: "web",
+        role: "assistant",
+        content: "How many people should Kai plan for?",
+        createdAt: new Date("2026-06-02T01:00:01.000Z"),
+      },
+      {
+        sessionId: "kai_multi_history",
+        channel: "web",
+        role: "user",
+        content: "2",
+        createdAt: new Date("2026-06-02T01:00:02.000Z"),
+      },
+      {
+        sessionId: "kai_multi_history",
+        channel: "web",
+        role: "assistant",
+        content: "When are you hoping to travel?",
+        createdAt: new Date("2026-06-02T01:00:03.000Z"),
+      },
+    ]);
+
+    const response = await GET(buildHistoryRequest("kai_multi_history"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.messages).toHaveLength(4);
+    expect(body.messages.map((message: { role: string }) => message.role)).toEqual([
+      "user",
+      "assistant",
+      "user",
+      "assistant",
+    ]);
   });
 
   it("does not return messages for non-web channels", async () => {
