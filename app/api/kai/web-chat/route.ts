@@ -23,10 +23,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Message is required." }, { status: 400 });
   }
 
+  const sessionId = normalizeSessionId(parsed.data.sessionId);
+
   try {
     const result = await kaiConversationService.handleUserMessage({
       channel: "web",
-      sessionId: normalizeSessionId(parsed.data.sessionId),
+      sessionId,
       message: parsed.data.message,
     });
 
@@ -35,7 +37,14 @@ export async function POST(request: NextRequest) {
       reply: result.reply,
       intent: result.intent,
     });
-  } catch {
+  } catch (error) {
+    console.warn("kai.web_chat.route_failed", {
+      stage: "route.POST",
+      sessionId: maskSessionId(sessionId),
+      errorName: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : "Unable to process chat message",
+      prismaCode: getPrismaErrorCode(error),
+    });
     return NextResponse.json({ error: "Unable to process chat message." }, { status: 500 });
   }
 }
@@ -46,4 +55,22 @@ function normalizeSessionId(sessionId?: string) {
   }
 
   return sessionIdSchema.safeParse(sessionId).success ? sessionId : undefined;
+}
+
+function maskSessionId(sessionId?: string) {
+  if (!sessionId) {
+    return undefined;
+  }
+
+  return `${sessionId.slice(0, 8)}...${sessionId.slice(-4)}`;
+}
+
+function getPrismaErrorCode(error: unknown) {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+
+    return typeof code === "string" ? code : undefined;
+  }
+
+  return undefined;
 }

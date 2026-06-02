@@ -65,19 +65,35 @@ export function createKaiConversationService(
         sessionId,
         channel: input.channel,
       });
-      const previousContext = input.sessionId
-        ? await store.getSessionContext?.({
-            sessionId,
-            channel: input.channel,
-          })
-        : undefined;
+      logKaiStage("kai.session.resolve_started", {
+        sessionId,
+        channel: input.channel,
+        hasProvidedSessionId: Boolean(input.sessionId),
+      });
+      const previousContext = await loadSessionContextSafely(store, {
+        sessionId,
+        channel: input.channel,
+        hasProvidedSessionId: Boolean(input.sessionId),
+      });
+      const contextKeys = previousContext ? Object.keys(previousContext) : [];
       logKaiStage("kai.session.loaded_or_created", {
         sessionId,
         channel: input.channel,
         hasExistingContext: Boolean(previousContext),
+        contextKeys,
+      });
+      logKaiStage("kai.intent.extraction_started", {
+        sessionId,
+        channel: input.channel,
       });
       const intent = extractKaiTravelIntent(input.message, previousContext?.intent, {
         lastAskedSlot: previousContext?.lastAskedSlot,
+      });
+      logKaiStage("kai.intent.extraction_succeeded", {
+        sessionId,
+        channel: input.channel,
+        intentKeys: Object.keys(intent),
+        missingSlots: intent.missingSlots,
       });
       logKaiStage("kai.intent.extracted", {
         sessionId,
@@ -98,15 +114,16 @@ export function createKaiConversationService(
           lastAskedSlot: previousContext?.lastAskedSlot,
         },
       });
-      const storedMessages =
-        input.sessionId && store.listMessages
-          ? await store.listMessages({
-              sessionId,
-              channel: input.channel,
-              limit: 8,
-            })
-          : [];
-      const previousMessages = Array.isArray(storedMessages) ? storedMessages : [];
+      const previousMessages = await loadHistorySafely(store, {
+        sessionId,
+        channel: input.channel,
+        hasProvidedSessionId: Boolean(input.sessionId),
+      });
+      logKaiStage("kai.llm.call_started", {
+        sessionId,
+        channel: input.channel,
+        previousMessageCount: previousMessages.length,
+      });
       const reply = await generateReplySafely({
         messages: [...previousMessages, userMessage],
         intent,
@@ -273,6 +290,132 @@ function normalizeAssistantReply(reply: unknown) {
   return normalized.length > 0 ? normalized : undefined;
 }
 
+async function loadSessionContextSafely(
+  store: KaiConversationStore,
+  input: { sessionId: string; channel: KaiChannel; hasProvidedSessionId: boolean },
+) {
+  if (!input.hasProvidedSessionId) {
+    logKaiStage("kai.session.no_session_id_create_started", {
+      sessionId: input.sessionId,
+      channel: input.channel,
+    });
+    logKaiStage("kai.session.no_session_id_create_succeeded", {
+      sessionId: input.sessionId,
+      channel: input.channel,
+    });
+
+    return undefined;
+  }
+
+  logKaiStage("kai.session.provided_lookup_started", {
+    sessionId: input.sessionId,
+    channel: input.channel,
+  });
+
+  if (!store.getSessionContext) {
+    logKaiStage("kai.session.provided_lookup_not_found", {
+      sessionId: input.sessionId,
+      channel: input.channel,
+    });
+
+    return undefined;
+  }
+
+  try {
+    logKaiStage("kai.session.context_parse_started", {
+      sessionId: input.sessionId,
+      channel: input.channel,
+    });
+    const context = await store.getSessionContext({
+      sessionId: input.sessionId,
+      channel: input.channel,
+    });
+
+    if (!context) {
+      logKaiStage("kai.session.provided_lookup_not_found", {
+        sessionId: input.sessionId,
+        channel: input.channel,
+      });
+      logKaiStage("kai.session.context_parse_succeeded", {
+        sessionId: input.sessionId,
+        channel: input.channel,
+        contextKeys: [],
+      });
+
+      return undefined;
+    }
+
+    logKaiStage("kai.session.provided_lookup_succeeded", {
+      sessionId: input.sessionId,
+      channel: input.channel,
+    });
+    logKaiStage("kai.session.context_parse_succeeded", {
+      sessionId: input.sessionId,
+      channel: input.channel,
+      contextKeys: Object.keys(context),
+    });
+
+    return context;
+  } catch (error) {
+    logReadFailure("kai.session.context_parse_failed", input.sessionId, input.channel, error);
+
+    return undefined;
+  }
+}
+
+async function loadHistorySafely(
+  store: KaiConversationStore,
+  input: { sessionId: string; channel: KaiChannel; hasProvidedSessionId: boolean },
+) {
+  if (!input.hasProvidedSessionId || !store.listMessages) {
+    return [];
+  }
+
+  logKaiStage("kai.history.load_started", {
+    sessionId: input.sessionId,
+    channel: input.channel,
+  });
+
+  try {
+    const messages = await store.listMessages({
+      sessionId: input.sessionId,
+      channel: input.channel,
+      limit: 8,
+    });
+    const safeMessages = Array.isArray(messages)
+      ? messages.filter((message) => isSafeConversationMessage(message, input.channel))
+      : [];
+
+    logKaiStage("kai.history.load_succeeded", {
+      sessionId: input.sessionId,
+      channel: input.channel,
+      previousMessageCount: safeMessages.length,
+    });
+
+    return safeMessages;
+  } catch (error) {
+    logReadFailure("kai.history.load_failed", input.sessionId, input.channel, error);
+
+    return [];
+  }
+}
+
+function isSafeConversationMessage(
+  message: unknown,
+  channel: KaiChannel,
+): message is KaiConversationMessage {
+  return (
+    message !== null &&
+    typeof message === "object" &&
+    "channel" in message &&
+    "role" in message &&
+    "content" in message &&
+    message.channel === channel &&
+    (message.role === "user" || message.role === "assistant" || message.role === "system") &&
+    typeof message.content === "string"
+  );
+}
+
 function logKaiStage(stage: string, data: Record<string, unknown>) {
   console.info(stage, {
     ...data,
@@ -294,6 +437,16 @@ function logPersistenceFailure(
     operation,
     errorName: error instanceof Error ? error.name : "UnknownError",
     message: error instanceof Error ? error.message : "Unknown persistence error",
+    prismaCode: getPrismaErrorCode(error),
+  });
+}
+
+function logReadFailure(stage: string, sessionId: string, channel: KaiChannel, error: unknown) {
+  console.warn(stage, {
+    sessionId: maskSessionId(sessionId),
+    channel,
+    errorName: error instanceof Error ? error.name : "UnknownError",
+    message: error instanceof Error ? error.message : "Unknown read error",
     prismaCode: getPrismaErrorCode(error),
   });
 }

@@ -154,4 +154,39 @@ describe("prismaKaiConversationStore", () => {
       }),
     );
   });
+
+  it("returns undefined context for null session slots", async () => {
+    prismaMocks.kaiSession.findFirst.mockResolvedValue({ slots: null });
+
+    await expect(
+      prismaKaiConversationStore.getSessionContext?.({
+        sessionId: "kai_null_slots",
+        channel: "web",
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it("does not crash on old unexpected session slot shapes", async () => {
+    prismaMocks.kaiSession.findFirst.mockResolvedValue({
+      slots: {
+        legacySlots: {
+          destination: "Komodo",
+        },
+      },
+    });
+
+    await expect(
+      prismaKaiConversationStore.getSessionContext?.({
+        sessionId: "kai_legacy_slots",
+        channel: "web",
+      }),
+    ).resolves.toEqual({
+      intent: {
+        legacySlots: {
+          destination: "Komodo",
+        },
+      },
+      missingSlots: undefined,
+    });
+  });
 });

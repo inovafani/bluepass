@@ -75,6 +75,76 @@ describe("POST /api/kai/web-chat", () => {
     expect(body.intent.missingSlots).toContain("destination");
   });
 
+  it("handles first then second web chat POST with the same sessionId", async () => {
+    const firstResponse = await POST(
+      buildPostRequest({
+        message: "Nusa Penida sailing",
+      }),
+    );
+    const firstBody = await firstResponse.json();
+
+    storeMocks.getSessionContext.mockResolvedValue({
+      intent: {
+        destination: "Nusa Penida",
+        tripType: "sailing",
+        missingSlots: ["guests", "dateWindow", "budget"],
+      },
+      lastAskedSlot: "guests",
+    });
+    storeMocks.listMessages.mockResolvedValue([]);
+
+    const secondResponse = await POST(
+      buildPostRequest({
+        sessionId: firstBody.sessionId,
+        message: "2",
+      }),
+    );
+    const secondBody = await secondResponse.json();
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(secondBody.sessionId).toBe(firstBody.sessionId);
+    expect(secondBody.reply).toContain("When are you hoping to travel");
+    expect(secondBody.intent.guests).toBe(2);
+  });
+
+  it("handles first then second POST when LLM returns Groq-like success", async () => {
+    llmMocks.generateKaiReply
+      .mockResolvedValueOnce("Groq first reply")
+      .mockResolvedValueOnce("Groq second reply");
+
+    const firstResponse = await POST(buildPostRequest({ message: "Komodo sailing" }));
+    const firstBody = await firstResponse.json();
+
+    storeMocks.getSessionContext.mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "sailing",
+        missingSlots: ["guests", "dateWindow", "budget"],
+      },
+      lastAskedSlot: "guests",
+    });
+    storeMocks.listMessages.mockResolvedValue([]);
+
+    const secondResponse = await POST(
+      buildPostRequest({
+        sessionId: firstBody.sessionId,
+        message: "2",
+      }),
+    );
+
+    await expect(secondResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        sessionId: firstBody.sessionId,
+        reply: "Groq second reply",
+        intent: expect.objectContaining({
+          guests: 2,
+        }),
+      }),
+    );
+    expect(secondResponse.status).toBe(200);
+  });
+
   it("reuses a provided sessionId", async () => {
     const response = await POST(
       buildPostRequest({
@@ -222,6 +292,136 @@ describe("POST /api/kai/web-chat", () => {
         }),
       }),
     );
+  });
+
+  it("does not crash when existing session context is null", async () => {
+    storeMocks.getSessionContext.mockResolvedValue(null);
+    storeMocks.listMessages.mockResolvedValue([]);
+
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_null_context_session",
+        message: "Komodo sailing",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(
+      expect.objectContaining({
+        sessionId: "kai_null_context_session",
+        reply: expect.stringContaining("How many people"),
+      }),
+    );
+  });
+
+  it("does not crash when existing session context has an old unexpected shape", async () => {
+    storeMocks.getSessionContext.mockResolvedValue({
+      slots: {
+        destination: "Komodo",
+      },
+    });
+    storeMocks.listMessages.mockResolvedValue([]);
+
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_old_context_session",
+        message: "Komodo sailing",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(
+      expect.objectContaining({
+        sessionId: "kai_old_context_session",
+        intent: expect.objectContaining({
+          destination: "Komodo",
+          tripType: "sailing",
+        }),
+      }),
+    );
+  });
+
+  it("does not crash when history load returns an empty array for an existing session", async () => {
+    storeMocks.getSessionContext.mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "sailing",
+      },
+      lastAskedSlot: "guests",
+    });
+    storeMocks.listMessages.mockResolvedValue([]);
+
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_empty_history_session",
+        message: "2",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(
+      expect.objectContaining({
+        sessionId: "kai_empty_history_session",
+        intent: expect.objectContaining({
+          guests: 2,
+        }),
+      }),
+    );
+  });
+
+  it("continues when existing session context lookup fails before LLM", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    storeMocks.getSessionContext.mockRejectedValue(
+      Object.assign(new Error("Database read failed"), { code: "P2028" }),
+    );
+    storeMocks.listMessages.mockResolvedValue([]);
+
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_lookup_failure_session",
+        message: "Komodo sailing",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(warnSpy).toHaveBeenCalledWith("kai.session.context_parse_failed", {
+      sessionId: "kai_look...sion",
+      channel: "web",
+      errorName: "Error",
+      message: "Database read failed",
+      prismaCode: "P2028",
+    });
+
+    warnSpy.mockRestore();
+  });
+
+  it("continues when history load fails before LLM", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    storeMocks.getSessionContext.mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "sailing",
+      },
+    });
+    storeMocks.listMessages.mockRejectedValue(new Error("History read failed"));
+
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_history_failure_session",
+        message: "2 people",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(warnSpy).toHaveBeenCalledWith("kai.history.load_failed", {
+      sessionId: "kai_hist...sion",
+      channel: "web",
+      errorName: "Error",
+      message: "History read failed",
+      prismaCode: undefined,
+    });
+
+    warnSpy.mockRestore();
   });
 
   it("returns 200 with fallback when LLM output is invalid", async () => {
