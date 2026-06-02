@@ -125,6 +125,7 @@ describe("extractKaiTravelIntent", () => {
     expect(extractKaiTravelIntent("we are 2").guests).toBe(2);
     expect(extractKaiTravelIntent("there are two of us").guests).toBe(2);
     expect(extractKaiTravelIntent("for 2").guests).toBe(2);
+    expect(extractKaiTravelIntent("Sailing and 3 guests").guests).toBe(3);
   });
 
   it("extracts simple relative and month date windows", () => {

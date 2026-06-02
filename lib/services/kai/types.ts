@@ -70,6 +70,7 @@ export type KaiConversationInput = {
   externalUserId?: string;
   travellerPhone?: string;
   message: string;
+  recentMessages?: Array<Pick<KaiConversationMessage, "role" | "content">>;
   bookingContext?: KaiBookingContext;
 };
 

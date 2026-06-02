@@ -81,12 +81,18 @@ export function createKaiConversationService(
         channel: input.channel,
         hasProvidedSessionId: Boolean(input.sessionId),
       });
+      const recentClientMessages = normalizeRecentClientMessages(input.recentMessages, {
+        sessionId,
+        channel: input.channel,
+        latestUserMessage: input.message,
+      });
+      const conversationMemory = mergeConversationMemory(previousMessages, recentClientMessages);
       const reconstructedIntent = reconstructIntentFromHistory(
-        previousMessages,
+        conversationMemory,
         previousContext?.intent,
       );
       const inferredLastAskedSlot =
-        previousContext?.lastAskedSlot ?? inferLastAskedSlotFromHistory(previousMessages);
+        previousContext?.lastAskedSlot ?? inferLastAskedSlotFromHistory(conversationMemory);
       const contextKeys = previousContext ? Object.keys(previousContext) : [];
       logKaiStage("kai.session.loaded_or_created", {
         sessionId,
@@ -137,9 +143,10 @@ export function createKaiConversationService(
         sessionId,
         channel: input.channel,
         previousMessageCount: previousMessages.length,
+        recentClientMessageCount: recentClientMessages.length,
       });
       const reply = await generateReplySafely({
-        messages: [...previousMessages, userMessage],
+        messages: [...conversationMemory, userMessage],
         intent,
         missingSlots: planner.missingSlots,
         channel: input.channel,
@@ -229,33 +236,41 @@ export function buildDeterministicReply(
   }
 
   if (planner.missingSlots.includes("destination")) {
-    return "BluePass is focused on Indonesian marine trips. Where in Indonesia are you hoping to go - Komodo, Raja Ampat, Bali, Nusa Penida, Alor, Wakatobi, or somewhere else?";
+    const knownParts = [
+      intent.tripType ? `${intent.tripType}` : undefined,
+      intent.guests ? `for ${intent.guests}` : undefined,
+    ].filter(Boolean);
+    const prefix = knownParts.length > 0 ? `Got it: ${knownParts.join(" ")}. ` : "";
+
+    return `${prefix}Where in Indonesia feels best - Komodo, Raja Ampat, Bali/Nusa Penida, Alor, Wakatobi, or somewhere more remote?`;
   }
 
   if (planner.missingSlots.includes("tripType")) {
-    return `Great, ${intent.destination} is a strong Indonesia option. What kind of ocean experience are you looking for - diving, liveaboard, sailing, snorkelling, surf, or something conservation-led?`;
+    const guestText = intent.guests ? ` for ${intent.guests}` : "";
+
+    return `${intent.destination}${guestText} works. Are you thinking sailing, diving or liveaboard, snorkelling, surf, an eco resort, or something conservation-led?`;
   }
 
   if (planner.missingSlots.includes("guests")) {
-    return `Nice - ${intent.destination} for ${intent.tripType}. How many people should Kai plan for?`;
+    return `${intent.destination} for ${intent.tripType} sounds good. How many people should I plan around?`;
   }
 
   if (
     planner.missingSlots.includes("dateWindow") &&
     planner.missingSlots.includes("certificationLevel")
   ) {
-    return `Got it: ${intent.destination}, ${intent.tripType}, for ${intent.guests} guests. When are you hoping to travel, and what certification level are the divers?`;
+    return `${intent.destination} ${intent.tripType} for ${intent.guests} guests - got it. When are you hoping to travel, and what certification level should I plan around?`;
   }
 
   if (planner.missingSlots.includes("dateWindow")) {
-    return `Got it: ${intent.destination}, ${intent.tripType}, for ${intent.guests} people. When are you hoping to travel?`;
+    return `${intent.destination} ${intent.tripType} for ${intent.guests} guests - got it. When are you hoping to travel?`;
   }
 
   if (planner.missingSlots.includes("certificationLevel")) {
-    return "For diving or liveaboard trips, what certification level should Kai plan around - beginner, open water, advanced open water, rescue, divemaster, or instructor?";
+    return "What certification level should I plan around - beginner, open water, advanced, rescue, divemaster, or instructor?";
   }
 
-  return `Thanks - Kai can start matching suitable Indonesia trips for ${intent.destination} based on your ${intent.tripType} plans.`;
+  return `Perfect. I can start matching suitable Indonesia trips for ${intent.destination} based on your ${intent.tripType} plans for ${intent.guests} guests. I won't claim live availability yet, but I can help narrow the right fit.`;
 }
 
 export function buildSessionContext(
@@ -294,6 +309,71 @@ function normalizeAssistantReply(reply: unknown) {
   const normalized = reply.trim();
 
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeRecentClientMessages(
+  messages: KaiConversationInput["recentMessages"],
+  input: { sessionId: string; channel: KaiChannel; latestUserMessage: string },
+) {
+  if (!Array.isArray(messages)) {
+    return [];
+  }
+
+  return messages
+    .slice(-12)
+    .filter((message) => {
+      if (!message || typeof message.content !== "string") {
+        return false;
+      }
+
+      if (
+        message.role !== "user" &&
+        message.role !== "assistant" &&
+        message.role !== "system"
+      ) {
+        return false;
+      }
+
+      return message.content.trim().length > 0;
+    })
+    .filter((message, index, safeMessages) => {
+      const isLastMessage = index === safeMessages.length - 1;
+
+      return !(isLastMessage && message.role === "user" && message.content.trim() === input.latestUserMessage.trim());
+    })
+    .map((message) => ({
+      sessionId: input.sessionId,
+      channel: input.channel,
+      role: message.role,
+      content: message.content.trim(),
+    }));
+}
+
+function mergeConversationMemory(
+  storedMessages: KaiConversationMessage[],
+  recentClientMessages: KaiConversationMessage[],
+) {
+  if (recentClientMessages.length === 0) {
+    return storedMessages;
+  }
+
+  if (storedMessages.length === 0) {
+    return recentClientMessages;
+  }
+
+  const merged = [...storedMessages, ...recentClientMessages];
+  const seen = new Set<string>();
+
+  return merged.filter((message) => {
+    const key = `${message.role}:${message.content}`;
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  }).slice(-12);
 }
 
 function reconstructIntentFromHistory(

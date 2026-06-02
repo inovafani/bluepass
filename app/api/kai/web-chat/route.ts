@@ -5,6 +5,15 @@ import { kaiConversationService } from "@/lib/services/kai/conversation-service"
 const webChatRequestSchema = z.object({
   sessionId: z.string().trim().min(1).optional(),
   message: z.string().trim().min(1),
+  recentMessages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant", "system"]),
+        content: z.string().trim().min(1),
+      }),
+    )
+    .max(12)
+    .optional(),
 });
 const sessionIdSchema = z.string().regex(/^kai_[A-Za-z0-9_-]+$/);
 
@@ -30,6 +39,7 @@ export async function POST(request: NextRequest) {
       channel: "web",
       sessionId,
       message: parsed.data.message,
+      recentMessages: parsed.data.recentMessages,
     });
 
     return NextResponse.json({

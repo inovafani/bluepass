@@ -540,4 +540,36 @@ describe("Kai conversation service", () => {
     expect(result.reply).toContain("When are you hoping to travel");
     expect(result.reply).not.toMatch(/what kind|how many|guests will/i);
   });
+
+  it("uses recent browser-visible messages when stored history is missing", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_visible_history_recovery",
+      message: "Sailing and 3 guests",
+      recentMessages: [
+        {
+          role: "assistant",
+          content:
+            "Where in Indonesia are you hoping to go - Komodo, Raja Ampat, Bali, or somewhere else?",
+        },
+        {
+          role: "user",
+          content: "Raja Ampat would be best",
+        },
+      ],
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "sailing",
+        guests: 3,
+      }),
+    );
+    expect(result.reply).toContain("When are you hoping to travel");
+    expect(result.reply).not.toMatch(/where|what kind|how many/i);
+  });
 });
