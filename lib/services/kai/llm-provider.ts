@@ -1,5 +1,6 @@
 import type {
   KaiChannel,
+  KaiConversationPlan,
   KaiConversationMessage,
   KaiMissingSlot,
   KaiTravelIntent,
@@ -16,6 +17,7 @@ export type GenerateKaiReplyInput = {
   missingSlots?: KaiMissingSlot[];
   channel: KaiChannel;
   deterministicReply: string;
+  planner?: KaiConversationPlan;
 };
 
 type OpenAIResponse = {
@@ -79,6 +81,8 @@ function buildKaiSystemInstructions() {
     "Supported destination examples include Komodo, Raja Ampat, Bali, Nusa Penida, Nusa Lembongan, Lombok, Gili Islands, Alor, Wakatobi, Banda Sea, Ambon, Derawan, Bunaken, Lembeh, Flores, Sumba, Mentawai, and Cenderawasih Bay.",
     "Kai can help discover suitable trips, but cannot yet confirm live availability, make bookings, place PMS holds, contact operators, collect payment, or confirm reservations.",
     "Use the extracted intent as structured context. Do not invent facts, prices, availability, operators, booking status, or payment links.",
+    "Follow the provided planner.instructionForReply exactly. The planner is the source of truth for which slots are known and missing.",
+    "Do not ask for any slot listed in planner.knownSlots unless the user clearly corrected it in their latest message.",
     "If the user asks for a non-Indonesian destination, explain BluePass is currently Indonesia-focused and offer Indonesian alternatives.",
     "Ask one or two useful follow-up questions at a time, based on missing travel details.",
     "Keep replies calm, premium, concise, helpful, and short enough for a website chat UI.",
@@ -90,6 +94,8 @@ function buildOpenAIInput(input: GenerateKaiReplyInput) {
     channel: input.channel,
     intent: input.intent,
     missingSlots: input.missingSlots ?? input.intent.missingSlots ?? [],
+    planner: input.planner,
+    stateCard: buildStateCard(input),
     deterministicFallbackReply: input.deterministicReply,
   };
   const recentMessages = input.messages.slice(-8).map((message) => ({
@@ -111,6 +117,8 @@ function buildGroqMessages(input: GenerateKaiReplyInput) {
     channel: input.channel,
     intent: input.intent,
     missingSlots: input.missingSlots ?? input.intent.missingSlots ?? [],
+    planner: input.planner,
+    stateCard: buildStateCard(input),
     deterministicFallbackReply: input.deterministicReply,
   };
   const recentMessages = input.messages.slice(-8).map((message) => ({
@@ -129,6 +137,21 @@ function buildGroqMessages(input: GenerateKaiReplyInput) {
     },
     ...recentMessages,
   ];
+}
+
+function buildStateCard(input: GenerateKaiReplyInput) {
+  return {
+    "Destination": input.intent.destination ?? "missing",
+    "Trip type": input.intent.tripType ?? "missing",
+    "Guests": input.intent.guests ?? "missing",
+    "Date window": input.intent.dateWindow ?? "missing",
+    "Certification level": input.intent.certificationLevel ?? "missing",
+    "Budget": input.intent.budget ?? "missing",
+    "Known slots": input.planner?.knownSlots ?? [],
+    "Missing slots": input.planner?.missingSlots ?? input.missingSlots ?? [],
+    "Next slot to ask": input.planner?.nextSlotToAsk ?? "none",
+    "Instruction": input.planner?.instructionForReply ?? "Use deterministic missing slots.",
+  };
 }
 
 async function generateOpenAIReply(input: GenerateKaiReplyInput) {

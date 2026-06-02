@@ -399,4 +399,67 @@ describe("Kai conversation service", () => {
     expect(store.sessions.has("kai_stale_local_storage")).toBe(true);
     expect(store.messages).toHaveLength(2);
   });
+
+  it("keeps structured state through the problematic repeated-question conversation", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+    const sessionId = "kai_problem_conversation";
+
+    await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "I want some sailing",
+    });
+    const raja = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "Maybe Raja Ampat",
+    });
+    const twoPeople = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "2 people",
+    });
+    const diving = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "maybe diving",
+    });
+    const rajaAgain = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "Raja Ampat",
+    });
+    await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "3",
+    });
+    const threeGuests = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "3 guests",
+    });
+
+    expect(raja.intent.destination).toBe("Raja Ampat");
+    expect(twoPeople.intent.guests).toBe(2);
+    expect(diving.intent.tripType).toBe("diving");
+    expect(rajaAgain.reply).not.toMatch(/area|destination|where in indonesia/i);
+    expect(threeGuests.intent).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "diving",
+        guests: 3,
+      }),
+    );
+    expect(threeGuests.planner).toEqual(
+      expect.objectContaining({
+        missingSlots: ["dateWindow", "certificationLevel"],
+        nextSlotToAsk: "dateWindow",
+      }),
+    );
+    expect(threeGuests.reply).toContain("When are you hoping to travel");
+    expect(threeGuests.reply).toContain("certification level");
+    expect(threeGuests.reply).not.toMatch(/what type|trip type|how many|destination|area/i);
+  });
 });

@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { planKaiConversation } from "@/lib/services/kai/conversation-planner";
 import { sanitizeObjectForResponse } from "@/lib/services/kai/json-safety";
 import { generateKaiReply } from "@/lib/services/kai/llm-provider";
 import { prismaKaiConversationStore } from "@/lib/services/kai/prisma-conversation-store";
@@ -89,20 +90,27 @@ export function createKaiConversationService(
       const intent = extractKaiTravelIntent(input.message, previousContext?.intent, {
         lastAskedSlot: previousContext?.lastAskedSlot,
       });
+      const planner = planKaiConversation({
+        intent,
+        previousIntent: previousContext?.intent,
+        lastAskedSlot: previousContext?.lastAskedSlot,
+        latestUserMessage: input.message,
+        channel: input.channel,
+      });
       logKaiStage("kai.intent.extraction_succeeded", {
         sessionId,
         channel: input.channel,
         intentKeys: Object.keys(intent),
-        missingSlots: intent.missingSlots,
+        missingSlots: planner.missingSlots,
       });
       logKaiStage("kai.intent.extracted", {
         sessionId,
         channel: input.channel,
         intentKeys: Object.keys(intent),
-        missingSlots: intent.missingSlots,
+        missingSlots: planner.missingSlots,
       });
-      const deterministicReply = buildDeterministicReply(intent);
-      const context = buildSessionContext(intent);
+      const deterministicReply = buildDeterministicReply(intent, planner);
+      const context = buildSessionContext(intent, planner);
       const userMessage = buildMessage({
         sessionId,
         channel: input.channel,
@@ -127,9 +135,10 @@ export function createKaiConversationService(
       const reply = await generateReplySafely({
         messages: [...previousMessages, userMessage],
         intent,
-        missingSlots: context.missingSlots,
+        missingSlots: planner.missingSlots,
         channel: input.channel,
         deterministicReply,
+        planner,
       });
       logKaiStage("kai.assistant_reply.generated", {
         sessionId,
@@ -187,6 +196,7 @@ export function createKaiConversationService(
         sessionId,
         reply: assistantMessage.content,
         intent: sanitizeObjectForResponse(intent),
+        planner: shouldExposePlanner() ? sanitizeObjectForResponse(planner) : undefined,
         messages: [userMessage, assistantMessage],
       };
     },
@@ -199,72 +209,61 @@ export function generateKaiSessionId() {
   return `kai_${randomUUID()}`;
 }
 
-export function buildDeterministicReply(intent: KaiTravelIntent) {
+export function buildDeterministicReply(
+  intent: KaiTravelIntent,
+  planner = planKaiConversation({
+    intent,
+    latestUserMessage: "",
+    channel: "web",
+  }),
+) {
   if (intent.unsupportedDestination) {
     return "BluePass is currently focused on Indonesia. I can help with places like Komodo, Raja Ampat, Bali, Nusa Penida, Alor, Wakatobi, and other Indonesian marine destinations. Are you open to an Indonesia-based trip?";
   }
 
-  if (!intent.destination) {
+  if (planner.missingSlots.includes("destination")) {
     return "BluePass is focused on Indonesian marine trips. Where in Indonesia are you hoping to go - Komodo, Raja Ampat, Bali, Nusa Penida, Alor, Wakatobi, or somewhere else?";
   }
 
-  if (!intent.tripType) {
+  if (planner.missingSlots.includes("tripType")) {
     return `Great, ${intent.destination} is a strong Indonesia option. What kind of ocean experience are you looking for - diving, liveaboard, sailing, snorkelling, surf, or something conservation-led?`;
   }
 
-  if (!intent.guests) {
+  if (planner.missingSlots.includes("guests")) {
     return `Nice - ${intent.destination} for ${intent.tripType}. How many people should Kai plan for?`;
   }
 
-  if (!intent.dateWindow) {
+  if (
+    planner.missingSlots.includes("dateWindow") &&
+    planner.missingSlots.includes("certificationLevel")
+  ) {
+    return `Got it: ${intent.destination}, ${intent.tripType}, for ${intent.guests} guests. When are you hoping to travel, and what certification level are the divers?`;
+  }
+
+  if (planner.missingSlots.includes("dateWindow")) {
     return `Got it: ${intent.destination}, ${intent.tripType}, for ${intent.guests} people. When are you hoping to travel?`;
   }
 
-  if (requiresCertification(intent.tripType) && !intent.certificationLevel) {
+  if (planner.missingSlots.includes("certificationLevel")) {
     return "For diving or liveaboard trips, what certification level should Kai plan around - beginner, open water, advanced open water, rescue, divemaster, or instructor?";
   }
 
   return `Thanks - Kai can start matching suitable Indonesia trips for ${intent.destination} based on your ${intent.tripType} plans.`;
 }
 
-export function buildSessionContext(intent: KaiTravelIntent): KaiSessionContext {
+export function buildSessionContext(
+  intent: KaiTravelIntent,
+  planner = planKaiConversation({
+    intent,
+    latestUserMessage: "",
+    channel: "web",
+  }),
+): KaiSessionContext {
   return {
     intent,
-    missingSlots: intent.missingSlots,
-    lastAskedSlot: getNextAskedSlot(intent),
+    missingSlots: planner.missingSlots,
+    lastAskedSlot: planner.nextSlotToAsk as KaiMissingSlot | undefined,
   };
-}
-
-function getNextAskedSlot(intent: KaiTravelIntent): KaiMissingSlot | undefined {
-  if (intent.unsupportedDestination) {
-    return undefined;
-  }
-
-  if (!intent.destination) {
-    return "destination";
-  }
-
-  if (!intent.tripType) {
-    return "tripType";
-  }
-
-  if (!intent.guests) {
-    return "guests";
-  }
-
-  if (!intent.dateWindow) {
-    return "dateWindow";
-  }
-
-  if (requiresCertification(intent.tripType) && !intent.certificationLevel) {
-    return "certificationLevel";
-  }
-
-  return undefined;
-}
-
-function requiresCertification(tripType?: string) {
-  return tripType === "diving" || tripType === "liveaboard";
 }
 
 async function generateReplySafely(input: Parameters<typeof generateKaiReply>[0]) {
@@ -467,6 +466,10 @@ function maskSessionId(sessionId: unknown) {
   }
 
   return `${sessionId.slice(0, 8)}...${sessionId.slice(-4)}`;
+}
+
+function shouldExposePlanner() {
+  return process.env.NODE_ENV !== "production" || process.env.KAI_DEBUG === "true";
 }
 
 function buildMessage(

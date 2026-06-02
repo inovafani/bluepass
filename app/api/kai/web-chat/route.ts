@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       sessionId: result.sessionId,
       reply: result.reply,
       intent: result.intent,
+      ...(result.planner ? { planner: result.planner } : {}),
     });
   } catch (error) {
     console.warn("kai.web_chat.route_failed", {

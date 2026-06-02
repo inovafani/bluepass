@@ -148,6 +148,58 @@ describe("generateKaiReply", () => {
     );
   });
 
+  it("includes planner state card and do-not-ask-known-slots instruction", async () => {
+    process.env.KAI_LLM_ENABLED = "true";
+    process.env.KAI_LLM_PROVIDER = "groq";
+    process.env.GROQ_API_KEY = "groq-key";
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        choices: [{ message: { content: "When are you hoping to travel, and what certification level are the divers?" } }],
+      }),
+    } as Response);
+
+    await generateKaiReply({
+      ...baseInput,
+      intent: {
+        destination: "Raja Ampat",
+        tripType: "diving",
+        guests: 3,
+      },
+      missingSlots: ["dateWindow", "certificationLevel"],
+      planner: {
+        knownSlots: ["destination", "tripType", "guests"],
+        missingSlots: ["dateWindow", "certificationLevel"],
+        nextSlotToAsk: "dateWindow",
+        conversationStage: "qualification",
+        instructionForReply:
+          "Do not ask again for known slots: destination, tripType, guests. Ask only for: dateWindow, certificationLevel.",
+      },
+    });
+
+    const [, request] = vi.mocked(globalThis.fetch).mock.calls[0];
+    const body = JSON.parse(String((request as RequestInit).body));
+    const contextMessage = body.messages.find(
+      (message: { role: string; content: string }) =>
+        message.role === "user" && message.content.startsWith("Structured Kai context:"),
+    );
+    const context = JSON.parse(contextMessage.content.replace("Structured Kai context:\n", ""));
+
+    expect(context.stateCard).toEqual(
+      expect.objectContaining({
+        Destination: "Raja Ampat",
+        "Trip type": "diving",
+        Guests: 3,
+        "Date window": "missing",
+        "Certification level": "missing",
+      }),
+    );
+    expect(context.planner.instructionForReply).toContain("Do not ask again for known slots");
+    expect(context.planner.instructionForReply).toContain("Ask only for: dateWindow, certificationLevel");
+  });
+
   it("falls back when GROQ_API_KEY is missing", async () => {
     process.env.KAI_LLM_ENABLED = "true";
     process.env.KAI_LLM_PROVIDER = "groq";

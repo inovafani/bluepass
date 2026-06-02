@@ -77,5 +77,16 @@ export type KaiConversationResult = {
   sessionId: string;
   reply: string;
   intent: KaiTravelIntent;
+  planner?: KaiConversationPlan;
   messages: KaiConversationMessage[];
+};
+
+export type KaiConversationStage = "discovery" | "qualification" | "ready_to_match";
+
+export type KaiConversationPlan = {
+  knownSlots: string[];
+  missingSlots: string[];
+  nextSlotToAsk?: string;
+  conversationStage: KaiConversationStage;
+  instructionForReply: string;
 };
