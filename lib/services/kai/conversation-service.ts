@@ -76,6 +76,17 @@ export function createKaiConversationService(
         channel: input.channel,
         hasProvidedSessionId: Boolean(input.sessionId),
       });
+      const previousMessages = await loadHistorySafely(store, {
+        sessionId,
+        channel: input.channel,
+        hasProvidedSessionId: Boolean(input.sessionId),
+      });
+      const reconstructedIntent = reconstructIntentFromHistory(
+        previousMessages,
+        previousContext?.intent,
+      );
+      const inferredLastAskedSlot =
+        previousContext?.lastAskedSlot ?? inferLastAskedSlotFromHistory(previousMessages);
       const contextKeys = previousContext ? Object.keys(previousContext) : [];
       logKaiStage("kai.session.loaded_or_created", {
         sessionId,
@@ -87,8 +98,8 @@ export function createKaiConversationService(
         sessionId,
         channel: input.channel,
       });
-      const intent = extractKaiTravelIntent(input.message, previousContext?.intent, {
-        lastAskedSlot: previousContext?.lastAskedSlot,
+      const intent = extractKaiTravelIntent(input.message, reconstructedIntent, {
+        lastAskedSlot: inferredLastAskedSlot,
       });
       const planner = planKaiConversation({
         intent,
@@ -119,13 +130,8 @@ export function createKaiConversationService(
         metadata: {
           ...(input.bookingContext ? { bookingContext: input.bookingContext } : {}),
           intent,
-          lastAskedSlot: previousContext?.lastAskedSlot,
+          lastAskedSlot: inferredLastAskedSlot,
         },
-      });
-      const previousMessages = await loadHistorySafely(store, {
-        sessionId,
-        channel: input.channel,
-        hasProvidedSessionId: Boolean(input.sessionId),
       });
       logKaiStage("kai.llm.call_started", {
         sessionId,
@@ -140,16 +146,17 @@ export function createKaiConversationService(
         deterministicReply,
         planner,
       });
+      const safeReply = enforcePlannerReply(reply, deterministicReply, planner);
       logKaiStage("kai.assistant_reply.generated", {
         sessionId,
         channel: input.channel,
-        replyLength: reply.length,
+        replyLength: safeReply.length,
       });
       const assistantMessage = buildMessage({
         sessionId,
         channel: input.channel,
         role: "assistant",
-        content: reply,
+        content: safeReply,
         metadata: { intent, lastAskedSlot: context.lastAskedSlot },
       });
 
@@ -287,6 +294,119 @@ function normalizeAssistantReply(reply: unknown) {
   const normalized = reply.trim();
 
   return normalized.length > 0 ? normalized : undefined;
+}
+
+function reconstructIntentFromHistory(
+  messages: KaiConversationMessage[],
+  initialIntent: KaiTravelIntent = {},
+) {
+  let intent = initialIntent;
+  let lastAskedSlot: KaiMissingSlot | undefined;
+
+  for (const message of messages) {
+    if (message.role === "assistant") {
+      lastAskedSlot = inferLastAskedSlotFromText(message.content) ?? lastAskedSlot;
+    }
+
+    if (message.role === "user") {
+      intent = extractKaiTravelIntent(message.content, intent, { lastAskedSlot });
+    }
+  }
+
+  return intent;
+}
+
+function inferLastAskedSlotFromHistory(messages: KaiConversationMessage[]) {
+  for (const message of [...messages].reverse()) {
+    if (message.role === "assistant") {
+      const inferred = inferLastAskedSlotFromText(message.content);
+
+      if (inferred) {
+        return inferred;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+function inferLastAskedSlotFromText(text: string): KaiMissingSlot | undefined {
+  const normalized = text.toLowerCase();
+
+  if (/how many|guests?|people|travelers|travellers/.test(normalized)) {
+    return "guests";
+  }
+
+  if (/when|date|month|travel/.test(normalized)) {
+    return "dateWindow";
+  }
+
+  if (/certification|certified|open water|advanced|divers/.test(normalized)) {
+    return "certificationLevel";
+  }
+
+  if (/what kind|trip type|experience|diving|sailing|liveaboard|snorkel/.test(normalized)) {
+    return "tripType";
+  }
+
+  if (/where|destination|area|komodo|raja ampat|bali|indonesia/.test(normalized)) {
+    return "destination";
+  }
+
+  return undefined;
+}
+
+function enforcePlannerReply(
+  reply: string,
+  deterministicReply: string,
+  planner: ReturnType<typeof planKaiConversation>,
+) {
+  const repeatedKnownSlot = planner.knownSlots.some((slot) =>
+    replyAppearsToAskSlot(reply, slot),
+  );
+
+  if (!repeatedKnownSlot) {
+    return reply;
+  }
+
+  console.warn("kai.reply.overrode_repeated_known_slot_question", {
+    knownSlots: planner.knownSlots,
+    missingSlots: planner.missingSlots,
+    nextSlotToAsk: planner.nextSlotToAsk,
+  });
+
+  return deterministicReply;
+}
+
+function replyAppearsToAskSlot(reply: string, slot: string) {
+  const normalized = reply.toLowerCase();
+  const asksQuestion = normalized.includes("?") || /\b(can you|could you|tell me|what|where|how many|when)\b/.test(normalized);
+
+  if (!asksQuestion) {
+    return false;
+  }
+
+  if (slot === "destination") {
+    return /\b(where|destination|area|place|which island|where in indonesia)\b/.test(normalized);
+  }
+
+  if (slot === "tripType") {
+    return /\b(what kind|trip type|experience|diving|sailing|liveaboard|snorkelling|snorkeling|surf)\b/.test(normalized);
+  }
+
+  if (slot === "guests") {
+    return /\b(how many|guests?|people|travelers|travellers|joining|traveling|travelling)\b/.test(normalized);
+  }
+
+  if (slot === "dateWindow") {
+    return /\b(when|date|month|travel)\b/.test(normalized);
+  }
+
+  if (slot === "certificationLevel") {
+    return /\b(certification|certified|open water|advanced|rescue|divemaster|instructor)\b/.test(normalized);
+  }
+
+  return false;
 }
 
 async function loadSessionContextSafely(

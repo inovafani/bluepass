@@ -462,4 +462,82 @@ describe("Kai conversation service", () => {
     expect(threeGuests.reply).toContain("certification level");
     expect(threeGuests.reply).not.toMatch(/what type|trip type|how many|destination|area/i);
   });
+
+  it("reconstructs state from history when stored context is missing", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+    const sessionId = "kai_history_reconstruct";
+
+    await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "Sailing maybe?",
+    });
+    store.sessions.delete(sessionId);
+
+    const komodo = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "Komodo i think",
+    });
+    store.sessions.delete(sessionId);
+
+    const guests = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "3 guests",
+    });
+
+    expect(komodo.intent).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "sailing",
+      }),
+    );
+    expect(guests.intent).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "sailing",
+        guests: 3,
+      }),
+    );
+    expect(guests.reply).toContain("When are you hoping to travel");
+    expect(guests.reply).not.toMatch(/where|what kind|how many/i);
+  });
+
+  it("overrides an LLM reply that asks for known slots again", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+    const sessionId = "kai_bad_llm_guard";
+
+    await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "Sailing maybe?",
+    });
+    await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "Komodo i think",
+    });
+    llmMocks.generateKaiReply.mockResolvedValue(
+      "Komodo is a great choice. What kind of ocean experience are you looking for, and how many guests will be traveling?",
+    );
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "3 guests",
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "sailing",
+        guests: 3,
+      }),
+    );
+    expect(result.reply).toContain("When are you hoping to travel");
+    expect(result.reply).not.toMatch(/what kind|how many|guests will/i);
+  });
 });
