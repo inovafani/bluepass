@@ -135,6 +135,7 @@ describe("extractKaiTravelIntent", () => {
     expect(extractKaiTravelIntent("in October").dateWindow).toBe("October");
     expect(extractKaiTravelIntent("Oct").dateWindow).toBe("October");
     expect(extractKaiTravelIntent("July 2026").dateWindow).toBe("July 2026");
+    expect(extractKaiTravelIntent("20th of June").dateWindow).toBe("20th of June");
     expect(extractKaiTravelIntent("14-21 Oct 2026").dateWindow).toBe("14-21 Oct 2026");
   });
 

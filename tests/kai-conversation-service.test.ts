@@ -572,4 +572,68 @@ describe("Kai conversation service", () => {
     expect(result.reply).toContain("When are you hoping to travel");
     expect(result.reply).not.toMatch(/where|what kind|how many/i);
   });
+
+  it("answers a best-time question after required travel details are known", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_best_time_raja",
+      message: "what best time to go there actually?",
+      recentMessages: [
+        { role: "user", content: "Sailing" },
+        { role: "assistant", content: "Where in Indonesia feels best?" },
+        { role: "user", content: "Raja Ampat maybe?" },
+        { role: "assistant", content: "How many people should I plan around?" },
+        { role: "user", content: "I have 3 people" },
+        { role: "assistant", content: "When are you hoping to travel?" },
+        { role: "user", content: "20th of June" },
+      ],
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "sailing",
+        guests: 3,
+        dateWindow: "20th of June",
+      }),
+    );
+    expect(result.reply).toMatch(/October to April|June is shoulder/i);
+    expect(result.reply).not.toContain("start matching suitable Indonesia trips");
+  });
+
+  it("overrides a generic LLM matching reply when the user asks for best timing", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+    llmMocks.generateKaiReply.mockResolvedValue(
+      "Perfect. I can start matching suitable Indonesia trips for Komodo based on your sailing plans for 4 guests.",
+    );
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_best_time_komodo",
+      message: "what best time to go there actually?",
+      recentMessages: [
+        { role: "user", content: "Sailing" },
+        { role: "user", content: "Maybe komodo" },
+        { role: "assistant", content: "How many people should I plan around?" },
+        { role: "user", content: "4" },
+        { role: "assistant", content: "When are you hoping to travel?" },
+        { role: "user", content: "20th june maybe" },
+      ],
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "sailing",
+        guests: 4,
+        dateWindow: "20th june",
+      }),
+    );
+    expect(result.reply).toMatch(/April to November|June to September/i);
+    expect(result.reply).not.toContain("start matching suitable Indonesia trips");
+  });
 });

@@ -126,7 +126,7 @@ export function createKaiConversationService(
         intentKeys: Object.keys(intent),
         missingSlots: planner.missingSlots,
       });
-      const deterministicReply = buildDeterministicReply(intent, planner);
+      const deterministicReply = buildDeterministicReply(intent, planner, input.message);
       const context = buildSessionContext(intent, planner);
       const userMessage = buildMessage({
         sessionId,
@@ -153,7 +153,7 @@ export function createKaiConversationService(
         deterministicReply,
         planner,
       });
-      const safeReply = enforcePlannerReply(reply, deterministicReply, planner);
+      const safeReply = enforcePlannerReply(reply, deterministicReply, planner, input.message);
       logKaiStage("kai.assistant_reply.generated", {
         sessionId,
         channel: input.channel,
@@ -230,9 +230,16 @@ export function buildDeterministicReply(
     latestUserMessage: "",
     channel: "web",
   }),
+  latestUserMessage = "",
 ) {
   if (intent.unsupportedDestination) {
     return "BluePass is currently focused on Indonesia. I can help with places like Komodo, Raja Ampat, Bali, Nusa Penida, Alor, Wakatobi, and other Indonesian marine destinations. Are you open to an Indonesia-based trip?";
+  }
+
+  const travelAdviceReply = buildTravelAdviceReply(intent, latestUserMessage);
+
+  if (travelAdviceReply) {
+    return travelAdviceReply;
   }
 
   if (planner.missingSlots.includes("destination")) {
@@ -440,7 +447,18 @@ function enforcePlannerReply(
   reply: string,
   deterministicReply: string,
   planner: ReturnType<typeof planKaiConversation>,
+  latestUserMessage = "",
 ) {
+  if (isTravelTimingQuestion(latestUserMessage) && !replyAnswersTravelTiming(reply)) {
+    console.warn("kai.reply.overrode_missing_travel_advice_answer", {
+      knownSlots: planner.knownSlots,
+      missingSlots: planner.missingSlots,
+      nextSlotToAsk: planner.nextSlotToAsk,
+    });
+
+    return deterministicReply;
+  }
+
   const repeatedKnownSlot = planner.knownSlots.some((slot) =>
     replyAppearsToAskSlot(reply, slot),
   );
@@ -456,6 +474,99 @@ function enforcePlannerReply(
   });
 
   return deterministicReply;
+}
+
+function buildTravelAdviceReply(intent: KaiTravelIntent, latestUserMessage: string) {
+  if (!isTravelTimingQuestion(latestUserMessage) || !intent.destination) {
+    return undefined;
+  }
+
+  const season = getDestinationSeasonAdvice(intent.destination);
+
+  if (!season) {
+    return undefined;
+  }
+
+  const tripTypeText = intent.tripType ? ` for ${intent.tripType}` : "";
+  const guestText = intent.guests ? ` for ${intent.guests} guests` : "";
+  const dateText = intent.dateWindow ? ` Your ${intent.dateWindow} timing can still work, but it may not be the peak window.` : "";
+  const nextStep =
+    intent.budget || intent.dateWindow
+      ? "I can use that to narrow the best-fit options."
+      : "If you have rough dates or budget, I can narrow the fit.";
+
+  return `${season.destination} is usually best ${season.bestWindow}.${dateText} For ${season.destination}${tripTypeText}${guestText}, ${season.note} ${nextStep}`;
+}
+
+function isTravelTimingQuestion(message: string) {
+  const normalized = message.toLowerCase();
+
+  return (
+    /\b(best|better|ideal|recommended|good)\s+(time|month|season)\b/.test(normalized) ||
+    /\bwhen\s+(?:is\s+)?(?:the\s+)?best\b/.test(normalized) ||
+    /\bwhat\s+(?:is\s+)?(?:the\s+)?best\s+time\b/.test(normalized) ||
+    /\bbest\s+time\s+to\s+go\b/.test(normalized)
+  );
+}
+
+function replyAnswersTravelTiming(reply: string) {
+  const normalized = reply.toLowerCase();
+
+  return (
+    /\b(october|november|december|january|february|march|april|may|june|july|august|september)\b/.test(normalized) ||
+    /\b(dry season|wet season|shoulder season|monsoon|season)\b/.test(normalized) ||
+    /\b(best|ideal|recommended)\s+(?:window|time|season|months?)\b/.test(normalized)
+  );
+}
+
+function getDestinationSeasonAdvice(destination: string) {
+  const normalized = destination.toLowerCase();
+
+  if (normalized.includes("raja ampat") || normalized.includes("misool")) {
+    return {
+      destination,
+      bestWindow: "from October to April, with calmer seas and stronger liveaboard conditions",
+      note: "June is shoulder/off-peak: possible, but conditions can be less predictable and fewer boats may run",
+    };
+  }
+
+  if (normalized.includes("komodo") || normalized.includes("flores")) {
+    return {
+      destination,
+      bestWindow: "from April to November, with June to September often excellent for dry-season sailing",
+      note: "June is generally a strong time for Komodo, though exact route choice still depends on sea conditions and operator schedules",
+    };
+  }
+
+  if (normalized.includes("bali") || normalized.includes("nusa penida") || normalized.includes("nusa lembongan") || normalized.includes("lombok") || normalized.includes("gili")) {
+    return {
+      destination,
+      bestWindow: "from April to October during the drier months",
+      note: "June usually fits well, especially for cleaner weather and easier sea days",
+    };
+  }
+
+  if (normalized.includes("alor")) {
+    return {
+      destination,
+      bestWindow: "from April to November, with the driest stretch usually around June to September",
+      note: "June can be a good fit, but Alor can be current-heavy, so operator style matters",
+    };
+  }
+
+  if (normalized.includes("wakatobi")) {
+    return {
+      destination,
+      bestWindow: "around March to December, with especially steady conditions often from April to November",
+      note: "June is usually a sensible window for Wakatobi",
+    };
+  }
+
+  return {
+    destination,
+    bestWindow: "during Indonesia's drier months, roughly April to October, depending on the exact island chain",
+    note: "June is often workable, but the best fit depends on the destination and trip style",
+  };
 }
 
 function replyAppearsToAskSlot(reply: string, slot: string) {

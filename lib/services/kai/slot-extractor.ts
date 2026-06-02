@@ -212,6 +212,14 @@ function findDateWindow(original: string, normalized: string, lastAskedSlot?: Ka
     return rangeMatch[0].trim();
   }
 
+  const dayMonthMatch = original.match(
+    /\b\d{1,2}(?:st|nd|rd|th)?(?:\s+of)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|january|february|march|april|may|june|july|august|september|october|november|december)(?:\s+\d{4})?\b/i,
+  );
+
+  if (dayMonthMatch) {
+    return dayMonthMatch[0].trim();
+  }
+
   const monthYearMatch = original.match(
     /\b(?:in\s+)?(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}\b/i,
   );
