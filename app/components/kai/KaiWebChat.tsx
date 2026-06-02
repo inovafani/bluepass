@@ -78,6 +78,10 @@ export function KaiWebChat() {
   const sendMessage = useCallback(async () => {
     const text = input.trim();
     if (!text || isSending) return;
+    const recentMessages = messages.slice(-10).map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
 
     setInput("");
     setError(null);
@@ -93,6 +97,7 @@ export function KaiWebChat() {
         body: JSON.stringify({
           sessionId: sessionIdRef.current ?? undefined,
           message: text,
+          recentMessages,
         }),
       });
 
@@ -114,7 +119,7 @@ export function KaiWebChat() {
     } finally {
       setIsSending(false);
     }
-  }, [input, isSending]);
+  }, [input, isSending, messages]);
 
   function startNewChat() {
     localStorage.removeItem(LS_KEY);

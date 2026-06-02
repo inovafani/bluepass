@@ -248,10 +248,18 @@ function findDateWindow(original: string, normalized: string, lastAskedSlot?: Ka
 }
 
 function findGuestCount(text: string, lastAskedSlot?: KaiMissingSlot) {
-  const numericMatch = text.match(/\b(\d{1,2})\s*(?:people|person|guests?|travellers?|travelers?|divers?)\b/);
+  const numericMatch = text.match(/\b(\d{1,2})\s*(?:people|person|guests?|travellers?|travelers?|divers?|pax)\b/);
 
   if (numericMatch) {
     return Number(numericMatch[1]);
+  }
+
+  const wordWithPeopleMatch = text.match(
+    /\b(one|two|three|four|five|six|seven|eight|nine|ten)\s*(?:people|person|guests?|travellers?|travelers?|divers?|pax)\b/,
+  );
+
+  if (wordWithPeopleMatch) {
+    return numberWords[wordWithPeopleMatch[1] as keyof typeof numberWords];
   }
 
   const forNumericMatch = text.match(/\bfor\s+(\d{1,2})\b/);
@@ -280,6 +288,22 @@ function findGuestCount(text: string, lastAskedSlot?: KaiMissingSlot) {
 
   if (weAreWordMatch) {
     return numberWords[weAreWordMatch[1] as keyof typeof numberWords];
+  }
+
+  const haveNumericMatch = text.match(
+    /\b(?:i have|we have|we'll be|we will be|we are|there will be|party of|group of)\s+(\d{1,2})(?:\s+(?:people|person|guests?|travellers?|travelers?|divers?|pax))?\b/,
+  );
+
+  if (haveNumericMatch) {
+    return Number(haveNumericMatch[1]);
+  }
+
+  const haveWordMatch = text.match(
+    /\b(?:i have|we have|we'll be|we will be|we are|there will be|party of|group of)\s+(one|two|three|four|five|six|seven|eight|nine|ten)(?:\s+(?:people|person|guests?|travellers?|travelers?|divers?|pax))?\b/,
+  );
+
+  if (haveWordMatch) {
+    return numberWords[haveWordMatch[1] as keyof typeof numberWords];
   }
 
   if (lastAskedSlot === "guests") {

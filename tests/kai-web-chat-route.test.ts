@@ -294,6 +294,46 @@ describe("POST /api/kai/web-chat", () => {
     );
   });
 
+  it("uses browser-visible recent messages to avoid asking known slots again", async () => {
+    storeMocks.getSessionContext.mockResolvedValue(undefined);
+    storeMocks.listMessages.mockResolvedValue([]);
+
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_recent_visible_route",
+        message: "yup maybe diving and i have 3 guests",
+        recentMessages: [
+          {
+            role: "assistant",
+            content:
+              "Got it: sailing. Where in Indonesia feels best - Komodo, Raja Ampat, Bali/Nusa Penida, Alor, Wakatobi, or somewhere more remote?",
+          },
+          {
+            role: "user",
+            content: "Raja ampat maybe?",
+          },
+          {
+            role: "assistant",
+            content:
+              "Raja Ampat is a great choice. Are you thinking of a diving, snorkelling, or liveaboard trip, or perhaps something else? How many guests will be travelling?",
+          },
+        ],
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.intent).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "diving",
+        guests: 3,
+      }),
+    );
+    expect(body.reply).toContain("When are you hoping to travel");
+    expect(body.reply).not.toMatch(/where in indonesia|what kind|how many/i);
+  });
+
   it("does not crash when existing session context is null", async () => {
     storeMocks.getSessionContext.mockResolvedValue(null);
     storeMocks.listMessages.mockResolvedValue([]);
