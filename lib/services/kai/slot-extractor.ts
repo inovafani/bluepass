@@ -40,6 +40,8 @@ const tripTypes = [
   "snorkelling",
   "freediving",
   "surf",
+  "sunset tour",
+  "boat tour",
   "whale watching",
   "yacht charter",
   "conservation trip",

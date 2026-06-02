@@ -88,6 +88,49 @@ Website chat response:
 }
 ```
 
+## Bokun operator catalog sync
+
+BluePass treats Bokun as one operator PMS/inventory provider. The safe v1 flow is:
+
+1. Create or identify an `Operator` row in the database.
+2. Connect that operator's Bokun credentials through `/for-operators/connect` or
+   `POST /api/operator-integrations`.
+3. The integration endpoint validates Bokun credentials and syncs Bokun products
+   into local `Trip` rows using `Trip.externalId`.
+4. Kai matches traveller intent against synced `Trip` rows and can present those
+   packages as candidate matches.
+
+Kai does not yet place Bokun holds, confirm bookings, collect payment, or claim
+live availability from chat. Matched packages are synced catalog candidates only.
+
+Example Bokun operator integration request:
+
+```json
+{
+  "operatorId": "operator_...",
+  "platform": "BOKUN",
+  "credentials": {
+    "apiBase": "https://api.bokun.io/octo/v1",
+    "accessToken": "bokun-octo-access-token",
+    "supplierId": "optional-supplier-id",
+    "publicProductUrlTemplate": "https://your-operator.bokun.io/book/{productId}"
+  }
+}
+```
+
+Each Bokun operator stores its own public booking URL in encrypted integration
+credentials. Use `publicProductUrlTemplate` when the operator's booking page can
+be addressed by product id, or `publicBookingBaseUrl` when BluePass should append
+the synced `Trip.externalId`. If neither is configured, Kai can still show the
+synced package card but the booking-page button stays disabled.
+
+The same sync can be refreshed later with:
+
+```bash
+curl -X POST http://localhost:3000/api/cron/bokun-sync \
+  -H "Authorization: Bearer local-cron-secret"
+```
+
 ## Quality
 
 ```bash

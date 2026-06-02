@@ -11,6 +11,8 @@ export function ConnectPmsForm() {
   const [apiBase, setApiBase] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [supplierId, setSupplierId] = useState("");
+  const [publicBookingBaseUrl, setPublicBookingBaseUrl] = useState("");
+  const [publicProductUrlTemplate, setPublicProductUrlTemplate] = useState("");
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [message, setMessage] = useState("");
   const isBokun = platform === "BOKUN";
@@ -37,6 +39,8 @@ export function ConnectPmsForm() {
           apiBase,
           accessToken,
           supplierId,
+          publicBookingBaseUrl,
+          publicProductUrlTemplate,
         },
       }),
     });
@@ -126,6 +130,30 @@ export function ConnectPmsForm() {
               className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
               value={supplierId}
               onChange={(event) => setSupplierId(event.target.value)}
+            />
+          </label>
+
+          <label className="grid gap-2">
+            <span className="text-xs font-medium tracking-[0.16em] text-white/70">
+              Public booking base URL
+            </span>
+            <input
+              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              value={publicBookingBaseUrl}
+              onChange={(event) => setPublicBookingBaseUrl(event.target.value)}
+              placeholder="https://your-operator.bokun.io/book"
+            />
+          </label>
+
+          <label className="grid gap-2">
+            <span className="text-xs font-medium tracking-[0.16em] text-white/70">
+              Public product URL template
+            </span>
+            <input
+              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              value={publicProductUrlTemplate}
+              onChange={(event) => setPublicProductUrlTemplate(event.target.value)}
+              placeholder="https://your-operator.bokun.io/book/{productId}"
             />
           </label>
         </div>

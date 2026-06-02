@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { planKaiConversation } from "@/lib/services/kai/conversation-planner";
 import { sanitizeObjectForResponse } from "@/lib/services/kai/json-safety";
 import { generateKaiReply } from "@/lib/services/kai/llm-provider";
+import { matchTripsForKai } from "@/lib/services/kai/match";
 import { prismaKaiConversationStore } from "@/lib/services/kai/prisma-conversation-store";
 import { extractKaiTravelIntent } from "@/lib/services/kai/slot-extractor";
 import type {
@@ -13,6 +14,7 @@ import type {
   KaiSessionContext,
   KaiSessionStatus,
   KaiTravelIntent,
+  MatchResult,
 } from "@/lib/services/kai/types";
 
 export const DEFAULT_KAI_REPLY =
@@ -126,7 +128,8 @@ export function createKaiConversationService(
         intentKeys: Object.keys(intent),
         missingSlots: planner.missingSlots,
       });
-      const deterministicReply = buildDeterministicReply(intent, planner, input.message);
+      const matches = await matchTripsSafely(intent, planner, sessionId, input.channel);
+      const deterministicReply = buildDeterministicReply(intent, planner, input.message, matches);
       const context = buildSessionContext(intent, planner);
       const userMessage = buildMessage({
         sessionId,
@@ -136,6 +139,7 @@ export function createKaiConversationService(
         metadata: {
           ...(input.bookingContext ? { bookingContext: input.bookingContext } : {}),
           intent,
+          matches,
           lastAskedSlot: inferredLastAskedSlot,
         },
       });
@@ -152,8 +156,15 @@ export function createKaiConversationService(
         channel: input.channel,
         deterministicReply,
         planner,
+        matches,
       });
-      const safeReply = enforcePlannerReply(reply, deterministicReply, planner, input.message);
+      const safeReply = enforcePlannerReply(
+        reply,
+        deterministicReply,
+        planner,
+        input.message,
+        matches,
+      );
       logKaiStage("kai.assistant_reply.generated", {
         sessionId,
         channel: input.channel,
@@ -164,7 +175,7 @@ export function createKaiConversationService(
         channel: input.channel,
         role: "assistant",
         content: safeReply,
-        metadata: { intent, lastAskedSlot: context.lastAskedSlot },
+        metadata: { intent, matches, lastAskedSlot: context.lastAskedSlot },
       });
 
       const sessionToPersist = {
@@ -210,6 +221,7 @@ export function createKaiConversationService(
         sessionId,
         reply: assistantMessage.content,
         intent: sanitizeObjectForResponse(intent),
+        matches: sanitizeObjectForResponse(matches),
         planner: shouldExposePlanner() ? sanitizeObjectForResponse(planner) : undefined,
         messages: [userMessage, assistantMessage],
       };
@@ -231,6 +243,7 @@ export function buildDeterministicReply(
     channel: "web",
   }),
   latestUserMessage = "",
+  matches: MatchResult[] = [],
 ) {
   if (intent.unsupportedDestination) {
     return "BluePass is currently focused on Indonesia. I can help with places like Komodo, Raja Ampat, Bali, Nusa Penida, Alor, Wakatobi, and other Indonesian marine destinations. Are you open to an Indonesia-based trip?";
@@ -275,6 +288,10 @@ export function buildDeterministicReply(
 
   if (planner.missingSlots.includes("certificationLevel")) {
     return "What certification level should I plan around - beginner, open water, advanced, rescue, divemaster, or instructor?";
+  }
+
+  if (matches.length > 0) {
+    return buildMatchedTripsReply(intent, matches);
   }
 
   return `Perfect. I can start matching suitable Indonesia trips for ${intent.destination} based on your ${intent.tripType} plans for ${intent.guests} guests. I won't claim live availability yet, but I can help narrow the right fit.`;
@@ -448,7 +465,19 @@ function enforcePlannerReply(
   deterministicReply: string,
   planner: ReturnType<typeof planKaiConversation>,
   latestUserMessage = "",
+  matches: MatchResult[] = [],
 ) {
+  if (matches.length > 0 && !replyMentionsAnyMatch(reply, matches)) {
+    console.warn("kai.reply.overrode_missing_matched_packages", {
+      knownSlots: planner.knownSlots,
+      missingSlots: planner.missingSlots,
+      nextSlotToAsk: planner.nextSlotToAsk,
+      matchCount: matches.length,
+    });
+
+    return deterministicReply;
+  }
+
   if (isTravelTimingQuestion(latestUserMessage) && !replyAnswersTravelTiming(reply)) {
     console.warn("kai.reply.overrode_missing_travel_advice_answer", {
       knownSlots: planner.knownSlots,
@@ -476,6 +505,12 @@ function enforcePlannerReply(
   return deterministicReply;
 }
 
+function replyMentionsAnyMatch(reply: string, matches: MatchResult[]) {
+  const normalized = reply.toLowerCase();
+
+  return matches.some((match) => normalized.includes(match.title.toLowerCase()));
+}
+
 function buildTravelAdviceReply(intent: KaiTravelIntent, latestUserMessage: string) {
   if (!isTravelTimingQuestion(latestUserMessage) || !intent.destination) {
     return undefined;
@@ -496,6 +531,68 @@ function buildTravelAdviceReply(intent: KaiTravelIntent, latestUserMessage: stri
       : "If you have rough dates or budget, I can narrow the fit.";
 
   return `${season.destination} is usually best ${season.bestWindow}.${dateText} For ${season.destination}${tripTypeText}${guestText}, ${season.note} ${nextStep}`;
+}
+
+async function matchTripsSafely(
+  intent: KaiTravelIntent,
+  planner: ReturnType<typeof planKaiConversation>,
+  sessionId: string,
+  channel: KaiChannel,
+) {
+  if (planner.conversationStage !== "ready_to_match") {
+    return [];
+  }
+
+  try {
+    const matches = await matchTripsForKai(intent);
+
+    logKaiStage("kai.matches.loaded", {
+      sessionId,
+      channel,
+      matchCount: matches.length,
+    });
+
+    return matches;
+  } catch (error) {
+    console.warn("kai.matches.failed", {
+      sessionId: maskSessionId(sessionId),
+      channel,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : "Unable to load Kai matches",
+      prismaCode: getPrismaErrorCode(error),
+    });
+
+    return [];
+  }
+}
+
+function buildMatchedTripsReply(intent: KaiTravelIntent, matches: MatchResult[]) {
+  const intro =
+    matches.length === 1
+      ? `I found a synced operator package that looks close for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`
+      : `I found a few synced operator packages that look close for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`;
+  const rows = matches
+    .map((match, index) => {
+      const operator = match.operatorName ? ` with ${match.operatorName}` : "";
+      const price = formatMatchPrice(match);
+
+      return `${index + 1}. ${match.title}${operator}${price ? ` - ${price}` : ""}. ${match.reason}.`;
+    })
+    .join("\n");
+
+  return `${intro}\n${rows}\nI can use these as candidates, but I still won't claim live availability or confirm a booking until the operator/PMS hold step is wired.`;
+}
+
+function formatMatchPrice(match: MatchResult) {
+  if (!match.priceCents || !match.currency) {
+    return undefined;
+  }
+
+  return `from ${new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: match.currency,
+    maximumFractionDigits: 0,
+  }).format(match.priceCents / 100)}`;
 }
 
 function isTravelTimingQuestion(message: string) {

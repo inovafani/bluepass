@@ -40,7 +40,14 @@ export type KaiSessionContext = {
 export type MatchResult = {
   tripId: string;
   operatorId: string;
+  externalId?: string;
+  operatorName?: string;
   title: string;
+  description?: string;
+  location?: string;
+  priceCents?: number;
+  currency?: string;
+  orderUrl?: string;
   score: number;
   reason: string;
   pmsPlatform?: BookingAdapterPlatform;
@@ -78,6 +85,7 @@ export type KaiConversationResult = {
   sessionId: string;
   reply: string;
   intent: KaiTravelIntent;
+  matches?: MatchResult[];
   planner?: KaiConversationPlan;
   messages: KaiConversationMessage[];
 };

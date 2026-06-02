@@ -15,6 +15,16 @@ export type BokunCredentials = {
   apiBase?: string;
   accessToken?: string;
   supplierId?: string;
+  publicBookingBaseUrl?: string;
+  publicProductUrlTemplate?: string;
+};
+
+type ResolvedBokunCredentials = {
+  apiBase: string;
+  accessToken: string;
+  supplierId: string;
+  publicBookingBaseUrl?: string;
+  publicProductUrlTemplate?: string;
 };
 
 type OctoProduct = {
@@ -94,7 +104,7 @@ function normalizeApiBase(apiBase?: string) {
 
 export async function getBokunCredentials(
   operatorId: string,
-): Promise<Required<BokunCredentials>> {
+): Promise<ResolvedBokunCredentials> {
   const integration = await prisma.operatorIntegration.findUnique({
     where: {
       operatorId_platform: {
@@ -113,6 +123,8 @@ export async function getBokunCredentials(
     apiBase: normalizeApiBase(stored.apiBase),
     accessToken: stored.accessToken || process.env.BOKUN_ACCESS_TOKEN || "",
     supplierId: stored.supplierId || process.env.BOKUN_OCTO_SUPPLIER_ID || "",
+    publicBookingBaseUrl: stored.publicBookingBaseUrl,
+    publicProductUrlTemplate: stored.publicProductUrlTemplate,
   };
 
   if (!credentials.accessToken) {
@@ -122,7 +134,7 @@ export async function getBokunCredentials(
   return credentials;
 }
 
-function bokunHeaders(credentials: Required<BokunCredentials>) {
+function bokunHeaders(credentials: ResolvedBokunCredentials) {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${credentials.accessToken}`,
     "Content-Type": "application/json",
@@ -137,7 +149,7 @@ function bokunHeaders(credentials: Required<BokunCredentials>) {
 }
 
 async function bokunRequest<T>(
-  credentials: Required<BokunCredentials>,
+  credentials: ResolvedBokunCredentials,
   path: string,
   init: RequestInit = {},
 ): Promise<T> {

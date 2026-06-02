@@ -4,6 +4,7 @@ import type {
   KaiConversationMessage,
   KaiMissingSlot,
   KaiTravelIntent,
+  MatchResult,
 } from "@/lib/services/kai/types";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
@@ -18,6 +19,7 @@ export type GenerateKaiReplyInput = {
   channel: KaiChannel;
   deterministicReply: string;
   planner?: KaiConversationPlan;
+  matches?: MatchResult[];
 };
 
 type OpenAIResponse = {
@@ -81,6 +83,7 @@ function buildKaiSystemInstructions() {
     "Supported destination examples include Komodo, Raja Ampat, Bali, Nusa Penida, Nusa Lembongan, Lombok, Gili Islands, Alor, Wakatobi, Banda Sea, Ambon, Derawan, Bunaken, Lembeh, Flores, Sumba, Mentawai, and Cenderawasih Bay.",
     "Kai can help discover suitable trips, but cannot yet confirm live availability, make bookings, place PMS holds, contact operators, collect payment, or confirm reservations.",
     "Use the extracted intent as structured context. Do not invent facts, prices, availability, operators, booking status, or payment links.",
+    "If matched packages are provided, summarize them as synced candidate packages from operators. Do not call them confirmed, available, held, or booked.",
     "Follow the provided planner.instructionForReply exactly. The planner is the source of truth for which slots are known and missing.",
     "Do not ask for any slot listed in planner.knownSlots unless the user clearly corrected it in their latest message.",
     "If the user asks for a non-Indonesian destination, explain BluePass is currently Indonesia-focused and offer Indonesian alternatives.",
@@ -95,6 +98,7 @@ function buildOpenAIInput(input: GenerateKaiReplyInput) {
     intent: input.intent,
     missingSlots: input.missingSlots ?? input.intent.missingSlots ?? [],
     planner: input.planner,
+    matches: input.matches ?? [],
     stateCard: buildStateCard(input),
     deterministicFallbackReply: input.deterministicReply,
   };
@@ -118,6 +122,7 @@ function buildGroqMessages(input: GenerateKaiReplyInput) {
     intent: input.intent,
     missingSlots: input.missingSlots ?? input.intent.missingSlots ?? [],
     planner: input.planner,
+    matches: input.matches ?? [],
     stateCard: buildStateCard(input),
     deterministicFallbackReply: input.deterministicReply,
   };
@@ -151,6 +156,16 @@ function buildStateCard(input: GenerateKaiReplyInput) {
     "Missing slots": input.planner?.missingSlots ?? input.missingSlots ?? [],
     "Next slot to ask": input.planner?.nextSlotToAsk ?? "none",
     "Instruction": input.planner?.instructionForReply ?? "Use deterministic missing slots.",
+    "Matched packages": input.matches?.map((match) => ({
+      title: match.title,
+      operatorName: match.operatorName,
+      location: match.location,
+      priceCents: match.priceCents,
+      currency: match.currency,
+      orderUrl: match.orderUrl,
+      reason: match.reason,
+      pmsPlatform: match.pmsPlatform,
+    })) ?? [],
   };
 }
 

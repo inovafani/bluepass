@@ -51,6 +51,17 @@ describe("extractKaiTravelIntent", () => {
     );
   });
 
+  it("extracts Labuan Bajo sunset tours as Komodo sunset tour intent", () => {
+    expect(extractKaiTravelIntent("Labuan Bajo sunset tour for 2 people on 20th June")).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "sunset tour",
+        guests: 2,
+        dateWindow: "20th June",
+      }),
+    );
+  });
+
   it("marks Maldives as unsupported without setting it as a destination", () => {
     const intent = extractKaiTravelIntent("I want to go to the Maldives");
 

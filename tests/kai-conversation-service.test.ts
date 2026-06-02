@@ -5,14 +5,22 @@ import { generateKaiReply } from "@/lib/services/kai/llm-provider";
 const llmMocks = vi.hoisted(() => ({
   generateKaiReply: vi.fn(async (input: { deterministicReply: string }) => input.deterministicReply),
 }));
+const matchMocks = vi.hoisted(() => ({
+  matchTripsForKai: vi.fn(async () => []),
+}));
 
 vi.mock("@/lib/services/kai/llm-provider", () => ({
   generateKaiReply: llmMocks.generateKaiReply,
+}));
+vi.mock("@/lib/services/kai/match", () => ({
+  matchTripsForKai: matchMocks.matchTripsForKai,
 }));
 
 afterEach(() => {
   llmMocks.generateKaiReply.mockReset();
   llmMocks.generateKaiReply.mockImplementation(async (input: { deterministicReply: string }) => input.deterministicReply);
+  matchMocks.matchTripsForKai.mockReset();
+  matchMocks.matchTripsForKai.mockImplementation(async () => []);
 });
 
 function buildStore(): KaiConversationStore {
@@ -334,6 +342,74 @@ describe("Kai conversation service", () => {
         }),
       }),
     );
+  });
+
+  it("returns synced Bokun package matches once the required trip intent is known", async () => {
+    const store = buildStore();
+    matchMocks.matchTripsForKai.mockResolvedValue([
+      {
+        tripId: "trip_bokun_raja_1",
+        operatorId: "operator_bokun_1",
+        operatorName: "Raja Blue Liveaboards",
+        title: "Raja Ampat Sailing Expedition",
+        location: "Raja Ampat",
+        priceCents: 125000,
+        currency: "USD",
+        score: 95,
+        reason: "matches Raja Ampat, fits sailing, from a synced Bokun operator",
+        pmsPlatform: "bokun",
+      },
+    ]);
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      message: "Raja Ampat sailing for 3 guests in October",
+    });
+
+    expect(matchMocks.matchTripsForKai).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "sailing",
+        guests: 3,
+        dateWindow: "October",
+      }),
+    );
+    expect(result.matches).toHaveLength(1);
+    expect(result.reply).toContain("Raja Ampat Sailing Expedition");
+    expect(result.reply).toContain("synced operator package");
+    expect(result.reply).not.toContain("start matching suitable Indonesia trips");
+  });
+
+  it("overrides a generic LLM reply when synced Bokun matches exist", async () => {
+    const store = buildStore();
+    matchMocks.matchTripsForKai.mockResolvedValue([
+      {
+        tripId: "trip_bokun_labuan_1",
+        operatorId: "operator_lucid_tours",
+        operatorName: "Lucid Tours",
+        title: "Labuan Bajo Sunset Tour",
+        location: "Asia/Jakarta",
+        priceCents: 0,
+        currency: "USD",
+        score: 95,
+        reason: "matches Komodo, fits sunset tour, from a synced Bokun operator",
+        pmsPlatform: "bokun",
+      },
+    ]);
+    llmMocks.generateKaiReply.mockResolvedValue(
+      "Perfect. I can start matching suitable Indonesia trips for Komodo based on your sunset tour plans for 2 guests.",
+    );
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      message: "Labuan Bajo sunset tour for 2 people on 20th June",
+    });
+
+    expect(result.reply).toContain("Labuan Bajo Sunset Tour");
+    expect(result.reply).toContain("synced operator package");
+    expect(result.reply).not.toContain("Perfect. I can start matching");
   });
 
   it("falls back safely when LLM reply generation throws", async () => {

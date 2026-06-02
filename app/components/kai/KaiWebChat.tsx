@@ -5,6 +5,22 @@ import { useState, useRef, useEffect, useCallback } from "react";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  matches?: MatchCard[];
+}
+
+interface MatchCard {
+  tripId: string;
+  operatorId: string;
+  externalId?: string;
+  operatorName?: string;
+  title: string;
+  description?: string;
+  location?: string;
+  priceCents?: number;
+  currency?: string;
+  orderUrl?: string;
+  reason: string;
+  pmsPlatform?: string;
 }
 
 const GREETING: Message = {
@@ -103,7 +119,8 @@ export function KaiWebChat() {
 
       if (!res.ok) throw new Error("non-ok response");
 
-      const data: { sessionId: string; reply: string } = await res.json();
+      const data: { sessionId: string; reply: string; matches?: MatchCard[] } =
+        await res.json();
 
       if (data.sessionId !== sessionIdRef.current) {
         sessionIdRef.current = data.sessionId;
@@ -112,7 +129,7 @@ export function KaiWebChat() {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.reply },
+        { role: "assistant", content: data.reply, matches: data.matches },
       ]);
     } catch {
       setError("Couldn't reach Kai right now. Please try again.");
@@ -236,7 +253,14 @@ export function KaiWebChat() {
                         : "rounded-bl-md bg-[#0e3250] text-white"
                     }`}
                   >
-                    {msg.content}
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === "assistant" && msg.matches && msg.matches.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {msg.matches.map((match) => (
+                          <KaiMatchCard key={match.tripId} match={match} />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -392,4 +416,71 @@ export function KaiWebChat() {
       </div>
     </div>
   );
+}
+
+function KaiMatchCard({ match }: { match: MatchCard }) {
+  const price = formatMatchPrice(match);
+
+  return (
+    <div className="rounded-lg border border-white/12 bg-[#071a29] p-3 text-white shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold leading-snug">{match.title}</p>
+          {match.operatorName && (
+            <p className="mt-1 text-[11px] leading-snug text-white/55">
+              {match.operatorName}
+            </p>
+          )}
+        </div>
+        {match.pmsPlatform && (
+          <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-emerald-100">
+            {match.pmsPlatform}
+          </span>
+        )}
+      </div>
+
+      {(match.location || price) && (
+        <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-white/70">
+          {match.location && (
+            <span className="rounded-full bg-white/8 px-2 py-1">{match.location}</span>
+          )}
+          {price && <span className="rounded-full bg-white/8 px-2 py-1">{price}</span>}
+        </div>
+      )}
+
+      <p className="mt-2 text-[11px] leading-relaxed text-white/62">{match.reason}</p>
+
+      {match.orderUrl ? (
+        <a
+          href={match.orderUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bp-focus-ring mt-3 inline-flex w-full items-center justify-center rounded-md bg-[#075e54] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#0b6f63]"
+        >
+          Open booking page
+        </a>
+      ) : (
+        <button
+          type="button"
+          disabled
+          title="PMS order link is not configured yet"
+          className="mt-3 inline-flex w-full cursor-not-allowed items-center justify-center rounded-md border border-white/12 bg-white/6 px-3 py-2 text-[12px] font-semibold text-white/45"
+        >
+          Booking link not wired yet
+        </button>
+      )}
+    </div>
+  );
+}
+
+function formatMatchPrice(match: MatchCard) {
+  if (!match.priceCents || !match.currency) {
+    return undefined;
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: match.currency,
+    maximumFractionDigits: 0,
+  }).format(match.priceCents / 100);
 }

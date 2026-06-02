@@ -7,6 +7,14 @@ import {
   validateBokunCredentials,
 } from "@/lib/services/booking/adapters/bokun-sync";
 
+const optionalPublicBookingUrl = z
+  .string()
+  .trim()
+  .refine((value) => !value || /^https:\/\/\S+$/i.test(value), {
+    message: "Public booking URLs must use https.",
+  })
+  .optional();
+
 const integrationSchema = z.object({
   operatorId: z.string().trim().min(1),
   platform: z.enum(["REZDY", "FAREHARBOR", "BOKUN", "NATIVE"]),
@@ -15,6 +23,8 @@ const integrationSchema = z.object({
       apiBase: z.string().trim().url().optional().or(z.literal("")),
       accessToken: z.string().trim().optional(),
       supplierId: z.string().trim().optional(),
+      publicBookingBaseUrl: optionalPublicBookingUrl,
+      publicProductUrlTemplate: optionalPublicBookingUrl,
     })
     .default({}),
 });
@@ -52,6 +62,8 @@ export async function POST(request: NextRequest) {
       apiBase: credentials.apiBase || undefined,
       accessToken: credentials.accessToken,
       supplierId: credentials.supplierId || undefined,
+      publicBookingBaseUrl: credentials.publicBookingBaseUrl || undefined,
+      publicProductUrlTemplate: credentials.publicProductUrlTemplate || undefined,
     };
 
     await validateBokunCredentials(bokunCredentials);

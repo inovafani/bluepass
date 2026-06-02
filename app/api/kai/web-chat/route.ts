@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
       sessionId: result.sessionId,
       reply: result.reply,
       intent: result.intent,
+      ...(result.matches ? { matches: result.matches } : {}),
       ...(result.planner ? { planner: result.planner } : {}),
     });
   } catch (error) {

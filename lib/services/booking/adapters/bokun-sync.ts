@@ -31,6 +31,14 @@ export type BokunSyncResult = {
   productIds: string[];
 };
 
+type ResolvedBokunSyncCredentials = {
+  apiBase: string;
+  accessToken: string;
+  supplierId: string;
+  publicBookingBaseUrl?: string;
+  publicProductUrlTemplate?: string;
+};
+
 function normalizeApiBase(apiBase?: string) {
   return (apiBase || process.env.BOKUN_API_BASE || "https://api.bokun.io/octo/v1").replace(
     /\/$/,
@@ -38,11 +46,13 @@ function normalizeApiBase(apiBase?: string) {
   );
 }
 
-function resolveCredentials(credentials: BokunCredentials): Required<BokunCredentials> {
+function resolveCredentials(credentials: BokunCredentials): ResolvedBokunSyncCredentials {
   const resolved = {
     apiBase: normalizeApiBase(credentials.apiBase),
     accessToken: credentials.accessToken || process.env.BOKUN_ACCESS_TOKEN || "",
     supplierId: credentials.supplierId || process.env.BOKUN_OCTO_SUPPLIER_ID || "",
+    publicBookingBaseUrl: credentials.publicBookingBaseUrl,
+    publicProductUrlTemplate: credentials.publicProductUrlTemplate,
   };
 
   if (!resolved.accessToken) {
@@ -52,7 +62,7 @@ function resolveCredentials(credentials: BokunCredentials): Required<BokunCreden
   return resolved;
 }
 
-async function bokunSyncRequest<T>(credentials: Required<BokunCredentials>, path: string) {
+async function bokunSyncRequest<T>(credentials: ResolvedBokunSyncCredentials, path: string) {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${credentials.accessToken}`,
     "Octo-Capabilities": "pricing",
@@ -166,5 +176,7 @@ export function toBokunCredentialsPayload(input: BokunCredentials): Prisma.Input
     apiBase: input.apiBase ?? null,
     accessToken: input.accessToken ?? null,
     supplierId: input.supplierId ?? null,
+    publicBookingBaseUrl: input.publicBookingBaseUrl ?? null,
+    publicProductUrlTemplate: input.publicProductUrlTemplate ?? null,
   };
 }
