@@ -136,6 +136,8 @@ export function KaiWebChat() {
       setError("Couldn't reach Kai right now. Please try again.");
     } finally {
       setIsSending(false);
+      // textarea re-enables after React re-renders, so defer focus one tick
+      setTimeout(() => textareaRef.current?.focus(), 0);
     }
   }, [input, isSending, messages]);
 
@@ -425,6 +427,7 @@ export function KaiWebChat() {
 
 function KaiMatchCard({ match }: { match: MatchCard }) {
   const price = formatMatchPrice(match);
+  const location = formatMatchLocation(match.location);
 
   return (
     <div className="rounded-lg border border-white/12 bg-[#071a29] p-3 text-white shadow-sm">
@@ -455,11 +458,11 @@ function KaiMatchCard({ match }: { match: MatchCard }) {
         )}
       </div>
 
-      {(match.location || price) && (
+      {(location || price) && (
         <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-white/70">
-          {match.location && (
+          {location && (
             <span className="rounded-full bg-white/8 px-2 py-1">
-              {match.location}
+              {location}
             </span>
           )}
           {price && (
@@ -493,6 +496,14 @@ function KaiMatchCard({ match }: { match: MatchCard }) {
       )}
     </div>
   );
+}
+
+function formatMatchLocation(location?: string) {
+  if (!location || /^[A-Za-z_]+\/[A-Za-z_]+(?:\/[A-Za-z_]+)?$/.test(location)) {
+    return undefined;
+  }
+
+  return location;
 }
 
 function buildWhatsAppBookingHref(match: MatchCard) {

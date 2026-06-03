@@ -162,7 +162,11 @@ export default function ForOperatorsPage() {
 
             <div className="bp-reveal mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {liveOperators.map((operator) => (
-                <Link key={operator.name} href={operator.href} className="block">
+                <Link
+                  key={operator.name}
+                  href={operator.href}
+                  className="block"
+                >
                   <article className="bp-tech-card group border border-white/[0.09]">
                     <div className="relative aspect-[3/4] overflow-hidden">
                       <Image
@@ -184,7 +188,10 @@ export default function ForOperatorsPage() {
                       <div className="absolute right-3 top-3 z-10">
                         <span
                           className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.14em] text-[#f1d58a]"
-                          style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                          style={{
+                            fontFamily: "var(--bp-font-mono)",
+                            borderRadius: "6px",
+                          }}
                         >
                           {operator.tag}
                         </span>
@@ -237,13 +244,6 @@ export default function ForOperatorsPage() {
                   across Indonesia, then makes the status clear before you
                   inquire.
                 </p>
-                <Link
-                  href="/operators"
-                  className="bp-focus-ring mt-5 inline-flex h-11 items-center justify-center gap-2 bg-white px-5 text-sm font-medium text-[#071827] transition-colors hover:bg-white/90"
-                >
-                  Browse operators
-                  <ArrowIcon />
-                </Link>
               </div>
             </div>
 
@@ -271,7 +271,10 @@ export default function ForOperatorsPage() {
                       <div className="absolute left-3 top-3 z-10">
                         <span
                           className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.13em] text-[#f4d891]"
-                          style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                          style={{
+                            fontFamily: "var(--bp-font-mono)",
+                            borderRadius: "6px",
+                          }}
                         >
                           Early preview
                         </span>

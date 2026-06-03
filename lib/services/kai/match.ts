@@ -109,7 +109,7 @@ function scoreTripForIntent(trip: TripForMatching, intent: KaiTravelIntent): Mat
     operatorName: trip.operator.name,
     title: trip.title,
     description: trip.description ?? undefined,
-    location: trip.location ?? undefined,
+    location: publicLocation(trip.location),
     imageUrl: trip.imageUrl ?? undefined,
     priceCents: trip.priceCents,
     currency: trip.currency,
@@ -128,7 +128,7 @@ function buildUnmatchedResult(trip: TripForMatching): MatchResult {
     operatorName: trip.operator.name,
     title: trip.title,
     description: trip.description ?? undefined,
-    location: trip.location ?? undefined,
+    location: publicLocation(trip.location),
     imageUrl: trip.imageUrl ?? undefined,
     priceCents: trip.priceCents,
     currency: trip.currency,
@@ -137,6 +137,14 @@ function buildUnmatchedResult(trip: TripForMatching): MatchResult {
     reason: "does not match the requested destination and activity",
     pmsPlatform: "bokun",
   };
+}
+
+function publicLocation(location: string | null) {
+  if (!location || /^[A-Za-z_]+\/[A-Za-z_]+(?:\/[A-Za-z_]+)?$/.test(location)) {
+    return undefined;
+  }
+
+  return location;
 }
 
 function buildPmsOrderUrl(trip: TripForMatching) {

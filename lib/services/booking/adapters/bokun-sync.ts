@@ -132,6 +132,12 @@ function currencyFromProduct(product: BokunProductForSync) {
   );
 }
 
+function locationFromProduct() {
+  // OCTO currently exposes `timeZone`, not a traveller-facing destination.
+  // Keep location empty unless Bokun gives us a real place field later.
+  return null;
+}
+
 function imageUrlFromProduct(product: BokunProductForSync) {
   const candidates = [
     product.coverImageUrl,
@@ -254,7 +260,7 @@ export async function syncBokunCatalog(
       update: {
         title: product.title ?? product.internalName ?? "Bokun experience",
         description: product.description ?? product.shortDescription,
-        location: product.timeZone,
+        location: locationFromProduct(),
         imageUrl,
         currency: currencyFromProduct(product),
         priceCents: priceFromProduct(product),
@@ -264,7 +270,7 @@ export async function syncBokunCatalog(
         externalId: product.id,
         title: product.title ?? product.internalName ?? "Bokun experience",
         description: product.description ?? product.shortDescription,
-        location: product.timeZone,
+        location: locationFromProduct(),
         imageUrl,
         currency: currencyFromProduct(product),
         priceCents: priceFromProduct(product),
