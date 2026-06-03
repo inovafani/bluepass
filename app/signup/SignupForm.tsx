@@ -33,7 +33,9 @@ export function SignupForm() {
       name: String(formData.get("name") ?? ""),
       email: String(formData.get("email") ?? ""),
       phone: String(formData.get("phone") ?? ""),
-      roles: [...(selectedOption?.roles ?? ["OPERATOR"])] satisfies SignupRole[],
+      roles: [
+        ...(selectedOption?.roles ?? ["OPERATOR"]),
+      ] satisfies SignupRole[],
     };
 
     try {
@@ -61,107 +63,114 @@ export function SignupForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full max-w-[500px] border border-white/20 bg-[#03111d]/80 p-5 shadow-[0_28px_100px_rgba(0,0,0,0.48)] backdrop-blur-2xl sm:p-6 md:p-8"
-    >
-      <h1 className="bp-page-title mt-4 whitespace-nowrap text-[clamp(1.65rem,8vw,4rem)] leading-none text-white">
-        Join BluePass
-      </h1>
-      <p className="mt-5 text-sm leading-6 text-white/70">
-        Tell us where you fit. We will use this to follow up as BluePass opens
-        access.
-      </p>
-
-      <div className="mt-8 space-y-4">
-        <label className="block">
-          <span className="text-sm font-medium text-white/72">
-            Name
-          </span>
-          <input
-            name="name"
-            type="text"
-            required
-            minLength={2}
-            autoComplete="name"
-            placeholder="Your name"
-            className={inputClassName}
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-sm font-medium text-white/72">
-            Email
-          </span>
-          <input
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            placeholder="you@example.com"
-            className={inputClassName}
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-sm font-medium text-white/72">
-            Phone
-          </span>
-          <input
-            name="phone"
-            type="tel"
-            required
-            minLength={6}
-            autoComplete="tel"
-            placeholder="+62..."
-            className={inputClassName}
-          />
-        </label>
-      </div>
-
-      <fieldset className="mt-6">
-        <legend className="text-sm font-medium text-white/72">
-          I am joining as
-        </legend>
-        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {roles.map((item) => (
-            <label
-              key={item.value}
-              className="flex min-h-14 cursor-pointer items-center justify-center border border-white/20 bg-black/25 px-4 text-center text-sm font-normal text-white/72 transition-colors hover:border-white/40 hover:bg-white/10 has-[:checked]:border-white has-[:checked]:bg-white has-[:checked]:text-[#071827]"
-            >
-              <input
-                type="radio"
-                name="roleChoice"
-                value={item.value}
-                checked={roleChoice === item.value}
-                onChange={() => setRoleChoice(item.value)}
-                className="sr-only"
-              />
-              {item.label}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <button
-        type="submit"
-        disabled={state === "submitting"}
-        className="bp-focus-ring mt-8 inline-flex h-14 w-full items-center justify-center bg-white px-6 text-sm font-medium text-[#071827] transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/50"
+    <div className="relative w-full max-w-[500px]">
+      {/* Glass layer on a div — not a form/article, so globals.css overflow:hidden doesn't kill backdrop-filter */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 rounded-2xl bg-[rgba(20,24,30,0.34)] shadow-[0_24px_80px_rgba(0,0,0,0.30),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[34px] backdrop-saturate-150"
+      />
+      <form
+        onSubmit={handleSubmit}
+        className="bp-signup-glass-form relative z-10 w-full p-5 sm:p-6 md:p-8"
       >
-        {state === "submitting" ? "Submitting" : "Join Us"}
-      </button>
-
-      {state === "success" ? (
-        <p className="mt-4 border border-emerald-300/30 bg-emerald-400/10 p-3 text-sm leading-6 text-emerald-100">
-          Thanks. Your BluePass signup was saved.
+        <h1 className="bp-page-title mt-4 whitespace-nowrap text-[clamp(1.65rem,8vw,4rem)] leading-none text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.38)]">
+          Join BluePass
+        </h1>
+        <p className="mt-5 text-sm leading-6 text-white/72 drop-shadow-[0_1px_12px_rgba(0,0,0,0.35)]">
+          Tell us where you fit. We will use this to follow up as BluePass opens
+          access.
         </p>
-      ) : null}
 
-      {state === "error" ? (
-        <p className="mt-4 border border-red-300/30 bg-red-400/10 p-3 text-sm leading-6 text-red-100">
-          {error}
-        </p>
-      ) : null}
-    </form>
+        <div className="mt-8 space-y-4">
+          <label className="block">
+            <span className="text-sm font-medium text-white/78 drop-shadow-[0_1px_10px_rgba(0,0,0,0.32)]">
+              Name
+            </span>
+            <input
+              name="name"
+              type="text"
+              required
+              minLength={2}
+              autoComplete="name"
+              placeholder="Your name"
+              className={inputClassName}
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-white/78 drop-shadow-[0_1px_10px_rgba(0,0,0,0.32)]">
+              Email
+            </span>
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="you@example.com"
+              className={inputClassName}
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-white/78 drop-shadow-[0_1px_10px_rgba(0,0,0,0.32)]">
+              Phone
+            </span>
+            <input
+              name="phone"
+              type="tel"
+              required
+              minLength={6}
+              autoComplete="tel"
+              placeholder="+62..."
+              className={inputClassName}
+            />
+          </label>
+        </div>
+
+        <fieldset className="mt-6">
+          <legend className="text-sm font-medium text-white/78 drop-shadow-[0_1px_10px_rgba(0,0,0,0.32)]">
+            I am joining as
+          </legend>
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {roles.map((item) => (
+              <label
+                key={item.value}
+                className="flex min-h-14 cursor-pointer items-center justify-center border border-white/20 bg-black/20 px-4 text-center text-sm font-normal text-white/78 backdrop-blur-sm transition-colors hover:border-white/40 hover:bg-white/10 has-[:checked]:border-white has-[:checked]:bg-white has-[:checked]:text-[#071827]"
+              >
+                <input
+                  type="radio"
+                  name="roleChoice"
+                  value={item.value}
+                  checked={roleChoice === item.value}
+                  onChange={() => setRoleChoice(item.value)}
+                  className="sr-only"
+                />
+                {item.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <button
+          type="submit"
+          disabled={state === "submitting"}
+          className="bp-focus-ring mt-8 inline-flex h-14 w-full items-center justify-center bg-white px-6 text-sm font-medium text-[#071827] transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/50"
+        >
+          {state === "submitting" ? "Submitting" : "Join Us"}
+        </button>
+
+        {state === "success" ? (
+          <p className="mt-4 border border-emerald-300/30 bg-emerald-400/10 p-3 text-sm leading-6 text-emerald-100">
+            Thanks. Your BluePass signup was saved.
+          </p>
+        ) : null}
+
+        {state === "error" ? (
+          <p className="mt-4 border border-red-300/30 bg-red-400/10 p-3 text-sm leading-6 text-red-100">
+            {error}
+          </p>
+        ) : null}
+      </form>
+    </div>
   );
 }

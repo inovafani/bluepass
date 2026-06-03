@@ -102,11 +102,7 @@ export default function SignupPage() {
       {/* ── STORY SECTIONS ──────────────────────────────── */}
       <div className="cinematic-page bg-[#020b11] text-white">
         {/* ── 1. FEATURED CREATORS ─────────────────────── */}
-        {/*
-            Background: underwater coral reef, Komodo National Park, Indonesia
-            Photo by Johnny Africa on Unsplash
-        */}
-        <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] pb-20 pt-24 md:pb-28 md:pt-32">
+        <section className="relative overflow-hidden pb-20 pt-24 md:pb-28 md:pt-32">
           {/* Underwater background */}
           <div
             aria-hidden="true"
@@ -116,104 +112,177 @@ export default function SignupPage() {
                 "url('https://images.unsplash.com/photo-1644027621533-633fe3de243a?w=1920&q=80&fit=crop')",
             }}
           />
-          {/* Layered overlay — deep navy base + top/bottom fades */}
+          <div aria-hidden="true" className="absolute inset-0 bg-[#020b11]/70" />
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-[#020b11]/74"
+            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,11,17,0.78),rgba(2,11,17,0.18)_40%,rgba(2,11,17,0.18)_60%,rgba(2,11,17,0.88))]"
           />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,11,17,0.72),rgba(2,11,17,0.22)_38%,rgba(2,11,17,0.22)_62%,rgba(2,11,17,0.82))]"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-[#0c3b3a]/14 mix-blend-color"
-          />
+          <div aria-hidden="true" className="absolute inset-0 bg-[#0c3b3a]/14 mix-blend-color" />
 
-          {/* Content */}
-          <div className="bp-reveal relative z-10 mx-auto max-w-6xl">
-            {/* Header row */}
-            <div className="grid gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:items-end">
-              <div>
-                <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                  Featured creators
+          <div className="bp-reveal relative z-10 mx-auto max-w-6xl px-[var(--cinematic-screen-x)]">
+            {/* Header */}
+            <div>
+              <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
+                Featured creators
+              </p>
+              <h2 className="bp-page-title mt-4 text-[clamp(2.5rem,4.5vw,3.75rem)] leading-none text-balance text-white">
+                Every trip starts with someone who&apos;s been there.
+              </h2>
+              <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
+                <p className="max-w-xl text-sm font-light leading-[1.85] text-pretty text-white/56 md:text-[15px]">
+                  BluePass only partners with verified ocean creators — dive
+                  instructors, photographers, sailors, and conservation educators
+                  who took the trip before they ever recommended it. When they
+                  share a booking link, their audience already trusts it.
                 </p>
-                <h2 className="bp-page-title mt-4 text-[clamp(2.25rem,5vw,4rem)] leading-[0.94] text-white">
-                  Every trip starts
-                  <br />
-                  with someone
-                  <br />
-                  who&apos;s been there.
-                </h2>
                 <a
                   href="#join"
-                  className="bp-focus-ring mt-8 inline-flex h-11 items-center gap-2 bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
+                  className="bp-focus-ring shrink-0 inline-flex h-11 items-center gap-2 bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
                 >
-                  Sign up now
-                  <svg
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
+                  Join as a creator
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+                    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
                   </svg>
                 </a>
               </div>
-              <p className="max-w-xl text-sm font-light leading-[1.85] text-white/56 md:text-[15px]">
-                BluePass only partners with verified ocean creators — dive
-                instructors, photographers, sailors, and conservation educators
-                who took the trip before they ever recommended it. When they
-                share a booking link, their audience already trusts it.
-              </p>
             </div>
 
-            {/* Creator grid */}
-            <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {creators.map((creator) => (
+            {/* Creator cards — editorial masonry layout */}
+            <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr]">
+              {/* First card — taller, featured */}
+              {creators.slice(0, 1).map((creator) => (
                 <a
                   key={creator.name}
                   href={creator.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bp-rounded-surface group border border-white/18 bg-white/[0.07] shadow-[0_8px_40px_rgba(0,0,0,0.28)] backdrop-blur-2xl transition-transform duration-200 hover:-translate-y-0.5 hover:border-white/28 hover:bg-white/[0.11]"
+                  className="bp-tech-card group col-span-1 border border-white/[0.09] xl:row-span-1"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden">
+                  <div className="relative aspect-[2/3] overflow-hidden">
                     <Image
                       src={creator.image}
-                      alt={`${creator.name} – BluePass ocean creator`}
+                      alt={`${creator.name} – BluePass creator`}
                       fill
                       sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                      className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.06]"
                     />
+                    <div className="bp-scan-grid" />
                     <div
                       aria-hidden="true"
-                      className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.82) 28%, rgba(2,11,17,0.20) 52%, transparent 70%)",
+                      }}
                     />
-                  </div>
-                  <div className="p-5">
-                    <p className="text-[11px] tracking-[0.16em] text-[#B89A5D]">
-                      {creator.handle}
-                    </p>
-                    <p className="bp-page-title mt-2 text-xl leading-none text-white/82">
-                      {creator.name}
-                    </p>
-                    <p className="mt-2 text-sm font-light text-white/40">
-                      {creator.location}
-                    </p>
-                    <p className="mt-3 text-sm font-light leading-6 text-white/54">
-                      {creator.role}
-                    </p>
+                    {/* Top badge row */}
+                    <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
+                      <span
+                        className="border border-[#B89A5D]/30 bg-[#B89A5D]/15 px-2 py-[3px] text-[10px] tracking-[0.14em] text-[#f4d891]"
+                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                      >
+                        Featured
+                      </span>
+                    </div>
+                    <div className="absolute right-3 top-3 z-10">
+                      <span
+                        className="border border-white/14 bg-black/50 px-2 py-[3px] text-[10px] tracking-[0.12em] text-white/80"
+                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px", backdropFilter: "blur(6px)" }}
+                      >
+                        {creator.handle}
+                      </span>
+                    </div>
+                    {/* Bottom overlay */}
+                    <div className="absolute inset-x-0 bottom-0 z-10 p-5">
+                      <p className="bp-page-title text-[1.25rem] leading-tight text-white">
+                        {creator.name}
+                      </p>
+                      <p
+                        className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[#B89A5D]"
+                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                      >
+                        {creator.location}
+                      </p>
+                      <p className="mt-2 text-[0.78rem] leading-[1.55] text-white/60">
+                        {creator.role}
+                      </p>
+                      <div className="mt-4 flex items-center gap-2 border-t border-white/[0.08] pt-3">
+                        <span
+                          className="text-[10px] tracking-[0.14em] text-[#B89A5D] transition-colors group-hover:text-white"
+                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                        >
+                          View on Instagram →
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </a>
               ))}
+
+              {/* Remaining 3 cards */}
+              {creators.slice(1).map((creator) => (
+                <a
+                  key={creator.name}
+                  href={creator.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bp-tech-card group border border-white/[0.09]"
+                >
+                  <div className="relative aspect-[2/3] overflow-hidden">
+                    <Image
+                      src={creator.image}
+                      alt={`${creator.name} – BluePass creator`}
+                      fill
+                      sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
+                      className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.06]"
+                    />
+                    <div className="bp-scan-grid" />
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.80) 28%, rgba(2,11,17,0.18) 52%, transparent 70%)",
+                      }}
+                    />
+                    <div className="absolute right-3 top-3 z-10">
+                      <span
+                        className="border border-white/14 bg-black/50 px-2 py-[3px] text-[10px] tracking-[0.12em] text-white/80"
+                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px", backdropFilter: "blur(6px)" }}
+                      >
+                        {creator.handle}
+                      </span>
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+                      <p className="bp-page-title text-[1.15rem] leading-tight text-white">
+                        {creator.name}
+                      </p>
+                      <p
+                        className="mt-1 text-[10px] uppercase tracking-[0.16em] text-[#B89A5D]"
+                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                      >
+                        {creator.location}
+                      </p>
+                      <p className="mt-2 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/56">
+                        {creator.role}
+                      </p>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            {/* Join CTA strip below cards */}
+            <div className="mt-8 flex flex-col items-center gap-3 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-light text-white/44">
+                Verified ocean creators only. Free to join — commission on bookings.
+              </p>
+              <a
+                href="#join"
+                className="bp-focus-ring inline-flex h-10 shrink-0 items-center gap-2 border border-white/28 bg-white/[0.07] px-5 text-[11px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/[0.14]"
+              >
+                Apply to create →
+              </a>
             </div>
           </div>
         </section>
@@ -568,8 +637,6 @@ export default function SignupPage() {
               "url('https://assets.mixkit.co/videos/9774/9774-thumb-720-0.jpg')",
           }}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.8),rgba(0,15,21,0.38)_48%,rgba(0,8,14,0.72)),linear-gradient(180deg,rgba(0,0,0,0.48),rgba(0,0,0,0.1)_38%,rgba(0,0,0,0.74))]" />
-        <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
         <div className="bp-film-grain absolute inset-0" />
 
         <div className="relative left-1/2 z-10 flex min-h-svh w-screen -translate-x-1/2 items-center justify-center px-[var(--cinematic-screen-x)] pb-14 pt-28 sm:pb-16 sm:pt-32">

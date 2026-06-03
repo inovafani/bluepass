@@ -147,6 +147,14 @@ body {
   pointer-events: none;
 }
 
+.cinematic-page form.bp-signup-glass-form {
+  overflow: visible;
+  border-color: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
 .cinematic-page .cinematic-hero-stage > section {
   border-width: 1px !important;
   border-style: solid !important;
