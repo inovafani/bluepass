@@ -150,7 +150,21 @@ export default function SignupPage() {
                   className="bp-focus-ring mt-8 inline-flex h-11 items-center gap-2 bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
                 >
                   Sign up now
-                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                  <svg
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
                 </a>
               </div>
               <p className="max-w-xl text-sm font-light leading-[1.85] text-white/56 md:text-[15px]">
@@ -401,7 +415,7 @@ export default function SignupPage() {
         {/*
             Background: aerial view of Raja Ampat islands, Indonesia
             Photo on Unsplash — the archipelago from above reads as a
-            living network: islands as nodes, ocean channels as mesh lines.
+            living network: islands as nodes, ocean channels as mesh lines. testing
         */}
         <section className="relative overflow-hidden border-y border-white/10">
           {/* Raja Ampat aerial background */}
@@ -542,7 +556,10 @@ export default function SignupPage() {
       </div>
 
       {/* ── EXISTING SIGNUP FORM — unchanged ─────────────── */}
-      <section id="join" className="cinematic-page relative min-h-svh overflow-hidden bg-[#020b11] text-white">
+      <section
+        id="join"
+        className="cinematic-page relative min-h-svh overflow-hidden bg-[#020b11] text-white"
+      >
         <div
           aria-hidden="true"
           className="absolute inset-0 scale-105 bg-cover bg-center"
