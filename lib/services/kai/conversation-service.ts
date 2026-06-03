@@ -262,7 +262,7 @@ export function buildDeterministicReply(
     ].filter(Boolean);
     const prefix = knownParts.length > 0 ? `Got it: ${knownParts.join(" ")}. ` : "";
 
-    return `${prefix}Where in Indonesia feels best - Komodo, Raja Ampat, Bali/Nusa Penida, Alor, Wakatobi, or somewhere more remote?`;
+    return `${prefix}Where in Indonesia feels best - Komodo, Raja Ampat, Bali/Nusa Penida, Lombok/Gili, or somewhere else in Indonesia?`;
   }
 
   if (planner.missingSlots.includes("tripType")) {

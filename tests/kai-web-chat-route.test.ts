@@ -306,7 +306,7 @@ describe("POST /api/kai/web-chat", () => {
           {
             role: "assistant",
             content:
-              "Got it: sailing. Where in Indonesia feels best - Komodo, Raja Ampat, Bali/Nusa Penida, Alor, Wakatobi, or somewhere more remote?",
+              "Got it: sailing. Where in Indonesia feels best - Komodo, Raja Ampat, Bali/Nusa Penida, Lombok/Gili, or somewhere else in Indonesia?",
           },
           {
             role: "user",

@@ -27,7 +27,7 @@ interface MatchCard {
 const GREETING: Message = {
   role: "assistant",
   content:
-    "Hey, I'm Kai. Tell me what kind of ocean experience you're looking for — diving, liveaboards, sailing, eco resorts, or something more remote.",
+    "Hey, I'm Kai. Tell me what kind of ocean experience you're looking for — diving, liveaboards, sailing, eco resorts, or an expedition-style trip.",
 };
 
 const LS_KEY = "bluepass:kaiSessionId";
