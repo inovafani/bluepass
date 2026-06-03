@@ -6,88 +6,55 @@ import { BluePassFooter } from "@/app/components/BluePassFooter";
 export const metadata: Metadata = {
   title: "Operators | BluePass",
   description:
-    "Browse vetted and claimable Indonesia marine operators on BluePass.",
+    "Browse vetted Indonesia marine operators on BluePass.",
 };
 
 const heroImage = "/operator/operator-header.jpg";
-const accessImage =
-  "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=2200&q=82";
 
 const liveOperators = [
   {
-    name: "Calico Jack Charters",
-    href: "/operators/calico-jack-charters",
-    tag: "charter",
-    location: "Labuan Bajo Marina, East Nusa Tenggara",
-    body: "A captain-led charter house pairing polished service with flexible Komodo day routes.",
+    slug: "calico-jack-charters",
+    name: "Calico Jack",
+    location: "KOMODO",
+    maxGuests: 10,
+    pricePerCabin: "$3,200",
+    charterPrice: "$46,000",
     image:
-      "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1600&q=80",
-    alt: "Private yacht crossing clear tropical water",
+      "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=800&q=80",
+    alt: "Private yacht crossing clear tropical water near Komodo",
   },
   {
+    slug: "mermaid-spirit",
     name: "Mermaid Spirit",
-    href: "/operators/mermaid-spirit",
-    tag: "sailing",
-    location: "Nusa Lembongan, Bali",
-    body: "A boutique sailing crew known for intimate sunset and celebration charters.",
+    location: "BALI",
+    maxGuests: 8,
+    pricePerCabin: "$620",
+    charterPrice: "$4,200",
     image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
     alt: "Sailing yacht at sunset",
   },
   {
-    name: "Blue Lagoon Dive Resort",
-    href: "/operators/blue-lagoon-dive-resort",
-    tag: "dive",
-    location: "Padangbai, Bali",
-    body: "A dive resort pairing easy logistics with reef, macro, and conservation-led experiences.",
+    slug: "blue-lagoon-dive-resort",
+    name: "Blue Lagoon",
+    location: "BALI",
+    maxGuests: 8,
+    pricePerCabin: "$135",
+    charterPrice: "$900",
     image:
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80",
     alt: "Diver gliding above a coral reef",
   },
   {
+    slug: "komodo-liveaboard-co",
     name: "Komodo Liveaboard Co.",
-    href: "/operators/komodo-liveaboard-co",
-    tag: "liveaboard",
-    location: "Labuan Bajo, East Nusa Tenggara",
-    body: "Premium cabin-based liveaboards for divers, photographers, and island explorers.",
+    location: "KOMODO",
+    maxGuests: 16,
+    pricePerCabin: "$1,850",
+    charterPrice: "$22,000",
     image:
-      "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80",
-    alt: "Island coastline with turquoise water",
-  },
-];
-
-const previews = [
-  {
-    name: "Scuba Republic (Jaya + Epica)",
-    href: "/preview/scuba-republic-jaya-plus-epica",
-    body: "Scuba Republic (Jaya + Epica) is staged for BluePass onboarding as a liveaboard + dive center with T1 priority.",
-    image:
-      "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?auto=format&fit=crop&w=1600&q=80",
-    alt: "Diver swimming beside a reef wall",
-  },
-  {
-    name: "Mermaid Liveaboards (I + II)",
-    href: "/preview/mermaid-liveaboards-i-plus-ii",
-    body: "Mermaid Liveaboards (I + II) is staged for BluePass onboarding as a luxury liveaboard with T1 priority.",
-    image:
-      "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1600&q=80",
-    alt: "Luxury yacht moving through open water",
-  },
-  {
-    name: "Samambaia Liveaboard",
-    href: "/preview/samambaia-liveaboard",
-    body: "Samambaia Liveaboard is staged for BluePass onboarding as a luxury phinisi with T1 priority.",
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
-    alt: "Warm sunset over a tropical shore",
-  },
-  {
-    name: "La Galigo Liveaboard",
-    href: "/preview/la-galigo-liveaboard",
-    body: "La Galigo Liveaboard is staged for BluePass onboarding as a phinisi liveaboard with T1 priority.",
-    image:
-      "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80",
-    alt: "Turquoise island coastline from above",
+      "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=800&q=80",
+    alt: "Island coastline with turquoise water from the sea",
   },
 ];
 
@@ -95,18 +62,13 @@ export default function ForOperatorsPage() {
   return (
     <>
       <main className="cinematic-page min-h-screen bg-[#020b11] text-white">
+        {/* Hero */}
         <section className="relative min-h-svh overflow-hidden bg-[#020b11] text-white">
           <div
             aria-hidden="true"
             className="absolute inset-0 scale-105 bg-cover bg-center saturate-[0.9]"
             style={{ backgroundImage: `url('${heroImage}')` }}
           />
-          {/*
-            🎨 FOR-OPERATORS hero overlay — tune these numbers independently.
-            Left opacity  (first value): 0.9=very dark  0.72=balanced  0.55=light
-            Right opacity (second):      0.78=very dark 0.50=balanced  0.35=light
-            These ONLY affect this page — signup page has its own separate overlay.
-          */}
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.72),rgba(0,15,21,0.38)_48%,rgba(0,8,14,0.58)),linear-gradient(180deg,rgba(0,0,0,0.30),rgba(0,0,0,0.08)_36%,rgba(0,0,0,0.64))]" />
           <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
           <div className="bp-film-grain absolute inset-0" />
@@ -135,18 +97,22 @@ export default function ForOperatorsPage() {
                   Claim your business
                   <ArrowIcon />
                 </Link>
-                <Link
-                  href="/operators"
+                <a
+                  href="#operators"
                   className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-medium text-white transition-colors hover:bg-white/10"
                 >
                   Browse operators
-                </Link>
+                </a>
               </div>
             </section>
           </div>
         </section>
 
-        <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
+        {/* Featured operators */}
+        <section
+          id="operators"
+          className="px-[var(--cinematic-screen-x)] py-14 md:py-20"
+        >
           <div className="mx-auto max-w-6xl">
             <div className="flex items-end justify-between gap-4">
               <div>
@@ -154,138 +120,76 @@ export default function ForOperatorsPage() {
                   Live operators
                 </p>
                 <h2 className="bp-page-title mt-4 text-2xl leading-none text-white/84 md:text-3xl">
-                  Published on BluePass
+                  Featured operators
                 </h2>
               </div>
-              <p className="text-sm font-light text-white/46">4 operators</p>
+              <p className="text-sm font-light text-white/46">
+                {liveOperators.length} operators
+              </p>
             </div>
 
             <div className="bp-reveal mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {liveOperators.map((operator) => (
+              {liveOperators.map((op) => (
                 <Link
-                  key={operator.name}
-                  href={operator.href}
+                  key={op.slug}
+                  href={`/operators/${op.slug}`}
                   className="block"
                 >
-                  <article className="bp-tech-card group border border-white/[0.09]">
+                  <article className="group relative overflow-hidden border border-white/[0.08]">
                     <div className="relative aspect-[3/4] overflow-hidden">
                       <Image
-                        src={operator.image}
-                        alt={operator.alt}
+                        src={op.image}
+                        alt={op.alt}
                         fill
                         sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                        className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                       />
-                      <div className="bp-scan-grid" />
                       <div
                         aria-hidden="true"
                         className="absolute inset-0"
                         style={{
                           background:
-                            "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.84) 32%, rgba(2,11,17,0.32) 58%, transparent 76%)",
+                            "linear-gradient(to top, rgba(2,11,17,0.96) 0%, rgba(2,11,17,0.70) 32%, rgba(2,11,17,0.16) 60%, transparent 80%)",
                         }}
                       />
-                      <div className="absolute right-3 top-3 z-10">
-                        <span
-                          className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.14em] text-[#f1d58a]"
-                          style={{
-                            fontFamily: "var(--bp-font-mono)",
-                            borderRadius: "6px",
-                          }}
-                        >
-                          {operator.tag}
-                        </span>
-                      </div>
-                      <div className="absolute inset-x-0 bottom-0 z-10 p-4">
-                        <h3 className="bp-page-title text-[1.2rem] leading-tight text-white/92">
-                          {operator.name}
-                        </h3>
-                        <p
-                          className="mt-1.5 flex items-center gap-1.5 text-[10px] tracking-[0.12em] text-white/42"
-                          style={{ fontFamily: "var(--bp-font-mono)" }}
-                        >
-                          <MapPinIcon />
-                          {operator.location}
-                        </p>
-                        <p className="mt-2 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/56">
-                          {operator.body}
-                        </p>
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="relative overflow-hidden border-y border-white/10 px-[var(--cinematic-screen-x)] py-14 md:py-20">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-cover bg-center saturate-[0.7]"
-            style={{ backgroundImage: `url('${accessImage}')` }}
-          />
-          <div className="absolute inset-0 bg-[#020b11]/82" />
-          <div className="bp-film-grain absolute inset-0" />
-
-          <div className="relative mx-auto max-w-6xl">
-            <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
-              <div>
-                <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                  Curated access
-                </p>
-                <h2 className="bp-page-title mt-4 max-w-2xl text-2xl leading-none text-white/88 md:text-3xl">
-                  The best ocean trips are not always listed in one place.
-                </h2>
-              </div>
-              <div>
-                <p className="max-w-xl text-sm font-light leading-6 text-white/62 md:text-[15px]">
-                  BluePass surfaces live operators and early previews from
-                  across Indonesia, then makes the status clear before you
-                  inquire.
-                </p>
-              </div>
-            </div>
-
-            <div className="bp-reveal mt-9 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {previews.map((preview) => (
-                <Link key={preview.name} href={preview.href} className="block">
-                  <article className="bp-tech-card group border border-white/[0.09]">
-                    <div className="relative aspect-[3/4] overflow-hidden">
-                      <Image
-                        src={preview.image}
-                        alt={preview.alt}
-                        fill
-                        sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-                      />
-                      <div className="bp-scan-grid" />
-                      <div
-                        aria-hidden="true"
-                        className="absolute inset-0"
-                        style={{
-                          background:
-                            "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.82) 30%, rgba(2,11,17,0.28) 56%, transparent 74%)",
-                        }}
-                      />
+                      {/* Location badge */}
                       <div className="absolute left-3 top-3 z-10">
                         <span
-                          className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.13em] text-[#f4d891]"
+                          className="border border-white/16 bg-black/52 px-2 py-[3px] text-[10px] tracking-[0.18em] text-white/80"
                           style={{
                             fontFamily: "var(--bp-font-mono)",
-                            borderRadius: "6px",
+                            borderRadius: "4px",
+                            backdropFilter: "blur(8px)",
                           }}
                         >
-                          Early preview
+                          {op.location}
                         </span>
                       </div>
+                      {/* Bottom info */}
                       <div className="absolute inset-x-0 bottom-0 z-10 p-4">
-                        <h3 className="bp-page-title text-[1.2rem] leading-tight text-white/90">
-                          {preview.name}
+                        <h3 className="bp-page-title text-[1.25rem] leading-tight text-white">
+                          {op.name}
                         </h3>
-                        <p className="mt-2 line-clamp-3 text-[0.78rem] leading-[1.5] text-white/56">
-                          {preview.body}
+                        <p
+                          className="mt-1 text-[11px] text-white/55"
+                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                        >
+                          Up to {op.maxGuests} guests
                         </p>
+                        <div className="mt-2.5 border-t border-white/12 pt-2.5">
+                          <p className="text-[0.8125rem] font-medium text-white">
+                            from {op.pricePerCabin}{" "}
+                            <span className="font-light text-white/55">
+                              / cabin · night
+                            </span>
+                          </p>
+                          <p
+                            className="mt-0.5 text-[11px] text-white/44"
+                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                          >
+                            or charter {op.charterPrice} / night · whole vessel
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -295,6 +199,7 @@ export default function ForOperatorsPage() {
           </div>
         </section>
 
+        {/* Claim CTA */}
         <section
           id="claim"
           className="px-[var(--cinematic-screen-x)] py-16 text-center md:py-24"
@@ -342,27 +247,6 @@ function ArrowIcon() {
     >
       <path d="M5 12h14" />
       <path d="m12 5 7 7-7 7" />
-    </svg>
-  );
-}
-
-function MapPinIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      className="shrink-0 text-[#B89A5D]"
-    >
-      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-      <circle cx="12" cy="10" r="3" />
     </svg>
   );
 }

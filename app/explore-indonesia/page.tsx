@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { yachts } from "@/lib/data/yachts";
 
 export const metadata: Metadata = {
   title: "Explore Indonesia | BluePass",
@@ -8,204 +9,67 @@ export const metadata: Metadata = {
     "Find liveaboards, private yachts, dive days, sailing, surf, and reef trips across Indonesia.",
 };
 
-const liveTrips = [
+const destinations = [
   {
-    href: "/trips/private-yacht-charter",
+    href: "/for-operators",
+    label: "FLORES · INDONESIA",
+    name: "Komodo",
     image:
-      "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1600&q=80",
-    alt: "Private yacht crossing clear tropical water",
-    operator: "Calico Jack Charters",
-    title: "Private Yacht Charter",
-    summary:
-      "A fully crewed Komodo day charter with reef stops, chef lunch, and a flexible route.",
-    duration: "8 hours",
-    capacity: "Up to 10",
-    availability: "Space open",
-    price: "$2,400",
-    badge: "Live check",
+      "https://images.unsplash.com/photo-1500993855538-c6a99f437aa7?auto=format&fit=crop&w=1200&q=82",
+    alt: "Wave breaking off the Komodo coast at sunset",
   },
   {
-    href: "/trips/komodo-liveaboard-expedition",
+    href: "/for-operators",
+    label: "WEST PAPUA · INDONESIA",
+    name: "Raja Ampat",
     image:
-      "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80",
-    alt: "Island coastline with turquoise water",
-    operator: "Komodo Liveaboard Co.",
-    title: "Komodo Liveaboard Expedition",
-    summary:
-      "A cabin-based multi-day expedition through Komodo dive sites and island trails.",
-    duration: "4 days / 3 nights",
-    capacity: "Up to 16",
-    availability: "Limited",
-    price: "$1,850",
-    badge: "Live check",
-  },
-  {
-    href: "/trips/dive-day-trip",
-    image:
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1600&q=80",
-    alt: "Diver gliding above a coral reef",
-    operator: "Blue Lagoon Dive Resort",
-    title: "Dive Day Trip",
-    summary:
-      "Two guided dives from Padangbai with resort logistics and reef briefings.",
-    duration: "6 hours",
-    capacity: "Up to 8",
-    availability: "WhatsApp hold",
-    price: "$135",
-    badge: "Live check",
-  },
-  {
-    href: "/trips/sunset-sailing",
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
-    alt: "Sailing yacht at sunset",
-    operator: "Mermaid Spirit",
-    title: "Sunset Sailing",
-    summary:
-      "A private dusk sail with canapes, swim stops, and a quiet deck for golden hour.",
-    duration: "3 hours",
-    capacity: "Up to 8",
-    availability: "Limited",
-    price: "$620",
-    badge: "24-hour hold",
-  },
-  {
-    href: "/trips/conservation-reef-experience",
-    image:
-      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
-    alt: "Remote blue lagoon and white sand beach",
-    operator: "Blue Lagoon Dive Resort",
-    title: "Conservation Reef Experience",
-    summary:
-      "A reef education and snorkel experience with conservation briefings and local guides.",
-    duration: "4 hours",
-    capacity: "Up to 12",
-    availability: "Space open",
-    price: "$95",
-    badge: "Live check",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=82",
+    alt: "Tropical beach with palm trees in Raja Ampat",
   },
 ];
 
-const earlyPreviews = [
+
+const conservationCards = [
   {
-    href: "/preview/scuba-republic-jaya-plus-epica",
-    location: "Raja Ampat + Komodo",
-    title: "Scuba Republic Signature Expedition",
-    summary:
-      "Liveaboard + Dive Center experience across Raja Ampat + Komodo. Multi-destination, year-round, strong reviews.",
-    price: "$2,600",
+    id: "01",
+    type: "partner",
+    name: "Coral Triangle Center",
+    description: "Reef restoration + MPA training across Indonesia.",
     image:
-      "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?auto=format&fit=crop&w=1600&q=80",
-    alt: "Diver swimming beside a coral reef wall",
+      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80",
+    alt: "Diver above a coral reef restoration site",
   },
   {
-    href: "/preview/mermaid-liveaboards-i-plus-ii",
-    location: "Komodo, Raja Ampat, Banda Sea, Alor, Halmahera",
-    title: "Mermaid Liveaboards Signature Expedition",
-    summary:
-      "Luxury Liveaboard experience across Komodo, Raja Ampat, Banda Sea, Alor, Halmahera. Covers every BluePass destination. Nine awards..",
-    price: "$2,600",
+    id: "02",
+    type: "partner",
+    name: "The Manta Trust",
+    description:
+      "Manta research + protection at Komodo and Raja Ampat cleaning stations.",
     image:
-      "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1600&q=80",
-    alt: "Luxury yacht crossing clear tropical water",
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=800&q=80",
+    alt: "Manta ray gliding in open ocean",
   },
   {
-    href: "/preview/samambaia-liveaboard",
-    location: "Raja Ampat, Komodo, Alor, Flores, Banda, Triton Bay",
-    title: "Samambaia Liveaboard Signature Expedition",
-    summary:
-      "Luxury Phinisi experience across Raja Ampat, Komodo, Alor, Flores, Banda, Triton Bay. Full East Indonesia circuit. Premium positioning..",
-    price: "$2,600",
+    id: "03",
+    type: "partner",
+    name: "Mangrove Action Project",
+    description:
+      "Coastal nurseries — replanting the carbon sink that feeds reefs.",
     image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
-    alt: "Golden beach at sunset",
+      "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&w=800&q=80",
+    alt: "Mangrove restoration coastline",
   },
   {
-    href: "/preview/la-galigo-liveaboard",
-    location: "Komodo, Raja Ampat, Lembeh, Halmahera",
-    title: "La Galigo Liveaboard Signature Expedition",
-    summary:
-      "Phinisi Liveaboard experience across Komodo, Raja Ampat, Lembeh, Halmahera. Heritage vessel plus conservation positioning.",
-    price: "$2,600",
+    id: "04",
+    type: "creator",
+    handle: "@storyofsage",
+    name: "Story of Sage",
+    description: "Island light, reef days, quiet blue moments.",
     image:
-      "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80",
-    alt: "Turquoise island coastline from above",
-  },
-  {
-    href: "/preview/scuba-junkie-klm-eliya",
-    location: "Komodo, Raja Ampat, Banda Sea",
-    title: "Scuba Junkie Signature Expedition",
-    summary:
-      "Liveaboard + Resort chain experience across Komodo, Raja Ampat, Banda Sea. Already GF Gold. Expanding Raja Ampat in 2026..",
-    price: "$2,600",
-    image:
-      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
-    alt: "Remote lagoon with white sand and blue water",
-  },
-  {
-    href: "/preview/mikumba-diving-jelajahi-laut",
-    location: "Komodo, Raja Ampat, Banda, Halmahera, Sulawesi, Ambon",
-    title: "Mikumba Diving Signature Expedition",
-    summary:
-      "Expedition Liveaboard experience across Komodo, Raja Ampat, Banda, Halmahera, Sulawesi, Ambon. Niche routes across Halmahera and Sulawesi.",
-    price: "$2,200",
-    image:
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1600&q=80",
-    alt: "Scuba diver with schooling fish on a reef",
-  },
-  {
-    href: "/preview/ayo-divers-ratu-laut",
-    location: "Raja Ampat + Komodo",
-    title: "Ayo Divers Signature Expedition",
-    summary:
-      "Phinisi Liveaboard experience across Raja Ampat + Komodo. Heritage phinisi operators are core to the BluePass brand.",
-    price: "$2,200",
-    image:
-      "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1600&q=80",
-    alt: "Wooden boat near a tropical island",
-  },
-  {
-    href: "/preview/blue-manta-explorer",
-    location: "Raja Ampat, Komodo, Ambon",
-    title: "Blue Manta Explorer Signature Expedition",
-    summary:
-      "Luxury Steel Liveaboard experience across Raja Ampat, Komodo, Ambon. Scale fill rate with conservation-oriented bookings.",
-    price: "$2,200",
-    image:
-      "https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?auto=format&fit=crop&w=1600&q=80",
-    alt: "Deep blue ocean seen from above",
-  },
-  {
-    href: "/preview/calico-jack",
-    location: "Raja Ampat, Triton Bay, Banda Sea, Ambon",
-    title: "Calico Jack Signature Expedition",
-    summary:
-      "Liveaboard experience across Raja Ampat, Triton Bay, Banda Sea, Ambon. Focused on remote Indonesia diving.",
-    price: "$2,200",
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80",
-    alt: "Tropical island shore with warm light",
-  },
-  {
-    href: "/preview/indo-master",
-    location: "Raja Ampat, Komodo, Banda",
-    title: "Indo Master Signature Expedition",
-    summary:
-      "Liveaboard experience across Raja Ampat, Komodo, Banda. Multi-destination operator.",
-    price: "$2,200",
-  },
-  {
-    href: "/preview/sea-temple-cruises",
-    location: "Raja Ampat, Indonesia",
-    title: "Raja Ampat Dive Expedition",
-    summary:
-      "A multi-day liveaboard route through reef, island, and manta-focused sites.",
-    price: "$2,600",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+    alt: "Tropical island aerial at golden hour",
   },
 ];
-
-const earlyPreviewImage =
-  "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=80";
 
 const conservationPartners = [
   {
@@ -249,22 +113,39 @@ function ArrowIcon() {
   );
 }
 
-function MessageIcon() {
+function PlayIcon() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="white"
+      stroke="none"
+      aria-hidden="true"
+    >
+      <polygon points="5 3 19 12 5 21 5 3" />
+    </svg>
+  );
+}
+
+function LeafIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4 w-4"
+      className={className}
       aria-hidden="true"
     >
-      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
     </svg>
   );
 }
@@ -285,7 +166,6 @@ function IndonesiaMap() {
     { key: "raja-ampat", cx: 1010, cy: 70, r: 6, accent: true },
     { key: "papua", cx: 1110, cy: 80, r: 18 },
   ];
-
   return (
     <svg
       viewBox="0 0 1200 160"
@@ -361,13 +241,12 @@ function IndonesiaMap() {
 export default function ExploreIndonesiaPage() {
   return (
     <main className="cinematic-page min-h-screen bg-[#020b11] text-white">
+      {/* Hero — unchanged */}
       <section className="relative min-h-svh overflow-hidden bg-[#020b11] text-white">
         <div
           aria-hidden="true"
           className="absolute inset-0 scale-105 bg-cover bg-top"
-          style={{
-            backgroundImage: "url('/explore/explore-header.jpg')",
-          }}
+          style={{ backgroundImage: "url('/explore/explore-header.jpg')" }}
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.88),rgba(0,15,21,0.5)_48%,rgba(0,8,14,0.72)),linear-gradient(180deg,rgba(0,0,0,0.48),rgba(0,0,0,0.08)_38%,rgba(0,0,0,0.74))]" />
         <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
@@ -393,249 +272,151 @@ export default function ExploreIndonesiaPage() {
                 Get matched by Kai
               </Link>
               <a
-                href="#ready-to-inquire"
+                href="#where-to-go"
                 className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-medium text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
               >
-                Browse trips
+                Explore
               </a>
             </div>
           </section>
         </div>
       </section>
 
+      {/* Where to go */}
       <section
-        id="ready-to-inquire"
-        className="px-[var(--cinematic-screen-x)] py-12 md:py-16"
+        id="where-to-go"
+        className="px-[var(--cinematic-screen-x)] py-14 md:py-18"
       >
-        <div className="bp-reveal mb-5 grid gap-4 border border-white/12 bg-black/20 p-5 text-white shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl md:grid-cols-[1fr_auto] md:items-center md:p-6">
-          <div>
-            <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-              Kai can match while you browse
-            </p>
-            <h2 className="bp-page-title mt-2 text-3xl leading-none text-white md:text-4xl">
-              Tell Kai what you want. Browse while we check the path.
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/60">
-              BluePass tries live space first, then a 24-hour operator hold if
-              the trip needs human confirmation.
-            </p>
-          </div>
-          <Link
-            href="https://wa.me/628213143343"
-            className="inline-flex h-11 items-center justify-center gap-2 bg-white px-5 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
-          >
-            <MessageIcon />
-            Ask Kai to match
-          </Link>
-        </div>
-
-        <div className="bp-rounded-surface border border-white/12 bg-[#03111d]/58 p-3 shadow-[0_28px_100px_rgba(0,0,0,0.32)] backdrop-blur-2xl md:p-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-            <label className="relative block">
-              <span className="sr-only">Search trips</span>
-              <input
-                className="h-12 w-full border border-white/20 bg-white px-4 pl-11 text-base text-[#071827] shadow-sm outline-none transition-colors placeholder:text-[#071827]/40 focus:border-white focus:ring-2 focus:ring-white/30"
-                placeholder="Search Komodo, liveaboards, dive days, surf, private yacht"
-                defaultValue=""
-              />
-              <span className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#071827]/40">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+        <div className="mx-auto max-w-6xl">
+          <h2 className="bp-page-title text-xl text-white/84 md:text-2xl">
+            Where to go
+          </h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {destinations.map((dest) => (
+              <Link key={dest.name} href={dest.href} className="group block">
+                <div
+                  className="relative overflow-hidden"
+                  style={{ aspectRatio: "16/9" }}
                 >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.3-4.3" />
-                </svg>
-              </span>
-            </label>
-            <div className="bp-rounded-surface grid grid-cols-3 gap-2 border border-white/16 bg-black/25 p-1">
-              {["All", "Live", "Early"].map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  className={`rounded-sm px-3 py-2 text-xs font-medium transition-colors ${
-                    filter === "All"
-                      ? "bg-white text-[#071827]"
-                      : "text-white/60 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="bp-reveal content-visibility-auto mt-10">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                Live trips
-              </p>
-              <h2 className="bp-page-title mt-3 text-4xl text-white">
-                Ready to inquire
-              </h2>
-            </div>
-            <p className="text-sm text-white/50">5 trips</p>
-          </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {liveTrips.map((trip) => (
-              <Link key={trip.href} href={trip.href} className="block">
-                <article className="bp-tech-card group h-full border border-white/[0.09]">
-                  <div className="relative aspect-[3/4] overflow-hidden">
-                    <Image
-                      src={trip.image}
-                      alt={trip.alt}
-                      fill
-                      sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
-                      loading="lazy"
-                      quality={72}
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-                    />
-                    <div className="bp-scan-grid" />
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0"
-                      style={{
-                        background:
-                          "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.86) 30%, rgba(2,11,17,0.34) 56%, transparent 76%)",
-                      }}
-                    />
-                    <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
-                      <span
-                        className="border border-white/14 bg-black/58 px-2 py-[3px] text-[10px] tracking-[0.13em] text-white/90"
-                        style={{
-                          fontFamily: "var(--bp-font-mono)",
-                          borderRadius: "6px",
-                          backdropFilter: "blur(8px)",
-                        }}
-                      >
-                        {trip.badge}
-                      </span>
-                      <span
-                        className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.13em] text-[#f4d891]"
-                        style={{
-                          fontFamily: "var(--bp-font-mono)",
-                          borderRadius: "6px",
-                        }}
-                      >
-                        5% reef
-                      </span>
-                    </div>
-                    <div className="absolute inset-x-0 bottom-0 z-10 p-4">
-                      <p
-                        className="text-[10px] uppercase tracking-[0.22em] text-[#B89A5D]"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
-                      >
-                        {trip.operator}
-                      </p>
-                      <h3 className="bp-page-title mt-1.5 text-[1.2rem] leading-tight text-white">
-                        {trip.title}
-                      </h3>
-                      <p className="mt-1.5 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/58">
-                        {trip.summary}
-                      </p>
-                      <div
-                        className="mt-3 flex items-center border-t border-white/[0.08] pt-3"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
-                      >
-                        <span className="text-[10px] text-white/44">
-                          {trip.duration}
-                        </span>
-                        <span className="mx-1.5 text-[10px] text-white/20">
-                          ·
-                        </span>
-                        <span className="text-[10px] text-white/44">
-                          {trip.capacity}
-                        </span>
-                        <span className="ml-auto text-[0.8125rem] font-medium text-white">
-                          From {trip.price}
-                        </span>
-                      </div>
-                    </div>
+                  <Image
+                    src={dest.image}
+                    alt={dest.alt}
+                    fill
+                    sizes="(min-width: 640px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        "linear-gradient(to top, rgba(2,11,17,0.82) 0%, rgba(2,11,17,0.38) 44%, transparent 72%)",
+                    }}
+                  />
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <p
+                      className="text-[10px] uppercase tracking-[0.20em] text-white/55"
+                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                    >
+                      {dest.label}
+                    </p>
+                    <p className="bp-page-title mt-1 text-xl text-white">
+                      {dest.name}
+                    </p>
                   </div>
-                </article>
+                </div>
               </Link>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="bp-reveal content-visibility-auto mt-14">
+      {/* Featured yachts */}
+      <section className="px-[var(--cinematic-screen-x)] pb-16 md:pb-20">
+        <div className="mx-auto max-w-6xl">
           <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                Early previews
-              </p>
-              <h2 className="bp-page-title mt-3 text-4xl text-white">
-                Curated operators being reviewed
-              </h2>
-            </div>
-            <p className="text-sm text-white/50">11 previews</p>
+            <h2 className="bp-page-title text-xl text-white/84 md:text-2xl">
+              Featured yachts
+            </h2>
+            <Link
+              href="/for-operators"
+              className="text-[12px] text-white/46 transition-colors hover:text-white/80"
+              style={{ fontFamily: "var(--bp-font-mono)" }}
+            >
+              See all 24 →
+            </Link>
           </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {earlyPreviews.map((preview) => (
-              <Link key={preview.href} href={preview.href} className="block">
-                <article className="bp-tech-card group border border-white/[0.09]">
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {yachts.map((yacht) => (
+              <Link key={yacht.slug} href={`/yachts/${yacht.slug}`} className="block">
+                <article className="group relative overflow-hidden border border-white/[0.07]">
                   <div className="relative aspect-[3/4] overflow-hidden">
                     <Image
-                      src={preview.image ?? earlyPreviewImage}
-                      alt={
-                        preview.alt ?? "Island coastline with turquoise water"
-                      }
+                      src={yacht.images.card}
+                      alt={yacht.images.gallery[0]?.alt ?? yacht.name}
                       fill
-                      sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
+                      sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
                       loading="lazy"
                       quality={72}
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                     />
-                    <div className="bp-scan-grid" />
                     <div
                       aria-hidden="true"
                       className="absolute inset-0"
                       style={{
                         background:
-                          "linear-gradient(to top, #020b11 0%, rgba(2,11,17,0.82) 32%, rgba(2,11,17,0.30) 58%, transparent 76%)",
+                          "linear-gradient(to top, rgba(2,11,17,0.96) 0%, rgba(2,11,17,0.68) 30%, rgba(2,11,17,0.14) 58%, transparent 78%)",
                       }}
                     />
+                    {/* Location badge */}
                     <div className="absolute left-3 top-3 z-10">
                       <span
-                        className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.13em] text-[#f4d891]"
+                        className="border border-white/16 bg-black/52 px-2 py-[3px] text-[10px] tracking-[0.18em] text-white/80"
                         style={{
                           fontFamily: "var(--bp-font-mono)",
-                          borderRadius: "6px",
+                          borderRadius: "4px",
+                          backdropFilter: "blur(8px)",
                         }}
                       >
-                        Preview
+                        {yacht.locationBadge}
                       </span>
                     </div>
+                    {/* Bottom info */}
                     <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+                      <h3 className="bp-page-title text-[1.25rem] leading-tight text-white">
+                        {yacht.name}
+                      </h3>
                       <p
-                        className="text-[10px] uppercase tracking-[0.18em] text-[#B89A5D]"
+                        className="mt-0.5 text-[11px] text-white/52"
                         style={{ fontFamily: "var(--bp-font-mono)" }}
                       >
-                        {preview.location}
+                        Up to {yacht.maxGuests} guests
                       </p>
-                      <h3 className="bp-page-title mt-1.5 text-[1.2rem] leading-tight text-white">
-                        {preview.title}
-                      </h3>
-                      <p className="mt-1.5 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/56">
-                        {preview.summary}
-                      </p>
-                      <div className="mt-3 flex items-center justify-between border-t border-white/[0.08] pt-3">
-                        <span
-                          className="text-[10px] tracking-[0.14em] text-[#B89A5D]"
+                      {yacht.tagline && (
+                        <p
+                          className="mt-0.5 text-[11px] text-white/40"
                           style={{ fontFamily: "var(--bp-font-mono)" }}
                         >
-                          View preview →
-                        </span>
-                        <span className="text-[0.8125rem] font-medium text-white">
-                          From {preview.price}
-                        </span>
+                          {yacht.tagline}
+                        </p>
+                      )}
+                      <div className="mt-2.5 border-t border-white/10 pt-2.5">
+                        <p className="text-[0.8125rem] font-medium text-white">
+                          from {yacht.pricePerCabin}{" "}
+                          <span className="font-light text-white/52">
+                            / cabin · night
+                          </span>
+                        </p>
+                        {yacht.charterPrice && (
+                          <p
+                            className="mt-0.5 text-[11px] text-white/38"
+                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                          >
+                            or charter {yacht.charterPrice} / night · whole
+                            yacht
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -646,6 +427,113 @@ export default function ExploreIndonesiaPage() {
         </div>
       </section>
 
+      {/* Conservation & Partners */}
+      <section className="px-[var(--cinematic-screen-x)] pb-16 md:pb-20">
+        <div className="mx-auto max-w-6xl">
+          <p
+            className="text-[11px] uppercase tracking-[0.22em] text-[#5cc8be]"
+            style={{ fontFamily: "var(--bp-font-mono)" }}
+          >
+            Conservation &amp; Partners
+          </p>
+          <h2 className="bp-page-title mt-3 max-w-2xl text-2xl leading-[1.1] text-white md:text-3xl">
+            A carousel for the people and partners moving the ocean forward.
+          </h2>
+          <p className="mt-2 max-w-xl text-sm font-light text-white/50">
+            The conservation partners that receive 5% of every booking, plus the
+            creators we trust to tell the story.
+          </p>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {conservationCards.map((card) => (
+              <Link key={card.id} href="/conservation" className="group block">
+                <article className="relative overflow-hidden border border-white/[0.08]">
+                  <div className="relative aspect-[4/5] overflow-hidden">
+                    <Image
+                      src={card.image}
+                      alt={card.alt}
+                      fill
+                      sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
+                      loading="lazy"
+                      quality={72}
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.04] saturate-[0.7]"
+                    />
+                    <div className="absolute inset-0 bg-[#020b11]/44" />
+                    {/* Top badge */}
+                    <div className="absolute left-3 top-3 z-10 flex items-center gap-1.5">
+                      {card.type === "partner" ? (
+                        <>
+                          <LeafIcon className="text-[#5cc8be]" />
+                          <span
+                            className="text-[10px] tracking-[0.14em] text-white/75"
+                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                          >
+                            Conservation partner
+                          </span>
+                        </>
+                      ) : (
+                        <span
+                          className="text-[10px] tracking-[0.14em] text-white/75"
+                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                        >
+                          {card.handle}
+                        </span>
+                      )}
+                    </div>
+                    {/* Play button */}
+                    <div className="absolute inset-0 z-10 flex items-center justify-center">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/50 backdrop-blur-sm transition-colors group-hover:bg-black/70">
+                        <PlayIcon />
+                      </span>
+                    </div>
+                    {/* Bottom info */}
+                    <div className="absolute inset-x-0 bottom-0 z-10 p-4">
+                      <p
+                        className="text-[10px] tracking-[0.18em] text-white/44"
+                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                      >
+                        {card.id}
+                      </p>
+                      <p className="mt-0.5 text-[0.9375rem] font-medium text-white/92">
+                        {card.name}
+                      </p>
+                      <p className="mt-1 text-[12px] leading-[1.5] text-white/52">
+                        {card.description}
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5% banner */}
+      <section className="mx-[var(--cinematic-screen-x)] mb-14 border border-[#1a7c72]/30 bg-[#0a2e2a] md:mb-20">
+        <Link
+          href="/conservation"
+          className="group flex items-start justify-between gap-4 p-5 md:items-center md:p-6"
+        >
+          <div className="flex items-start gap-3 md:items-center">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#1a7c72]/50 bg-[#0d3d38] md:mt-0">
+              <LeafIcon className="text-[#5cc8be]" />
+            </span>
+            <div>
+              <p className="text-[0.9375rem] font-medium text-white">
+                5% of every trip — built into the price.
+              </p>
+              <p className="mt-0.5 text-[12px] leading-[1.6] text-white/48">
+                Vetted ocean partners get a real cut of every booking. Never an
+                add-on, never optional. Tap to see exactly where it goes →
+              </p>
+            </div>
+          </div>
+          <ArrowIcon />
+        </Link>
+      </section>
+
+      {/* Footer */}
       <footer className="bg-[#04111d] font-sans text-white">
         <div className="border-t border-white/10 bg-[#04111d] px-5">
           <div className="mx-auto max-w-6xl py-10 md:py-14">
@@ -653,59 +541,6 @@ export default function ExploreIndonesiaPage() {
               The water we work in
             </p>
             <IndonesiaMap />
-          </div>
-        </div>
-
-        <div className="border-y border-white/10 bg-[radial-gradient(circle_at_18%_30%,rgba(26,124,114,0.18),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(184,154,93,0.10),transparent_55%)] px-5">
-          <div className="mx-auto max-w-6xl py-12 md:py-16">
-            <div className="grid gap-8 md:grid-cols-[1.15fr_2fr] md:gap-12">
-              <div>
-                <p className="text-[11px] font-normal tracking-[0.22em] text-[#B89A5D]">
-                  Reef restoration
-                </p>
-                <p className="bp-page-title mt-4 text-3xl leading-[1.08] text-white md:text-4xl">
-                  5% of every booking
-                  <br />
-                  <span className="text-white/65">
-                    goes to a named partner.
-                  </span>
-                </p>
-                <p className="mt-4 max-w-md text-sm leading-6 text-white/65">
-                  We will not ask travellers to trust anonymous conservation
-                  claims. Every partner is named, every report is dated, every
-                  contribution is auditable. Reports go public as partner
-                  reporting comes online.
-                </p>
-                <Link
-                  href="/conservation"
-                  className="mt-6 inline-flex items-center gap-2 text-xs font-normal tracking-[0.18em] text-[#B89A5D] transition-colors hover:text-white"
-                >
-                  See how the 5% flows
-                </Link>
-              </div>
-              <div className="grid gap-3 md:grid-cols-3">
-                {conservationPartners.map((partner) => (
-                  <div
-                    key={partner.name}
-                    className="rounded-md border border-white/10 bg-white/[0.025] p-4"
-                  >
-                    <p className="text-sm font-normal text-white">
-                      {partner.name}
-                    </p>
-                    <p className="mt-1 text-[11px] tracking-[0.16em] text-white/55">
-                      {partner.location}
-                    </p>
-                    <p className="mt-3 text-xs leading-5 text-white/65">
-                      {partner.body}
-                    </p>
-                    <p className="mt-4 flex items-baseline justify-between border-t border-white/10 pt-3 text-[11px] tracking-[0.16em]">
-                      <span className="text-white/45">Next report</span>
-                      <span className="text-[#B89A5D]">{partner.report}</span>
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
