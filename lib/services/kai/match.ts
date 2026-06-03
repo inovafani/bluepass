@@ -10,6 +10,7 @@ type TripForMatching = {
   title: string;
   description: string | null;
   location: string | null;
+  imageUrl: string | null;
   priceCents: number;
   currency: string;
   operator: {
@@ -68,15 +69,23 @@ function scoreTripForIntent(trip: TripForMatching, intent: KaiTravelIntent): Mat
   const haystack = [trip.title, trip.description, trip.location].filter(Boolean).join(" ").toLowerCase();
   const destinationTerms = buildDestinationTerms(intent.destination);
   const tripTypeTerms = buildTripTypeTerms(intent.tripType);
+  const destinationMatches = destinationTerms.some((term) => haystack.includes(term));
+  const tripTypeMatches = tripTypeTerms.some((term) => haystack.includes(term));
   const reasons: string[] = [];
   let score = 0;
 
-  if (destinationTerms.some((term) => haystack.includes(term))) {
-    score += 55;
-    reasons.push(`matches ${intent.destination}`);
+  if (!destinationMatches) {
+    return buildUnmatchedResult(trip);
   }
 
-  if (tripTypeTerms.some((term) => haystack.includes(term))) {
+  if (intent.tripType && !tripTypeMatches) {
+    return buildUnmatchedResult(trip);
+  }
+
+  score += 55;
+  reasons.push(`matches ${intent.destination}`);
+
+  if (tripTypeMatches) {
     score += 35;
     reasons.push(`fits ${intent.tripType}`);
   }
@@ -101,11 +110,31 @@ function scoreTripForIntent(trip: TripForMatching, intent: KaiTravelIntent): Mat
     title: trip.title,
     description: trip.description ?? undefined,
     location: trip.location ?? undefined,
+    imageUrl: trip.imageUrl ?? undefined,
     priceCents: trip.priceCents,
     currency: trip.currency,
     orderUrl: buildPmsOrderUrl(trip),
     score,
     reason: reasons.join(", ") || "similar marine trip",
+    pmsPlatform: "bokun",
+  };
+}
+
+function buildUnmatchedResult(trip: TripForMatching): MatchResult {
+  return {
+    tripId: trip.id,
+    operatorId: trip.operatorId,
+    externalId: trip.externalId ?? undefined,
+    operatorName: trip.operator.name,
+    title: trip.title,
+    description: trip.description ?? undefined,
+    location: trip.location ?? undefined,
+    imageUrl: trip.imageUrl ?? undefined,
+    priceCents: trip.priceCents,
+    currency: trip.currency,
+    orderUrl: undefined,
+    score: 0,
+    reason: "does not match the requested destination and activity",
     pmsPlatform: "bokun",
   };
 }

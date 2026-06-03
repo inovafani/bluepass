@@ -45,6 +45,7 @@ export type MatchResult = {
   title: string;
   description?: string;
   location?: string;
+  imageUrl?: string;
   priceCents?: number;
   currency?: string;
   orderUrl?: string;

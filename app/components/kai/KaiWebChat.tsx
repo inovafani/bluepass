@@ -16,6 +16,7 @@ interface MatchCard {
   title: string;
   description?: string;
   location?: string;
+  imageUrl?: string;
   priceCents?: number;
   currency?: string;
   orderUrl?: string;
@@ -423,6 +424,15 @@ function KaiMatchCard({ match }: { match: MatchCard }) {
 
   return (
     <div className="rounded-lg border border-white/12 bg-[#071a29] p-3 text-white shadow-sm">
+      {match.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={match.imageUrl}
+          alt=""
+          className="mb-3 h-28 w-full rounded-md object-cover"
+          loading="lazy"
+        />
+      )}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[13px] font-semibold leading-snug">{match.title}</p>
@@ -460,17 +470,30 @@ function KaiMatchCard({ match }: { match: MatchCard }) {
           Open booking page
         </a>
       ) : (
-        <button
-          type="button"
-          disabled
-          title="PMS order link is not configured yet"
-          className="mt-3 inline-flex w-full cursor-not-allowed items-center justify-center rounded-md border border-white/12 bg-white/6 px-3 py-2 text-[12px] font-semibold text-white/45"
+        <a
+          href={buildWhatsAppBookingHref(match)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bp-focus-ring mt-3 inline-flex w-full items-center justify-center rounded-md border border-white/12 bg-white/8 px-3 py-2 text-[12px] font-semibold text-white/80 transition-colors hover:bg-white/12"
         >
-          Booking link not wired yet
-        </button>
+          Ask to book this trip
+        </a>
       )}
     </div>
   );
+}
+
+function buildWhatsAppBookingHref(match: MatchCard) {
+  const message = [
+    "Hi BluePass, I want to book this trip:",
+    match.title,
+    match.operatorName ? `Operator: ${match.operatorName}` : undefined,
+    match.externalId ? `Bokun product: ${match.externalId}` : undefined,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return `${WA_HREF}?text=${encodeURIComponent(message)}`;
 }
 
 function formatMatchPrice(match: MatchCard) {

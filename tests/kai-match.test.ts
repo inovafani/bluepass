@@ -28,6 +28,7 @@ describe("matchTripsForKai", () => {
         title: "Raja Ampat Sailing Expedition",
         description: "Private sailing route with reefs and remote islands.",
         location: "Raja Ampat",
+        imageUrl: "https://cdn.example.com/raja.jpg",
         priceCents: 120000,
         currency: "USD",
         operator: {
@@ -42,6 +43,7 @@ describe("matchTripsForKai", () => {
         title: "Komodo Day Trip",
         description: "Speedboat day trip.",
         location: "Komodo",
+        imageUrl: null,
         priceCents: 25000,
         currency: "USD",
         operator: {
@@ -74,6 +76,7 @@ describe("matchTripsForKai", () => {
         tripId: "trip_1",
         operatorName: "Raja Blue",
         title: "Raja Ampat Sailing Expedition",
+        imageUrl: "https://cdn.example.com/raja.jpg",
         priceCents: 120000,
         currency: "USD",
         pmsPlatform: "bokun",
@@ -90,6 +93,7 @@ describe("matchTripsForKai", () => {
         title: "Labuan Bajo Sunset Tour",
         description: null,
         location: "Asia/Jakarta",
+        imageUrl: "https://cdn.example.com/labuan-bajo.jpg",
         priceCents: 0,
         currency: "USD",
         operator: {
@@ -119,10 +123,55 @@ describe("matchTripsForKai", () => {
         externalId: "1222945",
         operatorName: "Lucid Tours",
         title: "Labuan Bajo Sunset Tour",
+        imageUrl: "https://cdn.example.com/labuan-bajo.jpg",
         orderUrl: "https://lucid-tours.bokun.io/book/1222945",
         reason: expect.stringContaining("matches Komodo"),
       }),
     );
+  });
+
+  it("does not show another destination just because the activity matches", async () => {
+    prismaMocks.tripFindMany.mockResolvedValue([
+      {
+        id: "trip_labuan_bajo_sunset",
+        operatorId: "operator_lucid_tours",
+        externalId: "1222945",
+        title: "Labuan Bajo Sunset Tour",
+        description: "Sunset sailing from Labuan Bajo.",
+        location: "Komodo",
+        imageUrl: null,
+        priceCents: 0,
+        currency: "USD",
+        operator: {
+          name: "Lucid Tours",
+          integrations: [{ platform: "BOKUN" }],
+        },
+      },
+      {
+        id: "trip_bali_dive",
+        operatorId: "operator_lucid_tours",
+        externalId: "1225961",
+        title: "Blue Lagoon Dive Bali",
+        description: "Beginner scuba dive in Bali.",
+        location: "Bali",
+        imageUrl: null,
+        priceCents: 0,
+        currency: "USD",
+        operator: {
+          name: "Lucid Tours",
+          integrations: [{ platform: "BOKUN" }],
+        },
+      },
+    ]);
+
+    await expect(
+      matchTripsForKai({
+        destination: "Bali",
+        tripType: "sailing",
+        guests: 4,
+        dateWindow: "16th June",
+      }),
+    ).resolves.toEqual([]);
   });
 
   it("does not query trips until required intent is complete", async () => {

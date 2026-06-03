@@ -12,6 +12,11 @@ type BokunProductForSync = {
   timeZone?: string;
   locale?: string;
   available?: boolean;
+  coverImageUrl?: string;
+  imageUrl?: string;
+  photos?: Array<string | { url?: string; originalUrl?: string; imageUrl?: string }>;
+  images?: Array<string | { url?: string; originalUrl?: string; imageUrl?: string }>;
+  media?: Array<string | { url?: string; originalUrl?: string; imageUrl?: string; type?: string }>;
   pricing?: {
     currency?: string;
     retail?: number;
@@ -104,6 +109,36 @@ function currencyFromProduct(product: BokunProductForSync) {
   );
 }
 
+function imageUrlFromProduct(product: BokunProductForSync) {
+  const candidates = [
+    product.coverImageUrl,
+    product.imageUrl,
+    firstImageUrl(product.photos),
+    firstImageUrl(product.images),
+    firstImageUrl(product.media),
+  ];
+
+  return candidates.find((url) => url && /^https:\/\//i.test(url));
+}
+
+function firstImageUrl(
+  values?: Array<string | { url?: string; originalUrl?: string; imageUrl?: string }>,
+) {
+  for (const value of values ?? []) {
+    if (typeof value === "string") {
+      return value;
+    }
+
+    const url = value.originalUrl ?? value.imageUrl ?? value.url;
+
+    if (url) {
+      return url;
+    }
+  }
+
+  return undefined;
+}
+
 export async function validateBokunCredentials(credentials: BokunCredentials) {
   const resolved = resolveCredentials(credentials);
   await bokunSyncRequest<unknown>(resolved, "/products");
@@ -131,6 +166,7 @@ export async function syncBokunCatalog(
         title: product.title ?? product.internalName ?? "Bokun experience",
         description: product.description ?? product.shortDescription,
         location: product.timeZone,
+        imageUrl: imageUrlFromProduct(product),
         currency: currencyFromProduct(product),
         priceCents: priceFromProduct(product),
       },
@@ -140,6 +176,7 @@ export async function syncBokunCatalog(
         title: product.title ?? product.internalName ?? "Bokun experience",
         description: product.description ?? product.shortDescription,
         location: product.timeZone,
+        imageUrl: imageUrlFromProduct(product),
         currency: currencyFromProduct(product),
         priceCents: priceFromProduct(product),
       },

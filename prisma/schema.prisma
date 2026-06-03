@@ -100,6 +100,7 @@ model Trip {
   title       String
   description String?
   location    String?
+  imageUrl    String?
   currency    String     @default("USD")
   priceCents  Int
   minCert     CertLevel  @default(NONE)
