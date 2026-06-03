@@ -13,6 +13,9 @@ export function ConnectPmsForm() {
   const [supplierId, setSupplierId] = useState("");
   const [publicBookingBaseUrl, setPublicBookingBaseUrl] = useState("");
   const [publicProductUrlTemplate, setPublicProductUrlTemplate] = useState("");
+  const [restApiBase, setRestApiBase] = useState("");
+  const [restAccessKey, setRestAccessKey] = useState("");
+  const [restSecretKey, setRestSecretKey] = useState("");
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [message, setMessage] = useState("");
   const isBokun = platform === "BOKUN";
@@ -41,6 +44,9 @@ export function ConnectPmsForm() {
           supplierId,
           publicBookingBaseUrl,
           publicProductUrlTemplate,
+          restApiBase,
+          restAccessKey,
+          restSecretKey,
         },
       }),
     });
@@ -154,6 +160,41 @@ export function ConnectPmsForm() {
               value={publicProductUrlTemplate}
               onChange={(event) => setPublicProductUrlTemplate(event.target.value)}
               placeholder="https://your-operator.bokun.io/book/{productId}"
+            />
+          </label>
+
+          <label className="grid gap-2">
+            <span className="text-xs font-medium tracking-[0.16em] text-white/70">
+              REST API base
+            </span>
+            <input
+              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              value={restApiBase}
+              onChange={(event) => setRestApiBase(event.target.value)}
+              placeholder="https://api.bokun.io"
+            />
+          </label>
+
+          <label className="grid gap-2">
+            <span className="text-xs font-medium tracking-[0.16em] text-white/70">
+              REST access key
+            </span>
+            <input
+              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              value={restAccessKey}
+              onChange={(event) => setRestAccessKey(event.target.value)}
+            />
+          </label>
+
+          <label className="grid gap-2">
+            <span className="text-xs font-medium tracking-[0.16em] text-white/70">
+              REST secret key
+            </span>
+            <input
+              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              type="password"
+              value={restSecretKey}
+              onChange={(event) => setRestSecretKey(event.target.value)}
             />
           </label>
         </div>

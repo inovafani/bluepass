@@ -31,7 +31,7 @@ const GREETING: Message = {
 };
 
 const LS_KEY = "bluepass:kaiSessionId";
-const WA_HREF = "https://wa.me/628213143342";
+const WA_HREF = "https://wa.me/628213143343";
 
 export function KaiWebChat() {
   const [isOpen, setIsOpen] = useState(false);
@@ -255,13 +255,15 @@ export function KaiWebChat() {
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
-                    {msg.role === "assistant" && msg.matches && msg.matches.length > 0 && (
-                      <div className="mt-3 space-y-2">
-                        {msg.matches.map((match) => (
-                          <KaiMatchCard key={match.tripId} match={match} />
-                        ))}
-                      </div>
-                    )}
+                    {msg.role === "assistant" &&
+                      msg.matches &&
+                      msg.matches.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {msg.matches.map((match) => (
+                            <KaiMatchCard key={match.tripId} match={match} />
+                          ))}
+                        </div>
+                      )}
                   </div>
                 </div>
               ))}
@@ -368,7 +370,9 @@ export function KaiWebChat() {
 
         <button
           onClick={() => setIsOpen((v) => !v)}
-          aria-label={isOpen ? "Close Kai chat" : "Chat with Kai on bluepass.co"}
+          aria-label={
+            isOpen ? "Close Kai chat" : "Chat with Kai on bluepass.co"
+          }
           aria-expanded={isOpen}
           className="bp-focus-ring flex h-14 min-w-[172px] items-center gap-3 rounded-full border border-white/15 bg-[#075e54] px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-transform hover:scale-[1.02] hover:bg-[#0b6f63]"
         >
@@ -435,7 +439,9 @@ function KaiMatchCard({ match }: { match: MatchCard }) {
       )}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[13px] font-semibold leading-snug">{match.title}</p>
+          <p className="text-[13px] font-semibold leading-snug">
+            {match.title}
+          </p>
           {match.operatorName && (
             <p className="mt-1 text-[11px] leading-snug text-white/55">
               {match.operatorName}
@@ -452,13 +458,19 @@ function KaiMatchCard({ match }: { match: MatchCard }) {
       {(match.location || price) && (
         <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-white/70">
           {match.location && (
-            <span className="rounded-full bg-white/8 px-2 py-1">{match.location}</span>
+            <span className="rounded-full bg-white/8 px-2 py-1">
+              {match.location}
+            </span>
           )}
-          {price && <span className="rounded-full bg-white/8 px-2 py-1">{price}</span>}
+          {price && (
+            <span className="rounded-full bg-white/8 px-2 py-1">{price}</span>
+          )}
         </div>
       )}
 
-      <p className="mt-2 text-[11px] leading-relaxed text-white/62">{match.reason}</p>
+      <p className="mt-2 text-[11px] leading-relaxed text-white/62">
+        {match.reason}
+      </p>
 
       {match.orderUrl ? (
         <a

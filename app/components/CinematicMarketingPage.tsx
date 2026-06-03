@@ -21,7 +21,7 @@ type CinematicMarketingPageProps = {
 export function CinematicMarketingPage({
   title,
   body,
-  primaryHref = "https://wa.me/628213143342",
+  primaryHref = "https://wa.me/628213143343",
   primaryLabel = "Start with Kai",
   secondaryHref = "/",
   secondaryLabel = "Explore",

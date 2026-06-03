@@ -43,7 +43,7 @@ export default function HomePage() {
           </div>
           <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
             <Link
-              href="https://wa.me/628213143342"
+              href="https://wa.me/628213143343"
               className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
             >
               Start with Kai

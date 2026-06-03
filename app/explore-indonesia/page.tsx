@@ -387,7 +387,7 @@ export default function ExploreIndonesiaPage() {
             </div>
             <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
               <Link
-                href="https://wa.me/628213143342"
+                href="https://wa.me/628213143343"
                 className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90 active:scale-[0.98]"
               >
                 Get matched by Kai
@@ -421,7 +421,7 @@ export default function ExploreIndonesiaPage() {
             </p>
           </div>
           <Link
-            href="https://wa.me/628213143342"
+            href="https://wa.me/628213143343"
             className="inline-flex h-11 items-center justify-center gap-2 bg-white px-5 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
           >
             <MessageIcon />
@@ -509,13 +509,20 @@ export default function ExploreIndonesiaPage() {
                     <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
                       <span
                         className="border border-white/14 bg-black/58 px-2 py-[3px] text-[10px] tracking-[0.13em] text-white/90"
-                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px", backdropFilter: "blur(8px)" }}
+                        style={{
+                          fontFamily: "var(--bp-font-mono)",
+                          borderRadius: "6px",
+                          backdropFilter: "blur(8px)",
+                        }}
                       >
                         {trip.badge}
                       </span>
                       <span
                         className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.13em] text-[#f4d891]"
-                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                        style={{
+                          fontFamily: "var(--bp-font-mono)",
+                          borderRadius: "6px",
+                        }}
                       >
                         5% reef
                       </span>
@@ -537,9 +544,15 @@ export default function ExploreIndonesiaPage() {
                         className="mt-3 flex items-center border-t border-white/[0.08] pt-3"
                         style={{ fontFamily: "var(--bp-font-mono)" }}
                       >
-                        <span className="text-[10px] text-white/44">{trip.duration}</span>
-                        <span className="mx-1.5 text-[10px] text-white/20">·</span>
-                        <span className="text-[10px] text-white/44">{trip.capacity}</span>
+                        <span className="text-[10px] text-white/44">
+                          {trip.duration}
+                        </span>
+                        <span className="mx-1.5 text-[10px] text-white/20">
+                          ·
+                        </span>
+                        <span className="text-[10px] text-white/44">
+                          {trip.capacity}
+                        </span>
                         <span className="ml-auto text-[0.8125rem] font-medium text-white">
                           From {trip.price}
                         </span>
@@ -571,7 +584,9 @@ export default function ExploreIndonesiaPage() {
                   <div className="relative aspect-[3/4] overflow-hidden">
                     <Image
                       src={preview.image ?? earlyPreviewImage}
-                      alt={preview.alt ?? "Island coastline with turquoise water"}
+                      alt={
+                        preview.alt ?? "Island coastline with turquoise water"
+                      }
                       fill
                       sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
                       loading="lazy"
@@ -590,7 +605,10 @@ export default function ExploreIndonesiaPage() {
                     <div className="absolute left-3 top-3 z-10">
                       <span
                         className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2 py-[3px] text-[10px] tracking-[0.13em] text-[#f4d891]"
-                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                        style={{
+                          fontFamily: "var(--bp-font-mono)",
+                          borderRadius: "6px",
+                        }}
                       >
                         Preview
                       </span>
@@ -693,9 +711,7 @@ export default function ExploreIndonesiaPage() {
 
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 text-sm text-white/60 md:grid-cols-[1.4fr_1fr_1fr_1fr] [&_a]:font-normal [&_a]:transition-colors [&_a:hover]:text-white">
           <div>
-            <p className="site-brand-name text-2xl text-white">
-              BluePass
-            </p>
+            <p className="site-brand-name text-2xl text-white">BluePass</p>
             <p className="mt-3 max-w-md leading-6">
               Your pass to Indonesia&apos;s best ocean trips. Conversational
               matching, vetted operators, a referral mesh that keeps trips alive

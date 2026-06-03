@@ -25,6 +25,9 @@ const integrationSchema = z.object({
       supplierId: z.string().trim().optional(),
       publicBookingBaseUrl: optionalPublicBookingUrl,
       publicProductUrlTemplate: optionalPublicBookingUrl,
+      restApiBase: z.string().trim().url().optional().or(z.literal("")),
+      restAccessKey: z.string().trim().optional(),
+      restSecretKey: z.string().trim().optional(),
     })
     .default({}),
 });
@@ -64,6 +67,9 @@ export async function POST(request: NextRequest) {
       supplierId: credentials.supplierId || undefined,
       publicBookingBaseUrl: credentials.publicBookingBaseUrl || undefined,
       publicProductUrlTemplate: credentials.publicProductUrlTemplate || undefined,
+      restApiBase: credentials.restApiBase || undefined,
+      restAccessKey: credentials.restAccessKey || undefined,
+      restSecretKey: credentials.restSecretKey || undefined,
     };
 
     await validateBokunCredentials(bokunCredentials);

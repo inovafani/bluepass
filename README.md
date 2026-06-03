@@ -113,7 +113,10 @@ Example Bokun operator integration request:
     "apiBase": "https://api.bokun.io/octo/v1",
     "accessToken": "bokun-octo-access-token",
     "supplierId": "optional-supplier-id",
-    "publicProductUrlTemplate": "https://your-operator.bokun.io/book/{productId}"
+    "publicProductUrlTemplate": "https://your-operator.bokun.io/book/{productId}",
+    "restApiBase": "https://api.bokun.io",
+    "restAccessKey": "optional-bokun-rest-access-key",
+    "restSecretKey": "optional-bokun-rest-secret-key"
   }
 }
 ```
@@ -122,7 +125,12 @@ Each Bokun operator stores its own public booking URL in encrypted integration
 credentials. Use `publicProductUrlTemplate` when the operator's booking page can
 be addressed by product id, or `publicBookingBaseUrl` when BluePass should append
 the synced `Trip.externalId`. If neither is configured, Kai can still show the
-synced package card but the booking-page button stays disabled.
+synced package card and routes travellers to a WhatsApp booking inquiry fallback.
+
+Bokun product thumbnails are synced from the REST v2 Experience Components API
+when `restAccessKey` and `restSecretKey` are configured for the operator. The
+OCTO `/products` response does not expose back-office product photos; photos are
+retrieved from `PHOTOS` components and stored as `Trip.imageUrl`.
 
 The same sync can be refreshed later with:
 

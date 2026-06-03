@@ -17,6 +17,9 @@ export type BokunCredentials = {
   supplierId?: string;
   publicBookingBaseUrl?: string;
   publicProductUrlTemplate?: string;
+  restApiBase?: string;
+  restAccessKey?: string;
+  restSecretKey?: string;
 };
 
 type ResolvedBokunCredentials = {
@@ -25,6 +28,9 @@ type ResolvedBokunCredentials = {
   supplierId: string;
   publicBookingBaseUrl?: string;
   publicProductUrlTemplate?: string;
+  restApiBase?: string;
+  restAccessKey?: string;
+  restSecretKey?: string;
 };
 
 type OctoProduct = {
@@ -125,6 +131,9 @@ export async function getBokunCredentials(
     supplierId: stored.supplierId || process.env.BOKUN_OCTO_SUPPLIER_ID || "",
     publicBookingBaseUrl: stored.publicBookingBaseUrl,
     publicProductUrlTemplate: stored.publicProductUrlTemplate,
+    restApiBase: stored.restApiBase || process.env.BOKUN_REST_API_BASE,
+    restAccessKey: stored.restAccessKey || process.env.BOKUN_REST_ACCESS_KEY,
+    restSecretKey: stored.restSecretKey || process.env.BOKUN_REST_SECRET_KEY,
   };
 
   if (!credentials.accessToken) {

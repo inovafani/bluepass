@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { decryptCredentials } from "./credentials";
@@ -42,6 +43,18 @@ type ResolvedBokunSyncCredentials = {
   supplierId: string;
   publicBookingBaseUrl?: string;
   publicProductUrlTemplate?: string;
+  restApiBase?: string;
+  restAccessKey?: string;
+  restSecretKey?: string;
+};
+
+type BokunPhotoComponents = {
+  photos?: Array<{
+    url?: string;
+    originalUrl?: string;
+    caption?: string;
+    alternateText?: string;
+  }>;
 };
 
 function normalizeApiBase(apiBase?: string) {
@@ -58,6 +71,9 @@ function resolveCredentials(credentials: BokunCredentials): ResolvedBokunSyncCre
     supplierId: credentials.supplierId || process.env.BOKUN_OCTO_SUPPLIER_ID || "",
     publicBookingBaseUrl: credentials.publicBookingBaseUrl,
     publicProductUrlTemplate: credentials.publicProductUrlTemplate,
+    restApiBase: normalizeRestApiBase(credentials.restApiBase),
+    restAccessKey: credentials.restAccessKey || process.env.BOKUN_REST_ACCESS_KEY,
+    restSecretKey: credentials.restSecretKey || process.env.BOKUN_REST_SECRET_KEY,
   };
 
   if (!resolved.accessToken) {
@@ -65,6 +81,13 @@ function resolveCredentials(credentials: BokunCredentials): ResolvedBokunSyncCre
   }
 
   return resolved;
+}
+
+function normalizeRestApiBase(restApiBase?: string) {
+  return (restApiBase || process.env.BOKUN_REST_API_BASE || "https://api.bokun.io").replace(
+    /\/$/,
+    "",
+  );
 }
 
 async function bokunSyncRequest<T>(credentials: ResolvedBokunSyncCredentials, path: string) {
@@ -121,6 +144,69 @@ function imageUrlFromProduct(product: BokunProductForSync) {
   return candidates.find((url) => url && /^https:\/\//i.test(url));
 }
 
+function bokunRestDate() {
+  return new Date().toISOString().replace("T", " ").slice(0, 19);
+}
+
+function bokunRestHeaders(
+  credentials: ResolvedBokunSyncCredentials,
+  method: "GET",
+  path: string,
+) {
+  if (!credentials.restAccessKey || !credentials.restSecretKey) {
+    return undefined;
+  }
+
+  const date = bokunRestDate();
+  const signature = crypto
+    .createHmac("sha1", credentials.restSecretKey)
+    .update(`${date}${credentials.restAccessKey}${method}${path}`)
+    .digest("base64");
+
+  return {
+    "X-Bokun-Date": date,
+    "X-Bokun-AccessKey": credentials.restAccessKey,
+    "X-Bokun-Signature": signature,
+  };
+}
+
+async function bokunRestRequest<T>(
+  credentials: ResolvedBokunSyncCredentials,
+  path: string,
+): Promise<T | undefined> {
+  const headers = bokunRestHeaders(credentials, "GET", path);
+
+  if (!headers) {
+    return undefined;
+  }
+
+  const response = await fetch(`${credentials.restApiBase}${path}`, { headers });
+
+  if (!response.ok) {
+    const safeBody = (await response.text()).slice(0, 240);
+    console.warn("bokun.rest_component_sync.failed", {
+      status: response.status,
+      path,
+      bodyPreview: safeBody,
+    });
+    return undefined;
+  }
+
+  return response.json() as Promise<T>;
+}
+
+async function imageUrlFromBokunComponents(
+  credentials: ResolvedBokunSyncCredentials,
+  productId: string,
+) {
+  const path = `/restapi/v2.0/experience/${encodeURIComponent(
+    productId,
+  )}/components?componentType=PHOTOS`;
+  const components = await bokunRestRequest<BokunPhotoComponents>(credentials, path);
+
+  return firstImageUrl(components?.photos);
+}
+
 function firstImageUrl(
   values?: Array<string | { url?: string; originalUrl?: string; imageUrl?: string }>,
 ) {
@@ -155,6 +241,9 @@ export async function syncBokunCatalog(
   const syncedIds: string[] = [];
 
   for (const product of syncableProducts) {
+    const imageUrl =
+      imageUrlFromProduct(product) ?? (await imageUrlFromBokunComponents(resolved, product.id));
+
     await prisma.trip.upsert({
       where: {
         operatorId_externalId: {
@@ -166,7 +255,7 @@ export async function syncBokunCatalog(
         title: product.title ?? product.internalName ?? "Bokun experience",
         description: product.description ?? product.shortDescription,
         location: product.timeZone,
-        imageUrl: imageUrlFromProduct(product),
+        imageUrl,
         currency: currencyFromProduct(product),
         priceCents: priceFromProduct(product),
       },
@@ -176,7 +265,7 @@ export async function syncBokunCatalog(
         title: product.title ?? product.internalName ?? "Bokun experience",
         description: product.description ?? product.shortDescription,
         location: product.timeZone,
-        imageUrl: imageUrlFromProduct(product),
+        imageUrl,
         currency: currencyFromProduct(product),
         priceCents: priceFromProduct(product),
       },
@@ -215,5 +304,8 @@ export function toBokunCredentialsPayload(input: BokunCredentials): Prisma.Input
     supplierId: input.supplierId ?? null,
     publicBookingBaseUrl: input.publicBookingBaseUrl ?? null,
     publicProductUrlTemplate: input.publicProductUrlTemplate ?? null,
+    restApiBase: input.restApiBase ?? null,
+    restAccessKey: input.restAccessKey ?? null,
+    restSecretKey: input.restSecretKey ?? null,
   };
 }
