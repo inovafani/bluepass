@@ -148,14 +148,19 @@ describe("sendTemplateMessage", () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
+      json: vi.fn().mockResolvedValue({
+        messages: [{ id: "wamid.test_send" }],
+      }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await sendTemplateMessage({
+    await expect(
+      sendTemplateMessage({
       to: "+62 821-3143-342",
       name: "hello_world",
       role: "kai",
-    });
+      }),
+    ).resolves.toEqual({ providerMessageId: "wamid.test_send" });
 
     expect(fetchMock).toHaveBeenCalledWith(
       "https://graph.facebook.com/v20.0/1115079071692326/messages",

@@ -4,6 +4,7 @@ import {
   declineByOperator,
   requestCounterOffer,
 } from "@/lib/services/booking/orchestrator";
+import { prisma } from "@/lib/db/prisma";
 import { maskPhoneNumber } from "@/lib/services/whatsapp/client";
 import {
   buildOperatorCounterPrompt,
@@ -36,6 +37,13 @@ type IncomingWhatsAppMessage = {
   from?: string;
   type?: string;
   buttonPayloads: string[];
+};
+
+type IncomingWhatsAppStatus = {
+  id?: string;
+  status?: string;
+  recipientId?: string;
+  timestamp?: string;
 };
 
 type IncomingMessageRoute = "operator_action" | "traveller_or_unclassified";
@@ -150,6 +158,46 @@ function extractIncomingMessages(payload: unknown): IncomingWhatsAppMessage[] {
   return messages;
 }
 
+function extractIncomingStatuses(payload: unknown): IncomingWhatsAppStatus[] {
+  if (!isRecord(payload) || !Array.isArray(payload.entry)) {
+    return [];
+  }
+
+  const statuses: IncomingWhatsAppStatus[] = [];
+
+  for (const entry of payload.entry) {
+    if (!isRecord(entry) || !Array.isArray(entry.changes)) {
+      continue;
+    }
+
+    for (const change of entry.changes) {
+      if (!isRecord(change) || !isRecord(change.value)) {
+        continue;
+      }
+
+      const rawStatuses = change.value.statuses;
+      if (!Array.isArray(rawStatuses)) {
+        continue;
+      }
+
+      for (const rawStatus of rawStatuses) {
+        if (!isRecord(rawStatus)) {
+          continue;
+        }
+
+        statuses.push({
+          id: asString(rawStatus.id),
+          status: asString(rawStatus.status),
+          recipientId: asString(rawStatus.recipient_id),
+          timestamp: asString(rawStatus.timestamp),
+        });
+      }
+    }
+  }
+
+  return statuses;
+}
+
 function buildActorPayload(message: IncomingWhatsAppMessage): ActorPayload {
   return {
     source: "whatsapp",
@@ -179,6 +227,8 @@ export async function handleWhatsAppWebhook(
 
   const parsedPayload =
     typeof payload === "string" ? (JSON.parse(payload) as unknown) : payload;
+
+  await handleWhatsAppStatuses(extractIncomingStatuses(parsedPayload), logger);
 
   const messages = extractIncomingMessages(parsedPayload);
 
@@ -259,4 +309,48 @@ export async function handleWhatsAppWebhook(
       });
     }
   }
+}
+
+async function handleWhatsAppStatuses(
+  statuses: IncomingWhatsAppStatus[],
+  logger: Pick<typeof console, "info" | "warn" | "error">,
+) {
+  for (const status of statuses) {
+    if (!status.id || !status.status) {
+      continue;
+    }
+
+    try {
+      const updated = await prisma.whatsAppOutboundMessage.updateMany({
+        where: { providerMessageId: status.id },
+        data: {
+          status: status.status === "failed" ? "FAILED" : "SENT",
+          sentAt: status.status === "sent" ? statusTimestamp(status.timestamp) : undefined,
+        },
+      });
+
+      logger.info("whatsapp.webhook.status_processed", {
+        providerMessageId: "present",
+        status: status.status,
+        recipient: maskOptionalPhone(status.recipientId),
+        matchedOutboundMessages: updated.count,
+      });
+    } catch (error) {
+      logger.warn("whatsapp.webhook.status_failed", {
+        providerMessageId: "present",
+        status: status.status,
+        reason: error instanceof Error ? error.message : "Unknown status webhook error.",
+      });
+    }
+  }
+}
+
+function statusTimestamp(value: string | undefined) {
+  if (!value) {
+    return undefined;
+  }
+
+  const seconds = Number(value);
+
+  return Number.isFinite(seconds) ? new Date(seconds * 1000) : undefined;
 }

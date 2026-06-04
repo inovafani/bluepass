@@ -49,6 +49,14 @@ export type WhatsAppTextApiPayload = {
   };
 };
 
+export type WhatsAppSendResult = {
+  providerMessageId: string | null;
+};
+
+type WhatsAppSendApiResponse = {
+  messages?: Array<{ id?: string }>;
+};
+
 const DEFAULT_SEND_TIMEOUT_MS = 10_000;
 
 function presentEnvValue(value: string | undefined): string | undefined {
@@ -127,7 +135,7 @@ function buildWhatsAppTextPayload(message: WhatsAppTextMessage): WhatsAppTextApi
 async function postWhatsAppMessage(
   role: WhatsAppSenderRole,
   payload: WhatsAppTemplateApiPayload | WhatsAppTextApiPayload,
-): Promise<void> {
+): Promise<WhatsAppSendResult> {
   const phoneId = resolveWhatsAppPhoneId(role);
   const graphVersion = resolveMetaGraphVersion();
   const accessToken = requiredEnvValue("WHATSAPP_ACCESS_TOKEN");
@@ -148,15 +156,17 @@ async function postWhatsAppMessage(
       },
     );
 
+    const body = (await response.json().catch(() => undefined)) as
+      | WhatsAppSendApiResponse
+      | { error?: { message?: string; code?: number } }
+      | undefined;
+
     if (!response.ok) {
       let metaError = "Meta Graph API rejected the WhatsApp send.";
-      try {
-        const body = (await response.json()) as { error?: { message?: string; code?: number } };
+      if (body && "error" in body) {
         metaError = body.error?.code
           ? `${metaError} code=${body.error.code}`
           : metaError;
-      } catch {
-        // Keep the sanitized generic message if Meta returns non-JSON.
       }
 
       console.warn("whatsapp.send.failed", {
@@ -169,11 +179,17 @@ async function postWhatsAppMessage(
       throw new Error(metaError);
     }
 
+    const providerMessageId =
+      body && "messages" in body ? body.messages?.[0]?.id ?? null : null;
+
     console.info("whatsapp.send.succeeded", {
       role,
       to: maskPhoneNumber(payload.to),
       type: payload.type,
+      providerMessageId: providerMessageId ? "present" : "missing",
     });
+
+    return { providerMessageId };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       console.warn("whatsapp.send.timeout", {
@@ -252,12 +268,14 @@ export function verifyMetaSignature({
   );
 }
 
-export async function sendTemplateMessage(message: WhatsAppTemplateMessage): Promise<void> {
+export async function sendTemplateMessage(
+  message: WhatsAppTemplateMessage,
+): Promise<WhatsAppSendResult> {
   const payload = buildWhatsAppTemplatePayload(message);
-  await postWhatsAppMessage(message.role ?? "kai", payload);
+  return postWhatsAppMessage(message.role ?? "kai", payload);
 }
 
-export async function sendWhatsAppText(message: WhatsAppTextMessage): Promise<void> {
+export async function sendWhatsAppText(message: WhatsAppTextMessage): Promise<WhatsAppSendResult> {
   const payload = buildWhatsAppTextPayload(message);
-  await postWhatsAppMessage(message.role ?? "kai", payload);
+  return postWhatsAppMessage(message.role ?? "kai", payload);
 }

@@ -1,5 +1,19 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { handleWhatsAppWebhook } from "@/lib/services/whatsapp/webhook-handler";
+
+const prismaMocks = vi.hoisted(() => ({
+  whatsAppOutboundMessage: {
+    updateMany: vi.fn(),
+  },
+}));
+
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: prismaMocks,
+}));
+
+afterEach(() => {
+  prismaMocks.whatsAppOutboundMessage.updateMany.mockReset();
+});
 
 function metaPayload(payload: string, type = "button", phoneNumberId = "shared_phone_id") {
   return {
@@ -19,6 +33,30 @@ function metaPayload(payload: string, type = "button", phoneNumberId = "shared_p
                   type,
                   button: type === "button" ? { payload, text: "Action" } : undefined,
                   text: type === "text" ? { body: "hello" } : undefined,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function metaStatusPayload(status: string) {
+  return {
+    object: "whatsapp_business_account",
+    entry: [
+      {
+        changes: [
+          {
+            value: {
+              statuses: [
+                {
+                  id: "wamid.outbound",
+                  status,
+                  recipient_id: "6285337210180",
+                  timestamp: "1780590600",
                 },
               ],
             },
@@ -69,6 +107,44 @@ function mockOptions() {
 }
 
 describe("handleWhatsAppWebhook", () => {
+  it("updates outbound messages from Meta delivery statuses", async () => {
+    const options = mockOptions();
+    prismaMocks.whatsAppOutboundMessage.updateMany.mockResolvedValue({ count: 1 });
+
+    await handleWhatsAppWebhook(metaStatusPayload("delivered"), options);
+
+    expect(prismaMocks.whatsAppOutboundMessage.updateMany).toHaveBeenCalledWith({
+      where: { providerMessageId: "wamid.outbound" },
+      data: {
+        status: "SENT",
+        sentAt: undefined,
+      },
+    });
+    expect(options.logger.info).toHaveBeenCalledWith(
+      "whatsapp.webhook.status_processed",
+      expect.objectContaining({
+        providerMessageId: "present",
+        status: "delivered",
+        recipient: "*********0180",
+        matchedOutboundMessages: 1,
+      }),
+    );
+  });
+
+  it("marks outbound messages failed from Meta failed statuses", async () => {
+    const options = mockOptions();
+    prismaMocks.whatsAppOutboundMessage.updateMany.mockResolvedValue({ count: 1 });
+
+    await handleWhatsAppWebhook(metaStatusPayload("failed"), options);
+
+    expect(prismaMocks.whatsAppOutboundMessage.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { providerMessageId: "wamid.outbound" },
+        data: expect.objectContaining({ status: "FAILED" }),
+      }),
+    );
+  });
+
   it("calls accept orchestrator for accept button payloads", async () => {
     const options = mockOptions();
 

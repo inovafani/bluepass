@@ -70,7 +70,7 @@ describe("POST /api/kai/web-chat/inquiry", () => {
       ok: true,
       inquiryId: "inq_123",
       status: "OPERATOR_PENDING",
-      providerMessageId: null,
+      providerMessageId: "wamid.operator",
       outboundMessageId: "wa_out_123",
     });
 
@@ -88,6 +88,7 @@ describe("POST /api/kai/web-chat/inquiry", () => {
       inquiryId: "inq_123",
       status: "OPERATOR_PENDING",
       selectedYachtSlug: "aliikai",
+      providerMessageId: "wamid.operator",
       missingSlots: [],
     });
     expect(createInquiryFromKaiSession).toHaveBeenCalledWith({

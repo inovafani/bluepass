@@ -62,6 +62,7 @@ export async function dispatchInquiryToOperator(input: DispatchInquiryToOperator
       status: "SENT",
       sentAt: new Date(),
       templateName: sendResult.messageKind === "text" ? "operator_inquiry_text" : outbound.templateName,
+      providerMessageId: sendResult.providerMessageId,
     },
   });
 
@@ -77,7 +78,7 @@ export async function dispatchInquiryToOperator(input: DispatchInquiryToOperator
     ok: true as const,
     inquiryId: updatedInquiry.id,
     status: updatedInquiry.status,
-    providerMessageId: null,
+    providerMessageId: sendResult.providerMessageId,
     outboundMessageId: outbound.id,
   };
 }
@@ -88,19 +89,19 @@ async function sendOperatorInquiryMessage(input: {
   languageCode: string;
   components: Parameters<typeof sendTemplateMessage>[0]["components"];
   textBody: string;
-}): Promise<{ messageKind: "template" | "text" }> {
+}): Promise<{ messageKind: "template" | "text"; providerMessageId: string | null }> {
   if (process.env.WHATSAPP_OPERATOR_INQUIRY_SEND_MODE === "text") {
-    await sendWhatsAppText({
+    const result = await sendWhatsAppText({
       to: input.to,
       role: "ops",
       body: input.textBody,
     });
 
-    return { messageKind: "text" };
+    return { messageKind: "text", providerMessageId: result.providerMessageId };
   }
 
   try {
-    await sendTemplateMessage({
+    const result = await sendTemplateMessage({
       to: input.to,
       role: "ops",
       name: input.templateName,
@@ -108,19 +109,19 @@ async function sendOperatorInquiryMessage(input: {
       components: input.components,
     });
 
-    return { messageKind: "template" };
+    return { messageKind: "template", providerMessageId: result.providerMessageId };
   } catch (error) {
     if (!isUnavailableTemplateError(error)) {
       throw error;
     }
 
-    await sendWhatsAppText({
+    const result = await sendWhatsAppText({
       to: input.to,
       role: "ops",
       body: input.textBody,
     });
 
-    return { messageKind: "text" };
+    return { messageKind: "text", providerMessageId: result.providerMessageId };
   }
 }
 

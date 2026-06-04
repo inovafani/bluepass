@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
     inquiryId: result.inquiry.id,
     status: dispatch.status,
     selectedYachtSlug: result.inquiry.selectedYachtSlug,
+    providerMessageId: dispatch.providerMessageId,
     missingSlots: [],
   });
 }

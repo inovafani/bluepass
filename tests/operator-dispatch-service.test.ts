@@ -82,6 +82,9 @@ describe("operator dispatch service", () => {
       id: "inq_123",
       status: "OPERATOR_PENDING",
     });
+    vi.mocked(sendTemplateMessage).mockResolvedValue({
+      providerMessageId: "wamid.operator_template",
+    });
 
     await expect(
       dispatchInquiryToOperator({
@@ -92,7 +95,7 @@ describe("operator dispatch service", () => {
       ok: true,
       inquiryId: "inq_123",
       status: "OPERATOR_PENDING",
-      providerMessageId: null,
+      providerMessageId: "wamid.operator_template",
       outboundMessageId: "wa_out_123",
     });
     expect(sendTemplateMessage).toHaveBeenCalledWith(
@@ -120,6 +123,7 @@ describe("operator dispatch service", () => {
       data: expect.objectContaining({
         status: "SENT",
         sentAt: expect.any(Date),
+        providerMessageId: "wamid.operator_template",
       }),
     });
     expect(prismaMocks.bookingInquiry.update).toHaveBeenCalledWith({
@@ -145,6 +149,9 @@ describe("operator dispatch service", () => {
     vi.mocked(sendTemplateMessage).mockRejectedValue(
       new Error("Meta Graph API rejected the WhatsApp send. code=132001"),
     );
+    vi.mocked(sendWhatsAppText).mockResolvedValue({
+      providerMessageId: "wamid.operator_text",
+    });
 
     await dispatchInquiryToOperator({
       inquiryId: "inq_123",
@@ -163,6 +170,7 @@ describe("operator dispatch service", () => {
       data: expect.objectContaining({
         status: "SENT",
         templateName: "operator_inquiry_text",
+        providerMessageId: "wamid.operator_text",
       }),
     });
   });
