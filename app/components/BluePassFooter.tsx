@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function BluePassFooter() {
@@ -5,9 +6,18 @@ export function BluePassFooter() {
     <footer className="bg-[#04111d] font-sans text-white">
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 text-sm text-white/60 md:grid-cols-[1.4fr_1fr_1fr_1fr] [&_a]:font-normal [&_a]:transition-colors [&_a:hover]:text-white">
         <div>
-          <p className="site-brand-name text-2xl text-white">
-            BluePass
-          </p>
+          <div className="flex items-center gap-3">
+            <span className="site-brand-mark" aria-hidden="true">
+              <Image
+                src="/brand/bluepass-logo-white.png"
+                alt=""
+                width={22}
+                height={22}
+                className="site-brand-logo"
+              />
+            </span>
+            <p className="site-brand-name text-2xl text-white">BluePass</p>
+          </div>
           <p className="mt-3 max-w-md leading-6">
             Your pass to Indonesia&apos;s best ocean trips. Conversational
             matching, vetted operators, and 5% of every booking back to the

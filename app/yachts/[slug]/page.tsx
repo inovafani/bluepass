@@ -151,7 +151,7 @@ export default async function YachtPage({
                   <div className="mt-4 space-y-2">
                     <Link
                       href="https://wa.me/628213143343"
-                      className="group flex items-center justify-between gap-4 border border-white/[0.09] bg-[#03111d]/50 p-4 transition-colors hover:bg-[#03111d]/80"
+                      className="group flex items-center justify-between gap-4 rounded-xl border border-white/[0.09] bg-[#03111d]/50 p-4 transition-colors hover:bg-[#03111d]/80"
                     >
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -192,7 +192,7 @@ export default async function YachtPage({
                 </section>
 
                 {/* Conservation */}
-                <section className="border border-[#1a7c72]/28 bg-[#0d3d38]/18 p-5">
+                <section className="rounded-xl border border-[#1a7c72]/28 bg-[#0d3d38]/18 p-5">
                   <div className="flex items-center gap-2">
                     <LeafIcon />
                     <p
@@ -217,7 +217,7 @@ export default async function YachtPage({
                 <div className="sticky top-6 space-y-3">
 
                   {/* Price */}
-                  <div className="border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
                       style={{ fontFamily: "var(--bp-font-mono)" }}
@@ -244,7 +244,7 @@ export default async function YachtPage({
                   </div>
 
                   {/* Vessel specs */}
-                  <div className="border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
                       style={{ fontFamily: "var(--bp-font-mono)" }}
@@ -261,7 +261,7 @@ export default async function YachtPage({
                   </div>
 
                   {/* Departures */}
-                  <div className="border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
                       style={{ fontFamily: "var(--bp-font-mono)" }}
@@ -298,7 +298,7 @@ export default async function YachtPage({
                   {/* CTAs */}
                   <Link
                     href="https://wa.me/628213143343"
-                    className="flex h-12 w-full items-center justify-center gap-2 bg-white text-[11px] font-medium tracking-[0.04em] text-[#071827] transition-colors hover:bg-white/90"
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white text-[11px] font-medium tracking-[0.04em] text-[#071827] transition-colors hover:bg-white/90"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                       <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
@@ -307,7 +307,7 @@ export default async function YachtPage({
                   </Link>
                   <Link
                     href="https://wa.me/628213143343"
-                    className="flex h-11 w-full items-center justify-center bg-[#1a7c72] text-[11px] font-medium tracking-[0.04em] text-white transition-colors hover:bg-[#1f9088]"
+                    className="flex h-11 w-full items-center justify-center rounded-xl bg-[#1a7c72] text-[11px] font-medium tracking-[0.04em] text-white transition-colors hover:bg-[#1f9088]"
                   >
                     See trip details
                   </Link>

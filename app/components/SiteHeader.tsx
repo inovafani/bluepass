@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -44,7 +45,15 @@ export function SiteHeader() {
           href="/"
           className="site-brand flex items-center gap-2.5 text-lg font-semibold tracking-tight"
         >
-          <span className="site-brand-mark">BP/</span>
+          <span className="site-brand-mark" aria-hidden="true">
+            <Image
+              src="/brand/bluepass-logo-white.png"
+              alt=""
+              width={22}
+              height={22}
+              className="site-brand-logo"
+            />
+          </span>
           <span className="site-brand-name">BluePass</span>
         </Link>
         <div className="site-nav hidden flex-wrap justify-end gap-4 text-sm text-slate-700 xl:flex">

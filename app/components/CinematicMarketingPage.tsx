@@ -59,13 +59,13 @@ export function CinematicMarketingPage({
             <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
               <Link
                 href={primaryHref}
-                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
+                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center rounded-full bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/88 active:scale-[0.98]"
               >
                 {primaryLabel}
               </Link>
               <Link
                 href={secondaryHref}
-                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-medium text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
+                className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center rounded-full border border-white/54 bg-transparent px-6 text-[11px] font-medium text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
               >
                 {secondaryLabel}
               </Link>

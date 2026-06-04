@@ -76,7 +76,7 @@ export function ConnectPmsForm() {
           Operator ID
         </span>
         <input
-          className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+          className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
           value={operatorId}
           onChange={(event) => setOperatorId(event.target.value)}
           placeholder="operator_..."
@@ -88,7 +88,7 @@ export function ConnectPmsForm() {
           Booking system
         </span>
         <select
-          className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+          className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
           value={platform}
           onChange={(event) => setPlatform(event.target.value as Platform)}
         >
@@ -103,13 +103,13 @@ export function ConnectPmsForm() {
       </label>
 
       {isBokun ? (
-        <div className="grid gap-5 border border-white/12 p-4">
+        <div className="grid gap-5 rounded-xl border border-white/12 p-4">
           <label className="grid gap-2">
             <span className="text-xs font-medium tracking-[0.16em] text-white/70">
               OCTO API base
             </span>
             <input
-              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
               value={apiBase}
               onChange={(event) => setApiBase(event.target.value)}
               placeholder="https://api.bokun.io/octo/v1"
@@ -121,7 +121,7 @@ export function ConnectPmsForm() {
               Access token
             </span>
             <input
-              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
               type="password"
               value={accessToken}
               onChange={(event) => setAccessToken(event.target.value)}
@@ -133,7 +133,7 @@ export function ConnectPmsForm() {
               OCTO supplier ID
             </span>
             <input
-              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
               value={supplierId}
               onChange={(event) => setSupplierId(event.target.value)}
             />
@@ -144,7 +144,7 @@ export function ConnectPmsForm() {
               Public booking base URL
             </span>
             <input
-              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
               value={publicBookingBaseUrl}
               onChange={(event) => setPublicBookingBaseUrl(event.target.value)}
               placeholder="https://your-operator.bokun.io/book"
@@ -156,7 +156,7 @@ export function ConnectPmsForm() {
               Public product URL template
             </span>
             <input
-              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
               value={publicProductUrlTemplate}
               onChange={(event) => setPublicProductUrlTemplate(event.target.value)}
               placeholder="https://your-operator.bokun.io/book/{productId}"
@@ -168,7 +168,7 @@ export function ConnectPmsForm() {
               REST API base
             </span>
             <input
-              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
               value={restApiBase}
               onChange={(event) => setRestApiBase(event.target.value)}
               placeholder="https://api.bokun.io"
@@ -180,7 +180,7 @@ export function ConnectPmsForm() {
               REST access key
             </span>
             <input
-              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
               value={restAccessKey}
               onChange={(event) => setRestAccessKey(event.target.value)}
             />
@@ -191,7 +191,7 @@ export function ConnectPmsForm() {
               REST secret key
             </span>
             <input
-              className="h-12 border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+              className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
               type="password"
               value={restSecretKey}
               onChange={(event) => setRestSecretKey(event.target.value)}
@@ -215,7 +215,7 @@ export function ConnectPmsForm() {
       <button
         type="submit"
         disabled={!canSubmit}
-        className="mt-2 inline-flex h-12 w-full items-center justify-center bg-white px-6 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/45 md:w-auto"
+        className="mt-2 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-6 text-[11px] font-black text-[#071827] transition-colors hover:bg-white/90 disabled:cursor-not-allowed disabled:bg-white/45 md:w-auto"
       >
         {submitState === "submitting" ? "Connecting" : "Continue"}
       </button>

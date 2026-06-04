@@ -590,7 +590,7 @@ export default async function TripPage({
           <div>
             <div className="sticky top-6 space-y-4">
               {/* What's included */}
-              <div className="border border-white/12 bg-[#03111d]/60 p-6 backdrop-blur-xl">
+              <div className="rounded-xl border border-white/12 bg-[#03111d]/60 p-6 backdrop-blur-xl">
                 <p
                   className="text-[11px] tracking-[0.22em] text-[#B89A5D]"
                   style={{ fontFamily: "var(--bp-font-mono)" }}
@@ -610,7 +610,7 @@ export default async function TripPage({
               </div>
 
               {/* Book CTA */}
-              <div className="border border-white/12 bg-[#03111d]/60 p-6 backdrop-blur-xl">
+              <div className="rounded-xl border border-white/12 bg-[#03111d]/60 p-6 backdrop-blur-xl">
                 <div className="flex items-center gap-2">
                   <p className="bp-page-title text-2xl text-white">
                     From {trip.price}
@@ -633,7 +633,7 @@ export default async function TripPage({
                 </p>
                 <Link
                   href="https://wa.me/628213143343"
-                  className="mt-5 flex h-12 w-full items-center justify-center gap-2 bg-white text-[11px] font-medium tracking-[0.04em] text-[#071827] transition-colors hover:bg-white/90"
+                  className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white text-[11px] font-medium tracking-[0.04em] text-[#071827] transition-colors hover:bg-white/90"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

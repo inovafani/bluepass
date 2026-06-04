@@ -111,13 +111,13 @@ export default function ConservationPage() {
               <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
                 <Link
                   href="/explore-indonesia"
-                  className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
+                  className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center rounded-full bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
                 >
                   Find a trip
                 </Link>
                 <a
                   href="#partner-evidence"
-                  className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center border border-white/54 bg-transparent px-6 text-[11px] font-medium text-white transition-colors hover:bg-white/10"
+                  className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center rounded-full border border-white/54 bg-transparent px-6 text-[11px] font-medium text-white transition-colors hover:bg-white/10"
                 >
                   See partners
                 </a>

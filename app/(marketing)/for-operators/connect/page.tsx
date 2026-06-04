@@ -4,7 +4,7 @@ export default function OperatorConnectPage() {
   return (
     <main className="min-h-screen bg-[#04111d] px-5 py-24 text-white">
       <section className="mx-auto flex min-h-[calc(100vh-12rem)] max-w-3xl items-center">
-        <div className="w-full border border-white/12 bg-[#03111d]/80 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.36)] md:p-10">
+        <div className="w-full rounded-2xl border border-white/12 bg-[#03111d]/80 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.36)] md:p-10">
           <p className="text-[11px] font-medium tracking-[0.22em] text-[#B89A5D]">
             Early operator setup
           </p>

@@ -717,7 +717,7 @@ export default async function OperatorPage({
               <div>
                 <div className="sticky top-6 space-y-3">
                   {/* Price */}
-                  <div className="border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
                       style={{ fontFamily: "var(--bp-font-mono)" }}
@@ -744,7 +744,7 @@ export default async function OperatorPage({
                   </div>
 
                   {/* Vessel */}
-                  <div className="border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
                       style={{ fontFamily: "var(--bp-font-mono)" }}
@@ -766,7 +766,7 @@ export default async function OperatorPage({
                   </div>
 
                   {/* Departures */}
-                  <div className="border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
                       style={{ fontFamily: "var(--bp-font-mono)" }}
@@ -809,7 +809,7 @@ export default async function OperatorPage({
                   {/* CTAs */}
                   <Link
                     href="https://wa.me/628213143343"
-                    className="flex h-12 w-full items-center justify-center gap-2 bg-white text-[11px] font-medium tracking-[0.04em] text-[#071827] transition-colors hover:bg-white/90"
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white text-[11px] font-medium tracking-[0.04em] text-[#071827] transition-colors hover:bg-white/90"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -831,7 +831,7 @@ export default async function OperatorPage({
                   {op.trips[0] && (
                     <Link
                       href={op.trips[0].href}
-                      className="flex h-11 w-full items-center justify-center bg-[#1a7c72] text-[11px] font-medium tracking-[0.04em] text-white transition-colors hover:bg-[#1f9088]"
+                      className="flex h-11 w-full items-center justify-center rounded-xl bg-[#1a7c72] text-[11px] font-medium tracking-[0.04em] text-white transition-colors hover:bg-[#1f9088]"
                     >
                       See trip details
                     </Link>
