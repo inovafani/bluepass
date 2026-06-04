@@ -265,7 +265,7 @@ describe("Kai conversation service", () => {
     });
 
     expect(result.intent.dateWindow).toBe("next month");
-    expect(result.reply).toContain("start matching suitable Indonesia trips");
+    expect(result.reply).toContain("What budget range");
   });
 
   it("merges Nusa Penida sailing answers across multiple web messages", async () => {
@@ -317,7 +317,7 @@ describe("Kai conversation service", () => {
         dateWindow: "next month",
       }),
     );
-    expect(dateResult.reply).toContain("start matching suitable Indonesia trips");
+    expect(dateResult.reply).toContain("What budget range");
   });
 
   it("uses an LLM reply when the provider returns one", async () => {
@@ -364,7 +364,7 @@ describe("Kai conversation service", () => {
 
     const result = await service.handleUserMessage({
       channel: "web",
-      message: "Raja Ampat sailing for 3 guests in October",
+      message: "Raja Ampat sailing for 3 guests in October with $2,000 budget",
     });
 
     expect(matchMocks.matchTripsForKai).toHaveBeenCalledWith(
@@ -373,6 +373,7 @@ describe("Kai conversation service", () => {
         tripType: "sailing",
         guests: 3,
         dateWindow: "October",
+        budget: "$2,000",
       }),
     );
     expect(result.matches).toHaveLength(1);
@@ -404,7 +405,7 @@ describe("Kai conversation service", () => {
 
     const result = await service.handleUserMessage({
       channel: "web",
-      message: "Labuan Bajo sunset tour for 2 people on 20th June",
+      message: "Labuan Bajo sunset tour for 2 people on 20th June under $1,000",
     });
 
     expect(result.reply).toContain("Labuan Bajo Sunset Tour");
@@ -530,7 +531,7 @@ describe("Kai conversation service", () => {
     );
     expect(threeGuests.planner).toEqual(
       expect.objectContaining({
-        missingSlots: ["dateWindow", "certificationLevel"],
+        missingSlots: ["dateWindow", "budget", "certificationLevel"],
         nextSlotToAsk: "dateWindow",
       }),
     );
@@ -711,5 +712,58 @@ describe("Kai conversation service", () => {
     );
     expect(result.reply).toMatch(/April to November|June to September/i);
     expect(result.reply).not.toContain("start matching suitable Indonesia trips");
+  });
+
+  it("recognizes liveaboard plural and typo answers without re-asking trip type", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+    const sessionId = "kai_liveaboard_typo_session";
+
+    const liveaboard = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "liveaboards",
+    });
+    const raja = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "Raja ampat",
+    });
+    const guests = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "3 guests",
+    });
+    const typo = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "liveaborad",
+    });
+
+    expect(liveaboard.intent.tripType).toBe("liveaboard");
+    expect(raja.intent).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "liveaboard",
+      }),
+    );
+    expect(guests.intent).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "liveaboard",
+        guests: 3,
+      }),
+    );
+    expect(guests.reply).toContain("When are you hoping to travel");
+    expect(guests.reply).toContain("certification level");
+    expect(guests.reply).not.toMatch(/thinking sailing|what kind|trip type|how many/i);
+    expect(typo.intent).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "liveaboard",
+        guests: 3,
+      }),
+    );
+    expect(typo.reply).not.toMatch(/thinking sailing|what kind|trip type|how many/i);
   });
 });

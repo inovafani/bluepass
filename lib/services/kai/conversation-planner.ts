@@ -13,8 +13,8 @@ type PlanKaiConversationInput = {
   channel: KaiChannel;
 };
 
-const requiredSlots = ["destination", "tripType", "guests", "dateWindow"] as const;
-const optionalUsefulSlots = ["budget", "interests"] as const;
+const requiredSlots = ["destination", "tripType", "guests", "dateWindow", "budget"] as const;
+const optionalUsefulSlots = ["interests"] as const;
 
 export function planKaiConversation(input: PlanKaiConversationInput): KaiConversationPlan {
   const knownSlots = buildKnownSlots(input.intent);

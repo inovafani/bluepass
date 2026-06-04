@@ -48,6 +48,19 @@ const tripTypes = [
 ] as const;
 
 const tripTypeAliases = [
+  {
+    tripType: "liveaboard",
+    patterns: [
+      "liveaboard",
+      "liveaboards",
+      "live aboard",
+      "live aboards",
+      "liveaborad",
+      "liveaboarad",
+      "livaboard",
+      "livaboards",
+    ],
+  },
   { tripType: "snorkelling", patterns: ["snorkeling", "snorkelling", "snorkel"] },
   { tripType: "diving", patterns: ["scuba", "dive", "diving"] },
   { tripType: "freediving", patterns: ["freedive", "freediving"] },
@@ -332,9 +345,15 @@ function findGuestCount(text: string, lastAskedSlot?: KaiMissingSlot) {
 }
 
 function findBudget(original: string, normalized: string) {
-  const moneyMatch = original.match(/\b(?:usd\s*)?\$?\s?(\d{1,3}(?:,\d{3})+|\d{3,6})(?:\s*(?:usd|dollars?))?\b/i);
+  const moneyMatch = original.match(/\b(?:under|below|less than|around|about|approx(?:imately)?|budget(?: is)?|up to|max(?:imum)?)?\s*(?:usd\s*)?\$?\s?(\d{1,3}(?:,\d{3})+|\d{3,6}|\d{1,2}(?:\.\d)?k)(?:\s*(?:usd|dollars?|per cabin|per night|night|charter))?\b/i);
 
-  if (moneyMatch && (original.includes("$") || /\busd\b/i.test(original))) {
+  if (
+    moneyMatch &&
+    (original.includes("$") ||
+      /\busd\b/i.test(original) ||
+      /\b(budget|under|below|less than|around|about|approx|up to|max|per cabin|per night|charter|night)\b/i.test(original) ||
+      /\d\s*k\b/i.test(original))
+  ) {
     return moneyMatch[0].trim();
   }
 

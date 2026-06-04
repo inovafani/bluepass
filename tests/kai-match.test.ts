@@ -58,6 +58,7 @@ describe("matchTripsForKai", () => {
       tripType: "sailing",
       guests: 3,
       dateWindow: "October",
+      budget: "$2,000",
     });
 
     expect(prismaMocks.tripFindMany).toHaveBeenCalledWith(
@@ -115,6 +116,7 @@ describe("matchTripsForKai", () => {
       tripType: "sunset tour",
       guests: 2,
       dateWindow: "20th June",
+      budget: "$1,000",
     });
 
     expect(results[0]).toEqual(
@@ -170,8 +172,32 @@ describe("matchTripsForKai", () => {
         tripType: "sailing",
         guests: 4,
         dateWindow: "16th June",
+        budget: "$1,000",
       }),
     ).resolves.toEqual([]);
+  });
+
+  it("falls back to BluePass yacht operator data when no synced PMS trips match", async () => {
+    prismaMocks.tripFindMany.mockResolvedValue([]);
+
+    const results = await matchTripsForKai({
+      destination: "Raja Ampat",
+      tripType: "liveaboard",
+      guests: 3,
+      dateWindow: "October",
+      budget: "around 900 per cabin",
+    });
+
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0]).toEqual(
+      expect.objectContaining({
+        operatorName: expect.any(String),
+        location: "Raja Ampat",
+        imageUrl: expect.stringContaining("/yachts/"),
+        orderUrl: expect.stringMatching(/^\/yachts\//),
+        reason: expect.stringContaining("fits"),
+      }),
+    );
   });
 
   it("does not query trips until required intent is complete", async () => {

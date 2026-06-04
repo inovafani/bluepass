@@ -290,6 +290,12 @@ export function buildDeterministicReply(
     return "What certification level should I plan around - beginner, open water, advanced, rescue, divemaster, or instructor?";
   }
 
+  if (planner.missingSlots.includes("budget")) {
+    const certificationText = intent.certificationLevel ? `, ${intent.certificationLevel}` : "";
+
+    return `${intent.destination} ${intent.tripType} for ${intent.guests} guests${certificationText} - got it. What budget range should I keep this within, per cabin/night or whole-yacht charter?`;
+  }
+
   if (matches.length > 0) {
     return buildMatchedTripsReply(intent, matches);
   }
@@ -567,10 +573,12 @@ async function matchTripsSafely(
 }
 
 function buildMatchedTripsReply(intent: KaiTravelIntent, matches: MatchResult[]) {
+  const allSynced = matches.every((match) => Boolean(match.pmsPlatform));
+  const candidateLabel = allSynced ? "synced operator package" : "BluePass operator candidate";
   const intro =
     matches.length === 1
-      ? `I found a synced operator package that looks close for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`
-      : `I found a few synced operator packages that look close for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`;
+      ? `I found a ${candidateLabel} that looks close for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`
+      : `I found a few ${candidateLabel}s that look close for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`;
   const rows = matches
     .map((match, index) => {
       const operator = match.operatorName ? ` with ${match.operatorName}` : "";
@@ -668,33 +676,47 @@ function getDestinationSeasonAdvice(destination: string) {
 
 function replyAppearsToAskSlot(reply: string, slot: string) {
   const normalized = reply.toLowerCase();
-  const asksQuestion = normalized.includes("?") || /\b(can you|could you|tell me|what|where|how many|when)\b/.test(normalized);
+  const questionText = extractQuestionText(normalized);
+  const asksQuestion = questionText.includes("?") || /\b(can you|could you|tell me|what|where|how many|when)\b/.test(questionText);
 
   if (!asksQuestion) {
     return false;
   }
 
   if (slot === "destination") {
-    return /\b(where|destination|area|place|which island|where in indonesia)\b/.test(normalized);
+    return /\b(where|destination|area|place|which island|where in indonesia)\b/.test(questionText);
   }
 
   if (slot === "tripType") {
-    return /\b(what kind|trip type|experience|diving|sailing|liveaboard|snorkelling|snorkeling|surf)\b/.test(normalized);
+    return /\b(what kind|trip type|experience|diving|sailing|liveaboard|snorkelling|snorkeling|surf)\b/.test(questionText);
   }
 
   if (slot === "guests") {
-    return /\b(how many|guests?|people|travelers|travellers|joining|traveling|travelling)\b/.test(normalized);
+    return /\b(how many|guests?|people|travelers|travellers|joining|traveling|travelling)\b/.test(questionText);
   }
 
   if (slot === "dateWindow") {
-    return /\b(when|date|month|travel)\b/.test(normalized);
+    return /\b(when|date|month|travel)\b/.test(questionText);
   }
 
   if (slot === "certificationLevel") {
-    return /\b(certification|certified|open water|advanced|rescue|divemaster|instructor)\b/.test(normalized);
+    return /\b(certification|certified|open water|advanced|rescue|divemaster|instructor)\b/.test(questionText);
   }
 
   return false;
+}
+
+function extractQuestionText(normalizedReply: string) {
+  if (!normalizedReply.includes("?")) {
+    return normalizedReply;
+  }
+
+  return normalizedReply
+    .split("?")
+    .slice(0, -1)
+    .map((part) => part.split(/[.!]/).pop()?.trim() ?? "")
+    .filter(Boolean)
+    .join("? ");
 }
 
 async function loadSessionContextSafely(
