@@ -34,41 +34,43 @@ const destinations = [
 const conservationCards = [
   {
     id: "01",
-    type: "partner",
-    name: "Coral Triangle Center",
-    description: "Reef restoration + MPA training across Indonesia.",
-    image:
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80",
-    alt: "Diver above a coral reef restoration site",
-  },
-  {
-    id: "02",
-    type: "partner",
-    name: "The Manta Trust",
-    description:
-      "Manta research + protection at Komodo and Raja Ampat cleaning stations.",
-    image:
-      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=800&q=80",
-    alt: "Manta ray gliding in open ocean",
-  },
-  {
-    id: "03",
-    type: "partner",
-    name: "Mangrove Action Project",
-    description:
-      "Coastal nurseries — replanting the carbon sink that feeds reefs.",
-    image:
-      "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&w=800&q=80",
-    alt: "Mangrove restoration coastline",
-  },
-  {
-    id: "04",
     type: "creator",
     handle: "@storyofsage",
     name: "Story of Sage",
     description: "Island light, reef days, quiet blue moments.",
     image: "/creators/storyofsage.jpg",
-    alt: "Story of Sage — island light and reef days",
+    alt: "Story of Sage",
+    href: "https://www.instagram.com/reel/DE0a2Z7xSQL/",
+  },
+  {
+    id: "02",
+    type: "creator",
+    handle: "@josiahwg",
+    name: "Josiah William Gordon",
+    description: "Cinematic coastlines through a fine-art lens.",
+    image: "/creators/josiahwg.jpg",
+    alt: "Josiah William Gordon",
+    href: "https://www.instagram.com/reel/CPBJDTmjKS_/",
+  },
+  {
+    id: "03",
+    type: "creator",
+    handle: "@camvaughne",
+    name: "Cam Vaughne",
+    description: "Remote Indonesia by sail, film, and sea.",
+    image: "/creators/camvaughne.jpg",
+    alt: "Cam Vaughne",
+    href: "https://www.instagram.com/reel/Ck8BkRDhLhy/",
+  },
+  {
+    id: "04",
+    type: "creator",
+    handle: "@lostleblanc",
+    name: "Christian LeBlanc",
+    description: "Travel stories built for cinematic discovery.",
+    image: "/creators/lostleblanc.jpg",
+    alt: "Christian LeBlanc",
+    href: "https://www.instagram.com/reel/DXO0GAiiYWz/",
   },
 ];
 
@@ -447,7 +449,7 @@ export default function ExploreIndonesiaPage() {
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {conservationCards.map((card) => (
-              <Link key={card.id} href="/conservation" className="group block">
+              <Link key={card.id} href={card.href} className="group block" target="_blank" rel="noopener noreferrer">
                 <article className="relative overflow-hidden border border-white/[0.08]">
                   <div className="relative aspect-[4/5] overflow-hidden">
                     <Image
