@@ -57,6 +57,16 @@ type WhatsAppSendApiResponse = {
   messages?: Array<{ id?: string }>;
 };
 
+type WhatsAppErrorApiResponse = {
+  error?: {
+    message?: string;
+    type?: string;
+    code?: number;
+    error_subcode?: number;
+    fbtrace_id?: string;
+  };
+};
+
 const DEFAULT_SEND_TIMEOUT_MS = 10_000;
 
 function presentEnvValue(value: string | undefined): string | undefined {
@@ -120,7 +130,9 @@ export function buildWhatsAppTemplatePayload(
   return payload;
 }
 
-function buildWhatsAppTextPayload(message: WhatsAppTextMessage): WhatsAppTextApiPayload {
+function buildWhatsAppTextPayload(
+  message: WhatsAppTextMessage,
+): WhatsAppTextApiPayload {
   return {
     messaging_product: "whatsapp",
     to: normalizeRecipientPhone(message.to),
@@ -158,15 +170,26 @@ async function postWhatsAppMessage(
 
     const body = (await response.json().catch(() => undefined)) as
       | WhatsAppSendApiResponse
-      | { error?: { message?: string; code?: number } }
+      | WhatsAppErrorApiResponse
       | undefined;
 
     if (!response.ok) {
       let metaError = "Meta Graph API rejected the WhatsApp send.";
       if (body && "error" in body) {
-        metaError = body.error?.code
-          ? `${metaError} code=${body.error.code}`
-          : metaError;
+        const details = [
+          body.error?.code ? `code=${body.error.code}` : undefined,
+          body.error?.error_subcode
+            ? `subcode=${body.error.error_subcode}`
+            : undefined,
+          body.error?.type ? `type=${body.error.type}` : undefined,
+          body.error?.message ? `message=${body.error.message}` : undefined,
+          body.error?.fbtrace_id
+            ? `fbtrace_id=${body.error.fbtrace_id}`
+            : undefined,
+        ].filter(Boolean);
+
+        metaError =
+          details.length > 0 ? `${metaError} ${details.join(" ")}` : metaError;
       }
 
       console.warn("whatsapp.send.failed", {
@@ -174,13 +197,24 @@ async function postWhatsAppMessage(
         status: response.status,
         to: maskPhoneNumber(payload.to),
         type: payload.type,
+        templateName:
+          payload.type === "template" ? payload.template.name : undefined,
+        templateLanguage:
+          payload.type === "template"
+            ? payload.template.language.code
+            : undefined,
+        metaCode: body && "error" in body ? body.error?.code : undefined,
+        metaSubcode:
+          body && "error" in body ? body.error?.error_subcode : undefined,
+        metaMessage: body && "error" in body ? body.error?.message : undefined,
+        fbtraceId: body && "error" in body ? body.error?.fbtrace_id : undefined,
       });
 
       throw new Error(metaError);
     }
 
     const providerMessageId =
-      body && "messages" in body ? body.messages?.[0]?.id ?? null : null;
+      body && "messages" in body ? (body.messages?.[0]?.id ?? null) : null;
 
     console.info("whatsapp.send.succeeded", {
       role,
@@ -200,7 +234,10 @@ async function postWhatsAppMessage(
       throw new Error("WhatsApp send timed out.");
     }
 
-    if (error instanceof Error && error.message.startsWith("Meta Graph API rejected")) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith("Meta Graph API rejected")
+    ) {
       throw error;
     }
 
@@ -221,7 +258,9 @@ export function resolveWhatsAppPhoneId(role: WhatsAppSenderRole): string {
 
   if (role === "kai") {
     if (!kaiPhoneId) {
-      throw new Error("WHATSAPP_PHONE_ID_KAI is required for Kai WhatsApp sends.");
+      throw new Error(
+        "WHATSAPP_PHONE_ID_KAI is required for Kai WhatsApp sends.",
+      );
     }
 
     return kaiPhoneId;
@@ -275,7 +314,9 @@ export async function sendTemplateMessage(
   return postWhatsAppMessage(message.role ?? "kai", payload);
 }
 
-export async function sendWhatsAppText(message: WhatsAppTextMessage): Promise<WhatsAppSendResult> {
+export async function sendWhatsAppText(
+  message: WhatsAppTextMessage,
+): Promise<WhatsAppSendResult> {
   const payload = buildWhatsAppTextPayload(message);
   return postWhatsAppMessage(message.role ?? "kai", payload);
 }

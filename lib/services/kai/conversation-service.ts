@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { yachtBySlug } from "@/lib/data/yachts";
 import { planKaiConversation } from "@/lib/services/kai/conversation-planner";
 import { sanitizeObjectForResponse } from "@/lib/services/kai/json-safety";
 import { generateKaiReply } from "@/lib/services/kai/llm-provider";
@@ -55,7 +56,9 @@ const noopStore: KaiConversationStore = {
 };
 
 export type KaiConversationService = {
-  handleUserMessage(input: KaiConversationInput): Promise<KaiConversationResult>;
+  handleUserMessage(
+    input: KaiConversationInput,
+  ): Promise<KaiConversationResult>;
 };
 
 export function createKaiConversationService(
@@ -83,18 +86,25 @@ export function createKaiConversationService(
         channel: input.channel,
         hasProvidedSessionId: Boolean(input.sessionId),
       });
-      const recentClientMessages = normalizeRecentClientMessages(input.recentMessages, {
-        sessionId,
-        channel: input.channel,
-        latestUserMessage: input.message,
-      });
-      const conversationMemory = mergeConversationMemory(previousMessages, recentClientMessages);
+      const recentClientMessages = normalizeRecentClientMessages(
+        input.recentMessages,
+        {
+          sessionId,
+          channel: input.channel,
+          latestUserMessage: input.message,
+        },
+      );
+      const conversationMemory = mergeConversationMemory(
+        previousMessages,
+        recentClientMessages,
+      );
       const reconstructedIntent = reconstructIntentFromHistory(
         conversationMemory,
         previousContext?.intent,
       );
       const inferredLastAskedSlot =
-        previousContext?.lastAskedSlot ?? inferLastAskedSlotFromHistory(conversationMemory);
+        previousContext?.lastAskedSlot ??
+        inferLastAskedSlotFromHistory(conversationMemory);
       const contextKeys = previousContext ? Object.keys(previousContext) : [];
       logKaiStage("kai.session.loaded_or_created", {
         sessionId,
@@ -106,9 +116,13 @@ export function createKaiConversationService(
         sessionId,
         channel: input.channel,
       });
-      const intent = extractKaiTravelIntent(input.message, reconstructedIntent, {
-        lastAskedSlot: inferredLastAskedSlot,
-      });
+      const intent = extractKaiTravelIntent(
+        input.message,
+        reconstructedIntent,
+        {
+          lastAskedSlot: inferredLastAskedSlot,
+        },
+      );
       const planner = planKaiConversation({
         intent,
         previousIntent: previousContext?.intent,
@@ -130,9 +144,17 @@ export function createKaiConversationService(
       });
       const matches =
         planner.conversationStage === "ready_to_match"
-          ? searchYachtsSafely(intent, sessionId, input.channel)
+          ? narrowMatchesToSelectedYacht(
+              searchYachtsSafely(intent, sessionId, input.channel),
+              intent.selectedYachtSlug,
+            )
           : [];
-      const deterministicReply = buildDeterministicReply(intent, planner, input.message, matches);
+      const deterministicReply = buildDeterministicReply(
+        intent,
+        planner,
+        input.message,
+        matches,
+      );
       const context = buildSessionContext(intent, planner);
       const userMessage = buildMessage({
         sessionId,
@@ -140,7 +162,9 @@ export function createKaiConversationService(
         role: "user",
         content: input.message,
         metadata: {
-          ...(input.bookingContext ? { bookingContext: input.bookingContext } : {}),
+          ...(input.bookingContext
+            ? { bookingContext: input.bookingContext }
+            : {}),
           intent,
           matches,
           lastAskedSlot: inferredLastAskedSlot,
@@ -182,13 +206,13 @@ export function createKaiConversationService(
       });
 
       const sessionToPersist = {
-          id: sessionId,
-          channel: input.channel,
-          externalUserId: input.externalUserId,
-          travellerPhone: input.travellerPhone,
-          status: "open",
-          context,
-        } satisfies PersistSessionInput;
+        id: sessionId,
+        channel: input.channel,
+        externalUserId: input.externalUserId,
+        travellerPhone: input.travellerPhone,
+        status: "open",
+        context,
+      } satisfies PersistSessionInput;
 
       try {
         if (store.persistTurn) {
@@ -211,7 +235,13 @@ export function createKaiConversationService(
           messageCount: 2,
         });
       } catch (error) {
-        logPersistenceFailure("kai.turn.persisted", sessionId, input.channel, "persistTurn", error);
+        logPersistenceFailure(
+          "kai.turn.persisted",
+          sessionId,
+          input.channel,
+          "persistTurn",
+          error,
+        );
       }
 
       logKaiStage("kai.web_chat.response_ready", {
@@ -225,14 +255,18 @@ export function createKaiConversationService(
         reply: assistantMessage.content,
         intent: sanitizeObjectForResponse(intent),
         matches: sanitizeObjectForResponse(matches),
-        planner: shouldExposePlanner() ? sanitizeObjectForResponse(planner) : undefined,
+        planner: shouldExposePlanner()
+          ? sanitizeObjectForResponse(planner)
+          : undefined,
         messages: [userMessage, assistantMessage],
       };
     },
   };
 }
 
-export const kaiConversationService = createKaiConversationService(prismaKaiConversationStore);
+export const kaiConversationService = createKaiConversationService(
+  prismaKaiConversationStore,
+);
 
 export function generateKaiSessionId() {
   return `kai_${randomUUID()}`;
@@ -263,7 +297,8 @@ export function buildDeterministicReply(
       intent.tripType ? `${intent.tripType}` : undefined,
       intent.guests ? `for ${intent.guests}` : undefined,
     ].filter(Boolean);
-    const prefix = knownParts.length > 0 ? `Got it: ${knownParts.join(" ")}. ` : "";
+    const prefix =
+      knownParts.length > 0 ? `Got it: ${knownParts.join(" ")}. ` : "";
 
     return `${prefix}Where in Indonesia feels best - Komodo, Raja Ampat, Bali/Nusa Penida, Lombok/Gili, or somewhere else in Indonesia?`;
   }
@@ -294,9 +329,39 @@ export function buildDeterministicReply(
   }
 
   if (planner.missingSlots.includes("budget")) {
-    const certificationText = intent.certificationLevel ? `, ${intent.certificationLevel}` : "";
+    const certificationText = intent.certificationLevel
+      ? `, ${intent.certificationLevel}`
+      : "";
 
     return `${intent.destination} ${intent.tripType} for ${intent.guests} guests${certificationText} - got it. What budget range should I keep this within, per cabin/night or whole-yacht charter?`;
+  }
+
+  if (
+    planner.missingSlots.includes("travellerName") ||
+    planner.missingSlots.includes("travellerEmail") ||
+    planner.missingSlots.includes("travellerPhone")
+  ) {
+    const selectedYacht = intent.selectedYachtSlug
+      ? yachtBySlug[intent.selectedYachtSlug]
+      : undefined;
+    const prefix = selectedYacht
+      ? `Great, I can prepare the inquiry for ${selectedYacht.name}.`
+      : "Great, I have the trip details.";
+    const missingContactFields = buildMissingContactFieldText(
+      planner.missingSlots,
+    );
+
+    return `${prefix} ${missingContactFields}`;
+  }
+
+  if (intent.selectedYachtSlug) {
+    const selectedYacht = yachtBySlug[intent.selectedYachtSlug];
+    const yachtName = selectedYacht?.name ?? "that yacht";
+    const travellerName = intent.travellerName
+      ? ` for ${intent.travellerName}`
+      : "";
+
+    return `Perfect${travellerName} - I have everything needed for the ${yachtName} inquiry: ${intent.destination}, ${intent.tripType}, ${intent.guests} guests, ${intent.dateWindow}, and ${intent.budget}. Tap Send inquiry on the ${yachtName} card and I'll dispatch it to the operator number on file.`;
   }
 
   if (matches.length > 0) {
@@ -321,7 +386,9 @@ export function buildSessionContext(
   };
 }
 
-async function generateReplySafely(input: Parameters<typeof generateKaiReply>[0]) {
+async function generateReplySafely(
+  input: Parameters<typeof generateKaiReply>[0],
+) {
   try {
     const reply = await generateKaiReply(input);
 
@@ -372,7 +439,11 @@ function normalizeRecentClientMessages(
     .filter((message, index, safeMessages) => {
       const isLastMessage = index === safeMessages.length - 1;
 
-      return !(isLastMessage && message.role === "user" && message.content.trim() === input.latestUserMessage.trim());
+      return !(
+        isLastMessage &&
+        message.role === "user" &&
+        message.content.trim() === input.latestUserMessage.trim()
+      );
     })
     .map((message) => ({
       sessionId: input.sessionId,
@@ -397,16 +468,18 @@ function mergeConversationMemory(
   const merged = [...storedMessages, ...recentClientMessages];
   const seen = new Set<string>();
 
-  return merged.filter((message) => {
-    const key = `${message.role}:${message.content}`;
+  return merged
+    .filter((message) => {
+      const key = `${message.role}:${message.content}`;
 
-    if (seen.has(key)) {
-      return false;
-    }
+      if (seen.has(key)) {
+        return false;
+      }
 
-    seen.add(key);
-    return true;
-  }).slice(-12);
+      seen.add(key);
+      return true;
+    })
+    .slice(-12);
 }
 
 function reconstructIntentFromHistory(
@@ -418,11 +491,14 @@ function reconstructIntentFromHistory(
 
   for (const message of messages) {
     if (message.role === "assistant") {
-      lastAskedSlot = inferLastAskedSlotFromText(message.content) ?? lastAskedSlot;
+      lastAskedSlot =
+        inferLastAskedSlotFromText(message.content) ?? lastAskedSlot;
     }
 
     if (message.role === "user") {
-      intent = extractKaiTravelIntent(message.content, intent, { lastAskedSlot });
+      intent = extractKaiTravelIntent(message.content, intent, {
+        lastAskedSlot,
+      });
     }
   }
 
@@ -458,11 +534,29 @@ function inferLastAskedSlotFromText(text: string): KaiMissingSlot | undefined {
     return "certificationLevel";
   }
 
-  if (/what kind|trip type|experience|diving|sailing|liveaboard|snorkel/.test(normalized)) {
+  if (/name|email|e-mail|phone|whatsapp|contact/.test(normalized)) {
+    if (/email|e-mail/.test(normalized)) {
+      return "travellerEmail";
+    }
+
+    if (/phone|whatsapp/.test(normalized)) {
+      return "travellerPhone";
+    }
+
+    return "travellerName";
+  }
+
+  if (
+    /what kind|trip type|experience|diving|sailing|liveaboard|snorkel/.test(
+      normalized,
+    )
+  ) {
     return "tripType";
   }
 
-  if (/where|destination|area|komodo|raja ampat|bali|indonesia/.test(normalized)) {
+  if (
+    /where|destination|area|komodo|raja ampat|bali|indonesia/.test(normalized)
+  ) {
     return "destination";
   }
 
@@ -491,7 +585,10 @@ function enforcePlannerReply(
     return deterministicReply;
   }
 
-  if (isTravelTimingQuestion(latestUserMessage) && !replyAnswersTravelTiming(reply)) {
+  if (
+    isTravelTimingQuestion(latestUserMessage) &&
+    !replyAnswersTravelTiming(reply)
+  ) {
     console.warn("kai.reply.overrode_missing_travel_advice_answer", {
       knownSlots: planner.knownSlots,
       missingSlots: planner.missingSlots,
@@ -506,6 +603,22 @@ function enforcePlannerReply(
       knownSlots: planner.knownSlots,
       missingSlots: planner.missingSlots,
       nextSlotToAsk: planner.nextSlotToAsk,
+    });
+
+    return deterministicReply;
+  }
+
+  if (
+    planner.conversationStage === "ready_to_match" &&
+    matches.length === 1 &&
+    deterministicReply.includes("Tap Send inquiry") &&
+    !replyKeepsSelectedYachtAction(reply)
+  ) {
+    console.warn("kai.reply.overrode_selected_yacht_relisting", {
+      knownSlots: planner.knownSlots,
+      missingSlots: planner.missingSlots,
+      nextSlotToAsk: planner.nextSlotToAsk,
+      matchCount: matches.length,
     });
 
     return deterministicReply;
@@ -538,14 +651,67 @@ function replyClaimsInquiryWasCreatedOrSent(reply: string) {
   const normalized = reply.toLowerCase();
 
   return (
-    /\b(?:i'?ve|i have|we'?ve|we have)\s+(?:prepared|created|made|sent)\s+(?:an?\s+)?inquiry\b/.test(normalized) ||
-    /\b(?:i'?ll|i will|we'?ll|we will)\s+send\s+(?:it|this|the inquiry|an inquiry)\b/.test(normalized) ||
-    /\b(?:inquiry|request)\s+(?:has been|was)\s+(?:prepared|created|sent)\b/.test(normalized) ||
-    /\b(?:operator|crew)\s+(?:will receive|has received|received)\s+(?:it|this|the inquiry|an inquiry)\b/.test(normalized)
+    /\b(?:i'?ve|i have|we'?ve|we have)\s+(?:prepared|created|made|sent)\s+(?:an?\s+)?inquiry\b/.test(
+      normalized,
+    ) ||
+    /\b(?:i'?ll|i will|we'?ll|we will)\s+send\s+(?:it|this|the inquiry|an inquiry)\b/.test(
+      normalized,
+    ) ||
+    /\b(?:inquiry|request)\s+(?:has been|was)\s+(?:prepared|created|sent)\b/.test(
+      normalized,
+    ) ||
+    /\b(?:operator|crew)\s+(?:will receive|has received|received)\s+(?:it|this|the inquiry|an inquiry)\b/.test(
+      normalized,
+    )
   );
 }
 
-function buildTravelAdviceReply(intent: KaiTravelIntent, latestUserMessage: string) {
+function replyKeepsSelectedYachtAction(reply: string) {
+  const normalized = reply.toLowerCase();
+
+  if (
+    /\b(shortlist|shortlisted|these include|catalog suggestions)\b/.test(
+      normalized,
+    )
+  ) {
+    return false;
+  }
+
+  return /\b(send inquiry|send the inquiry|tap|ready|everything needed|proceed)\b/.test(
+    normalized,
+  );
+}
+
+function buildMissingContactFieldText(missingSlots: KaiMissingSlot[]) {
+  const fields = [
+    missingSlots.includes("travellerName") ? "name" : undefined,
+    missingSlots.includes("travellerEmail") ? "email" : undefined,
+    missingSlots.includes("travellerPhone") ? "WhatsApp number" : undefined,
+  ].filter(Boolean) as string[];
+
+  if (fields.length === 0) {
+    return "I have your contact details for the inquiry.";
+  }
+
+  return `What ${joinHumanList(fields)} should I put on the inquiry?`;
+}
+
+function joinHumanList(values: string[]) {
+  if (values.length === 1) {
+    return values[0];
+  }
+
+  if (values.length === 2) {
+    return `${values[0]} and ${values[1]}`;
+  }
+
+  return `${values.slice(0, -1).join(", ")}, and ${values[values.length - 1]}`;
+}
+
+function buildTravelAdviceReply(
+  intent: KaiTravelIntent,
+  latestUserMessage: string,
+) {
   if (!isTravelTimingQuestion(latestUserMessage) || !intent.destination) {
     return undefined;
   }
@@ -558,7 +724,9 @@ function buildTravelAdviceReply(intent: KaiTravelIntent, latestUserMessage: stri
 
   const tripTypeText = intent.tripType ? ` for ${intent.tripType}` : "";
   const guestText = intent.guests ? ` for ${intent.guests} guests` : "";
-  const dateText = intent.dateWindow ? ` Your ${intent.dateWindow} timing can still work, but it may not be the peak window.` : "";
+  const dateText = intent.dateWindow
+    ? ` Your ${intent.dateWindow} timing can still work, but it may not be the peak window.`
+    : "";
   const nextStep =
     intent.budget || intent.dateWindow
       ? "I can use that to narrow the best-fit options."
@@ -587,14 +755,33 @@ function searchYachtsSafely(
       sessionId: maskSessionId(sessionId),
       channel,
       errorName: error instanceof Error ? error.name : "UnknownError",
-      message: error instanceof Error ? error.message : "Unable to load Kai yacht catalog matches",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unable to load Kai yacht catalog matches",
     });
 
     return [];
   }
 }
 
-function buildMatchedTripsReply(intent: KaiTravelIntent, matches: YachtMatch[]) {
+function narrowMatchesToSelectedYacht(
+  matches: YachtMatch[],
+  selectedYachtSlug?: string,
+) {
+  if (!selectedYachtSlug) {
+    return matches;
+  }
+
+  const selected = matches.find((match) => match.slug === selectedYachtSlug);
+
+  return selected ? [selected] : matches;
+}
+
+function buildMatchedTripsReply(
+  intent: KaiTravelIntent,
+  matches: YachtMatch[],
+) {
   const intro =
     matches.length === 1
       ? `Based on the current BluePass preview fleet, I'd shortlist this yacht for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`
@@ -602,9 +789,11 @@ function buildMatchedTripsReply(intent: KaiTravelIntent, matches: YachtMatch[]) 
   const rows = matches
     .map((match, index) => {
       const price = match.charterOnly
-        ? match.charterPrice ?? "quote on request"
+        ? (match.charterPrice ?? "quote on request")
         : match.pricePerCabin;
-      const priceLabel = match.charterOnly ? "private charter quote" : "cabin price signal";
+      const priceLabel = match.charterOnly
+        ? "private charter quote"
+        : "cabin price signal";
 
       return `${index + 1}. ${match.name} - ${priceLabel}: ${price}. ${match.matchingReasons.slice(0, 3).join(", ")}.`;
     })
@@ -617,7 +806,9 @@ function isTravelTimingQuestion(message: string) {
   const normalized = message.toLowerCase();
 
   return (
-    /\b(best|better|ideal|recommended|good)\s+(time|month|season)\b/.test(normalized) ||
+    /\b(best|better|ideal|recommended|good)\s+(time|month|season)\b/.test(
+      normalized,
+    ) ||
     /\bwhen\s+(?:is\s+)?(?:the\s+)?best\b/.test(normalized) ||
     /\bwhat\s+(?:is\s+)?(?:the\s+)?best\s+time\b/.test(normalized) ||
     /\bbest\s+time\s+to\s+go\b/.test(normalized)
@@ -628,9 +819,15 @@ function replyAnswersTravelTiming(reply: string) {
   const normalized = reply.toLowerCase();
 
   return (
-    /\b(october|november|december|january|february|march|april|may|june|july|august|september)\b/.test(normalized) ||
-    /\b(dry season|wet season|shoulder season|monsoon|season)\b/.test(normalized) ||
-    /\b(best|ideal|recommended)\s+(?:window|time|season|months?)\b/.test(normalized)
+    /\b(october|november|december|january|february|march|april|may|june|july|august|september)\b/.test(
+      normalized,
+    ) ||
+    /\b(dry season|wet season|shoulder season|monsoon|season)\b/.test(
+      normalized,
+    ) ||
+    /\b(best|ideal|recommended)\s+(?:window|time|season|months?)\b/.test(
+      normalized,
+    )
   );
 }
 
@@ -640,7 +837,8 @@ function getDestinationSeasonAdvice(destination: string) {
   if (normalized.includes("raja ampat") || normalized.includes("misool")) {
     return {
       destination,
-      bestWindow: "from October to April, with calmer seas and stronger liveaboard conditions",
+      bestWindow:
+        "from October to April, with calmer seas and stronger liveaboard conditions",
       note: "June is shoulder/off-peak: possible, but conditions can be less predictable and fewer boats may run",
     };
   }
@@ -648,12 +846,19 @@ function getDestinationSeasonAdvice(destination: string) {
   if (normalized.includes("komodo") || normalized.includes("flores")) {
     return {
       destination,
-      bestWindow: "from April to November, with June to September often excellent for dry-season sailing",
+      bestWindow:
+        "from April to November, with June to September often excellent for dry-season sailing",
       note: "June is generally a strong time for Komodo, though exact route choice still depends on sea conditions and operator schedules",
     };
   }
 
-  if (normalized.includes("bali") || normalized.includes("nusa penida") || normalized.includes("nusa lembongan") || normalized.includes("lombok") || normalized.includes("gili")) {
+  if (
+    normalized.includes("bali") ||
+    normalized.includes("nusa penida") ||
+    normalized.includes("nusa lembongan") ||
+    normalized.includes("lombok") ||
+    normalized.includes("gili")
+  ) {
     return {
       destination,
       bestWindow: "from April to October during the drier months",
@@ -664,7 +869,8 @@ function getDestinationSeasonAdvice(destination: string) {
   if (normalized.includes("alor")) {
     return {
       destination,
-      bestWindow: "from April to November, with the driest stretch usually around June to September",
+      bestWindow:
+        "from April to November, with the driest stretch usually around June to September",
       note: "June can be a good fit, but Alor can be current-heavy, so operator style matters",
     };
   }
@@ -672,14 +878,16 @@ function getDestinationSeasonAdvice(destination: string) {
   if (normalized.includes("wakatobi")) {
     return {
       destination,
-      bestWindow: "around March to December, with especially steady conditions often from April to November",
+      bestWindow:
+        "around March to December, with especially steady conditions often from April to November",
       note: "June is usually a sensible window for Wakatobi",
     };
   }
 
   return {
     destination,
-    bestWindow: "during Indonesia's drier months, roughly April to October, depending on the exact island chain",
+    bestWindow:
+      "during Indonesia's drier months, roughly April to October, depending on the exact island chain",
     note: "June is often workable, but the best fit depends on the destination and trip style",
   };
 }
@@ -687,22 +895,32 @@ function getDestinationSeasonAdvice(destination: string) {
 function replyAppearsToAskSlot(reply: string, slot: string) {
   const normalized = reply.toLowerCase();
   const questionText = extractQuestionText(normalized);
-  const asksQuestion = questionText.includes("?") || /\b(can you|could you|tell me|what|where|how many|when)\b/.test(questionText);
+  const asksQuestion =
+    questionText.includes("?") ||
+    /\b(can you|could you|tell me|what|where|how many|when)\b/.test(
+      questionText,
+    );
 
   if (!asksQuestion) {
     return false;
   }
 
   if (slot === "destination") {
-    return /\b(where|destination|area|place|which island|where in indonesia)\b/.test(questionText);
+    return /\b(where|destination|area|place|which island|where in indonesia)\b/.test(
+      questionText,
+    );
   }
 
   if (slot === "tripType") {
-    return /\b(what kind|trip type|experience|diving|sailing|liveaboard|snorkelling|snorkeling|surf)\b/.test(questionText);
+    return /\b(what kind|trip type|experience|diving|sailing|liveaboard|snorkelling|snorkeling|surf)\b/.test(
+      questionText,
+    );
   }
 
   if (slot === "guests") {
-    return /\b(how many|guests?|people|travelers|travellers|joining|traveling|travelling)\b/.test(questionText);
+    return /\b(how many|guests?|people|travelers|travellers|joining|traveling|travelling)\b/.test(
+      questionText,
+    );
   }
 
   if (slot === "dateWindow") {
@@ -710,7 +928,21 @@ function replyAppearsToAskSlot(reply: string, slot: string) {
   }
 
   if (slot === "certificationLevel") {
-    return /\b(certification|certified|open water|advanced|rescue|divemaster|instructor)\b/.test(questionText);
+    return /\b(certification|certified|open water|advanced|rescue|divemaster|instructor)\b/.test(
+      questionText,
+    );
+  }
+
+  if (slot === "travellerName") {
+    return /\b(name|who should|traveller|traveler)\b/.test(questionText);
+  }
+
+  if (slot === "travellerEmail") {
+    return /\b(email|e-mail)\b/.test(questionText);
+  }
+
+  if (slot === "travellerPhone") {
+    return /\b(phone|whatsapp|contact number)\b/.test(questionText);
   }
 
   return false;
@@ -731,7 +963,11 @@ function extractQuestionText(normalizedReply: string) {
 
 async function loadSessionContextSafely(
   store: KaiConversationStore,
-  input: { sessionId: string; channel: KaiChannel; hasProvidedSessionId: boolean },
+  input: {
+    sessionId: string;
+    channel: KaiChannel;
+    hasProvidedSessionId: boolean;
+  },
 ) {
   if (!input.hasProvidedSessionId) {
     logKaiStage("kai.session.no_session_id_create_started", {
@@ -796,7 +1032,12 @@ async function loadSessionContextSafely(
 
     return context;
   } catch (error) {
-    logReadFailure("kai.session.context_parse_failed", input.sessionId, input.channel, error);
+    logReadFailure(
+      "kai.session.context_parse_failed",
+      input.sessionId,
+      input.channel,
+      error,
+    );
 
     return undefined;
   }
@@ -804,7 +1045,11 @@ async function loadSessionContextSafely(
 
 async function loadHistorySafely(
   store: KaiConversationStore,
-  input: { sessionId: string; channel: KaiChannel; hasProvidedSessionId: boolean },
+  input: {
+    sessionId: string;
+    channel: KaiChannel;
+    hasProvidedSessionId: boolean;
+  },
 ) {
   if (!input.hasProvidedSessionId || !store.listMessages) {
     return [];
@@ -822,7 +1067,9 @@ async function loadHistorySafely(
       limit: 8,
     });
     const safeMessages = Array.isArray(messages)
-      ? messages.filter((message) => isSafeConversationMessage(message, input.channel))
+      ? messages.filter((message) =>
+          isSafeConversationMessage(message, input.channel),
+        )
       : [];
 
     logKaiStage("kai.history.load_succeeded", {
@@ -833,7 +1080,12 @@ async function loadHistorySafely(
 
     return safeMessages;
   } catch (error) {
-    logReadFailure("kai.history.load_failed", input.sessionId, input.channel, error);
+    logReadFailure(
+      "kai.history.load_failed",
+      input.sessionId,
+      input.channel,
+      error,
+    );
 
     return [];
   }
@@ -850,7 +1102,9 @@ function isSafeConversationMessage(
     "role" in message &&
     "content" in message &&
     message.channel === channel &&
-    (message.role === "user" || message.role === "assistant" || message.role === "system") &&
+    (message.role === "user" ||
+      message.role === "assistant" ||
+      message.role === "system") &&
     typeof message.content === "string"
   );
 }
@@ -875,12 +1129,18 @@ function logPersistenceFailure(
     channel,
     operation,
     errorName: error instanceof Error ? error.name : "UnknownError",
-    message: error instanceof Error ? error.message : "Unknown persistence error",
+    message:
+      error instanceof Error ? error.message : "Unknown persistence error",
     prismaCode: getPrismaErrorCode(error),
   });
 }
 
-function logReadFailure(stage: string, sessionId: string, channel: KaiChannel, error: unknown) {
+function logReadFailure(
+  stage: string,
+  sessionId: string,
+  channel: KaiChannel,
+  error: unknown,
+) {
   console.warn(stage, {
     sessionId: maskSessionId(sessionId),
     channel,
@@ -909,7 +1169,9 @@ function maskSessionId(sessionId: unknown) {
 }
 
 function shouldExposePlanner() {
-  return process.env.NODE_ENV !== "production" || process.env.KAI_DEBUG === "true";
+  return (
+    process.env.NODE_ENV !== "production" || process.env.KAI_DEBUG === "true"
+  );
 }
 
 function buildMessage(

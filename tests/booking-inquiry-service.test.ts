@@ -30,11 +30,20 @@ describe("BookingInquiry service", () => {
   it("canCreateInquiryFromIntent returns false when required slots are missing", () => {
     expect(canCreateInquiryFromIntent({ destination: "Raja Ampat" })).toEqual({
       ok: false,
-      missingSlots: ["tripType", "guests", "dateWindow", "selectedYachtSlug"],
+      missingSlots: [
+        "tripType",
+        "guests",
+        "dateWindow",
+        "budget",
+        "selectedYachtSlug",
+        "travellerName",
+        "travellerEmail",
+        "travellerPhone",
+      ],
     });
   });
 
-  it("canCreateInquiryFromIntent returns true when core slots and yacht are present", () => {
+  it("canCreateInquiryFromIntent returns true when core slots, contact, and yacht are present", () => {
     expect(
       canCreateInquiryFromIntent(
         {
@@ -42,6 +51,10 @@ describe("BookingInquiry service", () => {
           tripType: "sailing",
           guests: 2,
           dateWindow: "October",
+          budget: "$2,000",
+          travellerName: "Ari",
+          travellerEmail: "ari@example.com",
+          travellerPhone: "+628123",
         },
         { selectedYachtSlug: "alexa" },
       ),
@@ -56,6 +69,10 @@ describe("BookingInquiry service", () => {
           tripType: "liveaboard",
           guests: 3,
           dateWindow: "October",
+          budget: "$2,000",
+          travellerName: "Ari",
+          travellerEmail: "ari@example.com",
+          travellerPhone: "+628123",
         },
         { selectedYachtSlug: "aliikai" },
       ),
@@ -89,6 +106,9 @@ describe("BookingInquiry service", () => {
           dateWindow: "October",
           certificationLevel: "advanced open water",
           budget: "$2,000",
+          travellerName: "Ari",
+          travellerEmail: "ari@example.com",
+          travellerPhone: "+628123",
           interests: ["mantas"],
         },
       },
@@ -123,6 +143,9 @@ describe("BookingInquiry service", () => {
         guests: 3,
         dateWindow: "October",
         certificationLevel: "advanced open water",
+        travellerName: "Ari",
+        travellerEmail: "ari@example.com",
+        travellerPhone: "+628123",
         interests: ["mantas"],
         status: "READY_TO_DISPATCH",
       }),
@@ -140,6 +163,10 @@ describe("BookingInquiry service", () => {
           tripType: "sailing",
           guests: 2,
           dateWindow: "October",
+          budget: "$2,000",
+          travellerName: "Ari",
+          travellerEmail: "ari@example.com",
+          travellerPhone: "+628123",
         },
       },
     });

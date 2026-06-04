@@ -1,9 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createKaiConversationService, type KaiConversationStore } from "@/lib/services/kai/conversation-service";
+import {
+  createKaiConversationService,
+  type KaiConversationStore,
+} from "@/lib/services/kai/conversation-service";
 import { generateKaiReply } from "@/lib/services/kai/llm-provider";
 
 const llmMocks = vi.hoisted(() => ({
-  generateKaiReply: vi.fn(async (input: { deterministicReply: string }) => input.deterministicReply),
+  generateKaiReply: vi.fn(
+    async (input: { deterministicReply: string }) => input.deterministicReply,
+  ),
 }));
 const matchMocks = vi.hoisted(() => ({
   matchTripsForKai: vi.fn(async () => []),
@@ -18,7 +23,9 @@ vi.mock("@/lib/services/kai/match", () => ({
 
 afterEach(() => {
   llmMocks.generateKaiReply.mockReset();
-  llmMocks.generateKaiReply.mockImplementation(async (input: { deterministicReply: string }) => input.deterministicReply);
+  llmMocks.generateKaiReply.mockImplementation(
+    async (input: { deterministicReply: string }) => input.deterministicReply,
+  );
   matchMocks.matchTripsForKai.mockReset();
   matchMocks.matchTripsForKai.mockImplementation(async () => []);
 });
@@ -36,7 +43,8 @@ function buildInMemoryStore(): KaiConversationStore & {
   messages: Array<{ sessionId: string; role: string; content: string }>;
 } {
   const sessions = new Map<string, unknown>();
-  const messages: Array<{ sessionId: string; role: string; content: string }> = [];
+  const messages: Array<{ sessionId: string; role: string; content: string }> =
+    [];
 
   return {
     sessions,
@@ -370,7 +378,19 @@ describe("Kai conversation service", () => {
 
     const result = await service.handleUserMessage({
       channel: "web",
-      message: "Raja Ampat sailing for 3 guests around October with a $4000 budget",
+      message:
+        "Raja Ampat sailing for 3 guests around October with a $4000 budget",
+      recentMessages: [
+        {
+          role: "assistant",
+          content:
+            "Great, I have the trip details. What name, email, and WhatsApp number should I put on the inquiry?",
+        },
+        {
+          role: "user",
+          content: "My name is Ari, ari@example.com, +628123456789",
+        },
+      ],
     });
 
     expect(result.intent).toEqual(
@@ -380,6 +400,9 @@ describe("Kai conversation service", () => {
         guests: 3,
         dateWindow: "October",
         budget: "$4000",
+        travellerName: "Ari",
+        travellerEmail: "ari@example.com",
+        travellerPhone: "+628123456789",
       }),
     );
     expect(result.matches?.length).toBeGreaterThan(0);
@@ -388,9 +411,148 @@ describe("Kai conversation service", () => {
         slug: expect.any(String),
         name: expect.any(String),
         region: "Raja Ampat",
-        matchingReasons: expect.arrayContaining(["Raja Ampat route", "fits 3 guests"]),
+        matchingReasons: expect.arrayContaining([
+          "Raja Ampat route",
+          "fits 3 guests",
+        ]),
       }),
     );
+  });
+
+  it("asks for traveller contact instead of re-listing yachts after a yacht is selected", async () => {
+    const store = buildStore();
+    vi.mocked(store.getSessionContext).mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "sailing",
+        guests: 4,
+        dateWindow: "4th of July",
+        budget: "$4000",
+      },
+      lastAskedSlot: "budget",
+    });
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_selected_yacht_contact",
+      message: "yes calico jack please",
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        selectedYachtSlug: "calico-jack",
+      }),
+    );
+    expect(result.matches).toEqual([]);
+    expect(result.reply).toContain("Calico Jack");
+    expect(result.reply).toContain("What name, email, and WhatsApp number");
+    expect(result.reply).not.toContain("shortlist");
+  });
+
+  it("keeps the selected yacht focused once contact details are known", async () => {
+    const store = buildStore();
+    vi.mocked(store.getSessionContext).mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "sailing",
+        guests: 4,
+        dateWindow: "4th of July",
+        budget: "$4000",
+        selectedYachtSlug: "calico-jack",
+      },
+      lastAskedSlot: "travellerName",
+    });
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_selected_yacht_ready",
+      message: "My name is Ari, ari@example.com, +628123456789",
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        selectedYachtSlug: "calico-jack",
+        travellerName: "Ari",
+        travellerEmail: "ari@example.com",
+        travellerPhone: "+628123456789",
+      }),
+    );
+    expect(result.matches).toHaveLength(1);
+    expect(result.matches?.[0]).toEqual(
+      expect.objectContaining({
+        slug: "calico-jack",
+        name: "Calico Jack",
+      }),
+    );
+    expect(result.reply).toContain("Calico Jack");
+    expect(result.reply).not.toContain("Rascal");
+    expect(result.reply).not.toContain("Samara");
+  });
+
+  it("does not ask for traveller name again after extracting it with the budget", async () => {
+    const store = buildStore();
+    vi.mocked(store.getSessionContext).mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "sailing",
+        guests: 4,
+        dateWindow: "4th of July",
+      },
+      lastAskedSlot: "budget",
+    });
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_budget_name_contact",
+      message: "$4000, my name is Alexandra",
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        budget: "4000",
+        travellerName: "Alexandra",
+      }),
+    );
+    expect(result.reply).toContain("What email and WhatsApp number");
+    expect(result.reply).not.toContain("What name, email");
+  });
+
+  it("moves to send-inquiry guidance after a selected yacht has full contact details", async () => {
+    const store = buildStore();
+    vi.mocked(store.getSessionContext).mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "sailing",
+        guests: 4,
+        dateWindow: "4th of July",
+        budget: "$4000",
+        travellerName: "Alexandra",
+        travellerEmail: "alexandra@gmail.com",
+        travellerPhone: "088776543289",
+        selectedYachtSlug: "calico-jack",
+      },
+      lastAskedSlot: "travellerPhone",
+    });
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_selected_yacht_full_details",
+      message: "yes please",
+    });
+
+    expect(result.matches).toHaveLength(1);
+    expect(result.matches?.[0]).toEqual(
+      expect.objectContaining({
+        slug: "calico-jack",
+      }),
+    );
+    expect(result.reply).toContain("Tap Send inquiry");
+    expect(result.reply).toContain("Calico Jack");
+    expect(result.reply).not.toContain("shortlist");
   });
 
   it("overrides a generic LLM reply when static yacht matches exist", async () => {
@@ -403,6 +565,17 @@ describe("Kai conversation service", () => {
     const result = await service.handleUserMessage({
       channel: "web",
       message: "Labuan Bajo sailing for 2 people on 20th June under $1,000",
+      recentMessages: [
+        {
+          role: "assistant",
+          content:
+            "Great, I have the trip details. What name, email, and WhatsApp number should I put on the inquiry?",
+        },
+        {
+          role: "user",
+          content: "My name is Ari, ari@example.com, +628123456789",
+        },
+      ],
     });
 
     expect(result.matches?.length).toBeGreaterThan(0);
@@ -420,11 +593,15 @@ describe("Kai conversation service", () => {
     const result = await service.handleUserMessage({
       channel: "web",
       message:
-        "Komodo liveaboard for 3 guests around July 3rd, budget $4000, beginner",
+        "Komodo liveaboard for 3 guests around July 3rd, budget $4000, beginner. My name is Ari, ari@example.com, +628123456789",
     });
 
-    expect(result.reply).toContain("Based on the current BluePass preview fleet");
-    expect(result.reply).toContain("If you'd like to proceed, I can prepare an inquiry");
+    expect(result.reply).toContain(
+      "Based on the current BluePass preview fleet",
+    );
+    expect(result.reply).toContain(
+      "If you'd like to proceed, I can prepare an inquiry",
+    );
     expect(result.reply).not.toContain("I've prepared an inquiry");
     expect(result.reply).not.toContain("I'll send it");
   });
@@ -547,13 +724,22 @@ describe("Kai conversation service", () => {
     );
     expect(threeGuests.planner).toEqual(
       expect.objectContaining({
-        missingSlots: ["dateWindow", "budget", "certificationLevel"],
+        missingSlots: [
+          "dateWindow",
+          "budget",
+          "certificationLevel",
+          "travellerName",
+          "travellerEmail",
+          "travellerPhone",
+        ],
         nextSlotToAsk: "dateWindow",
       }),
     );
     expect(threeGuests.reply).toContain("When are you hoping to travel");
     expect(threeGuests.reply).toContain("certification level");
-    expect(threeGuests.reply).not.toMatch(/what type|trip type|how many|destination|area/i);
+    expect(threeGuests.reply).not.toMatch(
+      /what type|trip type|how many|destination|area/i,
+    );
   });
 
   it("reconstructs state from history when stored context is missing", async () => {
@@ -694,7 +880,9 @@ describe("Kai conversation service", () => {
       }),
     );
     expect(result.reply).toMatch(/October to April|June is shoulder/i);
-    expect(result.reply).not.toContain("start matching suitable Indonesia trips");
+    expect(result.reply).not.toContain(
+      "start matching suitable Indonesia trips",
+    );
   });
 
   it("overrides a generic LLM matching reply when the user asks for best timing", async () => {
@@ -727,7 +915,9 @@ describe("Kai conversation service", () => {
       }),
     );
     expect(result.reply).toMatch(/April to November|June to September/i);
-    expect(result.reply).not.toContain("start matching suitable Indonesia trips");
+    expect(result.reply).not.toContain(
+      "start matching suitable Indonesia trips",
+    );
   });
 
   it("recognizes liveaboard plural and typo answers without re-asking trip type", async () => {
@@ -772,7 +962,9 @@ describe("Kai conversation service", () => {
     );
     expect(guests.reply).toContain("When are you hoping to travel");
     expect(guests.reply).toContain("certification level");
-    expect(guests.reply).not.toMatch(/thinking sailing|what kind|trip type|how many/i);
+    expect(guests.reply).not.toMatch(
+      /thinking sailing|what kind|trip type|how many/i,
+    );
     expect(typo.intent).toEqual(
       expect.objectContaining({
         destination: "Raja Ampat",
@@ -780,6 +972,8 @@ describe("Kai conversation service", () => {
         guests: 3,
       }),
     );
-    expect(typo.reply).not.toMatch(/thinking sailing|what kind|trip type|how many/i);
+    expect(typo.reply).not.toMatch(
+      /thinking sailing|what kind|trip type|how many/i,
+    );
   });
 });

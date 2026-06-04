@@ -283,7 +283,8 @@ describe("POST /api/kai/web-chat", () => {
     const response = await POST(
       buildPostRequest({
         sessionId: "kai_catalog_ready_matches_session",
-        message: "Raja Ampat liveaboard for 3 guests around October with $4000 budget, beginner",
+        message:
+          "Raja Ampat liveaboard for 3 guests around October with $4000 budget, beginner. My name is Ari, ari@example.com, +628123456789",
       }),
     );
     const body = await response.json();
@@ -299,6 +300,9 @@ describe("POST /api/kai/web-chat", () => {
           dateWindow: "October",
           budget: "$4000",
           certificationLevel: "beginner",
+          travellerName: "Ari",
+          travellerEmail: "ari@example.com",
+          travellerPhone: "+628123456789",
         }),
         matches: expect.arrayContaining([
           expect.objectContaining({

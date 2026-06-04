@@ -23,6 +23,10 @@ export type KaiTravelIntent = {
   guests?: number;
   budget?: string;
   certificationLevel?: string;
+  travellerName?: string;
+  travellerEmail?: string;
+  travellerPhone?: string;
+  selectedYachtSlug?: string;
   interests?: string[];
   conservationPreference?: string;
   unsupportedDestination?: string;

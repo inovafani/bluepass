@@ -42,12 +42,28 @@ export function canCreateInquiryFromIntent(
     missingSlots.push("dateWindow");
   }
 
+  if (!intent.budget) {
+    missingSlots.push("budget");
+  }
+
   if (!input.selectedYachtSlug && !input.notes?.trim()) {
     missingSlots.push("selectedYachtSlug");
   }
 
   if (requiresCertification(intent.tripType) && !intent.certificationLevel) {
     missingSlots.push("certificationLevel");
+  }
+
+  if (!intent.travellerName) {
+    missingSlots.push("travellerName");
+  }
+
+  if (!intent.travellerEmail) {
+    missingSlots.push("travellerEmail");
+  }
+
+  if (!intent.travellerPhone) {
+    missingSlots.push("travellerPhone");
   }
 
   return {
@@ -106,9 +122,13 @@ export async function createInquiryFromKaiSession(input: CreateInquiryFromKaiSes
       data: {
         selectedYachtSlug: selectedYacht?.slug ?? existing.selectedYachtSlug,
         selectedYachtName: selectedYacht?.name ?? existing.selectedYachtName,
-        travellerName: input.travellerName ?? existing.travellerName,
-        travellerEmail: input.travellerEmail ?? existing.travellerEmail,
-        travellerPhone: input.travellerPhone ?? session.travellerPhone ?? existing.travellerPhone,
+        travellerName: input.travellerName ?? intent.travellerName ?? existing.travellerName,
+        travellerEmail: input.travellerEmail ?? intent.travellerEmail ?? existing.travellerEmail,
+        travellerPhone:
+          input.travellerPhone ??
+          intent.travellerPhone ??
+          session.travellerPhone ??
+          existing.travellerPhone,
         destination: intent.destination,
         tripType: intent.tripType,
         dateWindow: intent.dateWindow,
@@ -135,9 +155,9 @@ export async function createInquiryFromKaiSession(input: CreateInquiryFromKaiSes
       kaiSessionId: session.id,
       selectedYachtSlug: selectedYacht?.slug,
       selectedYachtName: selectedYacht?.name,
-      travellerName: input.travellerName,
-      travellerEmail: input.travellerEmail,
-      travellerPhone: input.travellerPhone ?? session.travellerPhone,
+      travellerName: input.travellerName ?? intent.travellerName,
+      travellerEmail: input.travellerEmail ?? intent.travellerEmail,
+      travellerPhone: input.travellerPhone ?? intent.travellerPhone ?? session.travellerPhone,
       destination: intent.destination,
       tripType: intent.tripType,
       dateWindow: intent.dateWindow,
@@ -212,6 +232,18 @@ function extractIntentFromSessionSlots(slots: unknown): KaiTravelIntent {
 
   if (typeof candidate.certificationLevel === "string") {
     intent.certificationLevel = candidate.certificationLevel;
+  }
+
+  if (typeof candidate.travellerName === "string") {
+    intent.travellerName = candidate.travellerName;
+  }
+
+  if (typeof candidate.travellerEmail === "string") {
+    intent.travellerEmail = candidate.travellerEmail;
+  }
+
+  if (typeof candidate.travellerPhone === "string") {
+    intent.travellerPhone = candidate.travellerPhone;
   }
 
   if (Array.isArray(candidate.interests)) {

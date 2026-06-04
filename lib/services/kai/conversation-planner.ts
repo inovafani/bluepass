@@ -13,7 +13,18 @@ type PlanKaiConversationInput = {
   channel: KaiChannel;
 };
 
-const requiredSlots = ["destination", "tripType", "guests", "dateWindow", "budget"] as const;
+const requiredSlots = [
+  "destination",
+  "tripType",
+  "guests",
+  "dateWindow",
+  "budget",
+  "travellerName",
+  "travellerEmail",
+  "travellerPhone",
+] as const;
+const travelSlots = ["destination", "tripType", "guests", "dateWindow", "budget"] as const;
+const contactSlots = ["travellerName", "travellerEmail", "travellerPhone"] as const;
 const optionalUsefulSlots = ["interests"] as const;
 
 export function planKaiConversation(input: PlanKaiConversationInput): KaiConversationPlan {
@@ -35,7 +46,12 @@ export function planKaiConversation(input: PlanKaiConversationInput): KaiConvers
 function buildKnownSlots(intent: KaiTravelIntent) {
   const knownSlots: string[] = [];
 
-  for (const slot of [...requiredSlots, "certificationLevel", ...optionalUsefulSlots]) {
+  for (const slot of [
+    ...requiredSlots,
+    "certificationLevel",
+    "selectedYachtSlug",
+    ...optionalUsefulSlots,
+  ]) {
     const value = intent[slot as keyof KaiTravelIntent];
 
     if (Array.isArray(value) ? value.length > 0 : value !== undefined && value !== null) {
@@ -53,7 +69,7 @@ function buildMissingSlots(intent: KaiTravelIntent) {
 
   const missingSlots: string[] = [];
 
-  for (const slot of requiredSlots) {
+  for (const slot of travelSlots) {
     if (!intent[slot]) {
       missingSlots.push(slot);
     }
@@ -61,6 +77,12 @@ function buildMissingSlots(intent: KaiTravelIntent) {
 
   if (requiresCertification(intent.tripType) && !intent.certificationLevel) {
     missingSlots.push("certificationLevel");
+  }
+
+  for (const slot of contactSlots) {
+    if (!intent[slot]) {
+      missingSlots.push(slot);
+    }
   }
 
   return missingSlots;
@@ -105,6 +127,12 @@ function buildInstruction(
 }
 
 function chooseSlotsToAsk(missingSlots: string[]) {
+  const missingContactSlots = contactSlots.filter((slot) => missingSlots.includes(slot));
+
+  if (missingContactSlots.length > 0 && missingSlots[0] === missingContactSlots[0]) {
+    return missingContactSlots;
+  }
+
   if (missingSlots.includes("dateWindow") && missingSlots.includes("certificationLevel")) {
     return ["dateWindow", "certificationLevel"];
   }

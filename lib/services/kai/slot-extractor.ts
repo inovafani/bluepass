@@ -1,4 +1,5 @@
 import type { KaiMissingSlot, KaiTravelIntent } from "@/lib/services/kai/types";
+import { yachts } from "@/lib/data/yachts";
 
 const destinationPatterns = [
   { destination: "Komodo", patterns: ["komodo islands", "komodo", "labuan bajo"] },
@@ -175,6 +176,30 @@ export function extractKaiTravelIntent(
 
   if (certificationLevel) {
     nextIntent.certificationLevel = certificationLevel;
+  }
+
+  const selectedYachtSlug = findSelectedYachtSlug(normalized);
+
+  if (selectedYachtSlug) {
+    nextIntent.selectedYachtSlug = selectedYachtSlug;
+  }
+
+  const travellerEmail = findTravellerEmail(message);
+
+  if (travellerEmail) {
+    nextIntent.travellerEmail = travellerEmail;
+  }
+
+  const travellerPhone = findTravellerPhone(message, options.lastAskedSlot);
+
+  if (travellerPhone) {
+    nextIntent.travellerPhone = travellerPhone;
+  }
+
+  const travellerName = findTravellerName(message, normalized, options.lastAskedSlot);
+
+  if (travellerName) {
+    nextIntent.travellerName = travellerName;
   }
 
   const extractedInterests = findInterests(normalized);
@@ -382,6 +407,89 @@ function findCertification(text: string, lastAskedSlot?: KaiMissingSlot) {
   return undefined;
 }
 
+function findSelectedYachtSlug(text: string) {
+  for (const yacht of yachts) {
+    const names = [yacht.name, yacht.slug.replace(/-/g, " ")].map((value) =>
+      value.toLowerCase(),
+    );
+
+    if (names.some((name) => containsPhrase(text, name))) {
+      return yacht.slug;
+    }
+  }
+
+  return undefined;
+}
+
+function findTravellerEmail(original: string) {
+  const match = original.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i);
+
+  return match?.[0].trim();
+}
+
+function findTravellerPhone(original: string, lastAskedSlot?: KaiMissingSlot) {
+  const phoneMatch = original.match(/(?:\+?\d[\d\s().-]{6,}\d)/);
+
+  if (!phoneMatch) {
+    return undefined;
+  }
+
+  const candidate = phoneMatch[0].trim();
+  const digits = candidate.replace(/\D/g, "");
+
+  if (digits.length < 8 || digits.length > 15) {
+    return undefined;
+  }
+
+  if (lastAskedSlot !== "travellerPhone" && looksLikeDateOrBudget(original, candidate)) {
+    return undefined;
+  }
+
+  return candidate;
+}
+
+function findTravellerName(
+  original: string,
+  normalized: string,
+  lastAskedSlot?: KaiMissingSlot,
+) {
+  const explicitMatch = original.match(
+    /\b(?:my name is|name is|i am|i'm|this is)\s+([A-Za-z][A-Za-z' -]{1,60})(?=,|\.|$|\s+(?:and|email|phone|whatsapp)\b)/i,
+  );
+
+  if (explicitMatch) {
+    return cleanTravellerName(explicitMatch[1]);
+  }
+
+  if (lastAskedSlot === "travellerName") {
+    const candidate = original
+      .split(/[,;]|\b(?:email|phone|whatsapp)\b/i)[0]
+      .trim();
+
+    if (/^[A-Za-z][A-Za-z' -]{1,60}$/.test(candidate) && !containsAny(normalized, tripTypes)) {
+      return cleanTravellerName(candidate);
+    }
+  }
+
+  return undefined;
+}
+
+function cleanTravellerName(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function looksLikeDateOrBudget(original: string, candidate: string) {
+  const aroundCandidate = original.slice(
+    Math.max(0, original.indexOf(candidate) - 16),
+    original.indexOf(candidate) + candidate.length + 16,
+  );
+
+  return (
+    /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december)\b/i.test(aroundCandidate) ||
+    /(?:\$|usd|budget|quote|under|below|around|about|per cabin|charter)/i.test(aroundCandidate)
+  );
+}
+
 function findInterests(text: string) {
   return interests
     .filter((item) => containsAny(text, item.patterns))
@@ -417,6 +525,18 @@ function computeMissingSlots(intent: KaiTravelIntent) {
 
   if (!intent.budget) {
     missingSlots.push("budget");
+  }
+
+  if (!intent.travellerName) {
+    missingSlots.push("travellerName");
+  }
+
+  if (!intent.travellerEmail) {
+    missingSlots.push("travellerEmail");
+  }
+
+  if (!intent.travellerPhone) {
+    missingSlots.push("travellerPhone");
   }
 
   return missingSlots;
