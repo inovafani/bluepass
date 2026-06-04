@@ -54,6 +54,31 @@ export type MatchResult = {
   pmsPlatform?: BookingAdapterPlatform;
 };
 
+export type YachtMatch = {
+  slug: string;
+  name: string;
+  region: "Komodo" | "Raja Ampat";
+  tier: string;
+  cabinBookable: boolean;
+  maxGuests: number;
+  cabins: number;
+  pricePerCabin: string;
+  charterPrice: string | null;
+  charterOnly: boolean;
+  matchingReasons: string[];
+  departuresPreview: string[];
+  score: number;
+};
+
+export type YachtInquiryHandoffPlan = {
+  selectedYachtSlug: string;
+  travellerApproved: boolean;
+  nextStep:
+    | "create_booking_inquiry"
+    | "dispatch_operator_whatsapp"
+    | "await_operator_contact_mapping";
+};
+
 export type KaiBookingContext = {
   slots?: KaiSlots;
   bookingId?: string;
@@ -86,7 +111,7 @@ export type KaiConversationResult = {
   sessionId: string;
   reply: string;
   intent: KaiTravelIntent;
-  matches?: MatchResult[];
+  matches?: YachtMatch[];
   planner?: KaiConversationPlan;
   messages: KaiConversationMessage[];
 };

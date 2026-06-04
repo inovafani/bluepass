@@ -200,6 +200,62 @@ describe("generateKaiReply", () => {
     expect(context.planner.instructionForReply).toContain("Ask only for: dateWindow, certificationLevel");
   });
 
+  it("includes static yacht suggestion constraints in LLM context", async () => {
+    process.env.KAI_LLM_ENABLED = "true";
+    process.env.KAI_LLM_PROVIDER = "groq";
+    process.env.GROQ_API_KEY = "groq-key";
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        choices: [{ message: { content: "I would shortlist Aliikai." } }],
+      }),
+    } as Response);
+
+    await generateKaiReply({
+      ...baseInput,
+      matches: [
+        {
+          slug: "aliikai",
+          name: "Aliikai",
+          region: "Raja Ampat",
+          tier: "Premium",
+          cabinBookable: true,
+          maxGuests: 15,
+          cabins: 7,
+          pricePerCabin: "$690",
+          charterPrice: "$8,900",
+          charterOnly: false,
+          matchingReasons: ["Raja Ampat route", "fits 3 guests", "cabin bookable"],
+          departuresPreview: ["Jul 5 - Jul 12"],
+          score: 112,
+        },
+      ],
+    });
+
+    const [, request] = vi.mocked(globalThis.fetch).mock.calls[0];
+    const body = JSON.parse(String((request as RequestInit).body));
+    const contextMessage = body.messages.find(
+      (message: { role: string; content: string }) =>
+        message.role === "user" && message.content.startsWith("Structured Kai context:"),
+    );
+    const context = JSON.parse(contextMessage.content.replace("Structured Kai context:\n", ""));
+
+    expect(context.stateCard["Yacht suggestions"]).toEqual([
+      expect.objectContaining({
+        slug: "aliikai",
+        name: "Aliikai",
+        matchingReasons: ["Raja Ampat route", "fits 3 guests", "cabin bookable"],
+      }),
+    ]);
+    expect(context.stateCard["Yacht suggestion constraints"]).toContain(
+      "Static BluePass preview catalog only",
+    );
+    expect(body.messages[0].content).toContain("Do not invent additional yachts");
+    expect(body.messages[0].content).toContain("Do not claim real-time availability");
+  });
+
   it("falls back when GROQ_API_KEY is missing", async () => {
     process.env.KAI_LLM_ENABLED = "true";
     process.env.KAI_LLM_PROVIDER = "groq";

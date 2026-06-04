@@ -38,9 +38,23 @@ Website Kai MVP session model:
 - Kai currently uses deterministic, rule-based Indonesia-focused travel slot
   extraction. This prepares the system for future LLM and tool-calling while
   keeping MVP behavior safe and testable.
+- `lib/data/yachts.ts` remains the static BluePass preview yacht catalog and is
+  still the source of truth for explore pages, operator fleet browsing, yacht
+  detail pages, and Kai preview-fleet suggestions.
+- Once Kai knows a useful core intent such as destination, trip type, and guest
+  count, it can return top static yacht matches in `/api/kai/web-chat` as
+  `matches`. These are shortlist suggestions from the preview catalog only, not
+  live availability, final pricing, operator acceptance, or confirmed booking
+  state.
 - Kai LLM v1 is optional and only used for natural response generation. The
   deterministic extractor remains the structured state layer, and PMS, payment,
   booking confirmation, and tool-calling are not enabled yet.
+- Operator WhatsApp inquiry dispatch is intentionally not wired to the static
+  yacht catalog. The next backend step is: traveller selects or approves a yacht
+  match, BluePass creates a `BookingInquiry`, and the backend dispatches that
+  inquiry to the operator through WhatsApp. Operator contact details must come
+  from a database mapping, explicit endpoint input, or an environment variable
+  such as `BLUEPASS_TEST_OPERATOR_PHONE`, not invented from `yachts.ts`.
 
 Optional Kai LLM env for OpenAI:
 
@@ -84,9 +98,62 @@ Website chat response:
 ```json
 {
   "sessionId": "kai_generated_or_existing_id",
-  "reply": "Thanks - I can help you find the right marine trip. Where are you hoping to go, and what kind of experience are you looking for?"
+  "reply": "Based on the current BluePass preview fleet, I'd shortlist...",
+  "intent": {
+    "destination": "Raja Ampat",
+    "tripType": "liveaboard",
+    "guests": 3
+  },
+  "matches": [
+    {
+      "slug": "aliikai",
+      "name": "Aliikai",
+      "region": "Raja Ampat",
+      "tier": "Premium",
+      "cabinBookable": true,
+      "matchingReasons": ["Raja Ampat route", "fits 3 guests", "cabin bookable"]
+    }
+  ]
 }
 ```
+
+Create a website Kai inquiry after the traveller explicitly confirms a selected
+match:
+
+```bash
+curl -X POST http://localhost:3000/api/kai/web-chat/inquiry \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sessionId": "kai_generated_or_existing_id",
+    "selectedYachtSlug": "aliikai",
+    "confirm": true
+  }'
+```
+
+This creates or reuses an active `BookingInquiry` only when the persisted Kai
+session has enough intent for dispatch readiness: destination, trip type,
+guests, travel dates, and either a selected yacht or notes. Diving and
+liveaboard inquiries also require certification level before dispatch. This
+endpoint does not send WhatsApp automatically.
+
+Dispatch a ready inquiry to an operator WhatsApp number for MVP testing:
+
+```bash
+curl -X POST http://localhost:3000/api/kai/web-chat/inquiry/dispatch \
+  -H "Authorization: Bearer local-only-shared-secret" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inquiryId": "inq_...",
+    "operatorPhone": "+628213143342"
+  }'
+```
+
+The dispatch endpoint requires `INTERNAL_SERVICE_TOKEN`. If `operatorPhone` is
+omitted it uses `BLUEPASS_TEST_OPERATOR_PHONE`; if neither is set the request is
+rejected. Operator contact details are not stored in `yachts.ts`. The operator
+receives the `booking_inquiry_operator` WhatsApp template from the configured
+BluePass/OpenKai WhatsApp Business number. The outbound WhatsApp context is
+stored so future operator button replies can be resolved safely.
 
 ## Bokun operator catalog sync
 

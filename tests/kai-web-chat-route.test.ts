@@ -256,6 +256,64 @@ describe("POST /api/kai/web-chat", () => {
     );
   });
 
+  it("does not include static yacht catalog matches until required slots are complete", async () => {
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_catalog_matches_session",
+        message: "Raja Ampat liveaboard for 3 guests",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual(
+      expect.objectContaining({
+        sessionId: "kai_catalog_matches_session",
+        intent: expect.objectContaining({
+          destination: "Raja Ampat",
+          tripType: "liveaboard",
+          guests: 3,
+        }),
+        matches: [],
+      }),
+    );
+  });
+
+  it("includes static yacht catalog matches when the inquiry is ready to match", async () => {
+    const response = await POST(
+      buildPostRequest({
+        sessionId: "kai_catalog_ready_matches_session",
+        message: "Raja Ampat liveaboard for 3 guests around October with $4000 budget, beginner",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual(
+      expect.objectContaining({
+        sessionId: "kai_catalog_ready_matches_session",
+        intent: expect.objectContaining({
+          destination: "Raja Ampat",
+          tripType: "liveaboard",
+          guests: 3,
+          dateWindow: "October",
+          budget: "$4000",
+          certificationLevel: "beginner",
+        }),
+        matches: expect.arrayContaining([
+          expect.objectContaining({
+            slug: expect.any(String),
+            name: expect.any(String),
+            region: "Raja Ampat",
+            tier: expect.any(String),
+            cabinBookable: expect.any(Boolean),
+            matchingReasons: expect.arrayContaining(["Raja Ampat route", "fits 3 guests"]),
+          }),
+        ]),
+      }),
+    );
+  });
+
   it("uses stored lastAskedSlot to resolve a short guests answer", async () => {
     storeMocks.getSessionContext.mockResolvedValue({
       intent: {

@@ -4,7 +4,7 @@ import type {
   KaiConversationMessage,
   KaiMissingSlot,
   KaiTravelIntent,
-  MatchResult,
+  YachtMatch,
 } from "@/lib/services/kai/types";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
@@ -19,7 +19,7 @@ export type GenerateKaiReplyInput = {
   channel: KaiChannel;
   deterministicReply: string;
   planner?: KaiConversationPlan;
-  matches?: MatchResult[];
+  matches?: YachtMatch[];
 };
 
 type OpenAIResponse = {
@@ -83,7 +83,10 @@ function buildKaiSystemInstructions() {
     "Supported destination examples include Komodo, Raja Ampat, Bali, Nusa Penida, Nusa Lembongan, Lombok, Gili Islands, Alor, Wakatobi, Banda Sea, Ambon, Derawan, Bunaken, Lembeh, Flores, Sumba, Mentawai, and Cenderawasih Bay.",
     "Kai can help discover suitable trips, but cannot yet confirm live availability, make bookings, place PMS holds, contact operators, collect payment, or confirm reservations.",
     "Use the extracted intent as structured context. Do not invent facts, prices, availability, operators, booking status, or payment links.",
-    "If matched packages are provided, summarize them as synced candidate packages from operators. Do not call them confirmed, available, held, or booked.",
+    "If yacht suggestions are provided, they come only from the static BluePass preview catalog. Do not invent additional yachts.",
+    "Do not claim real-time availability. Do not say available now, confirmed, booked, or operator accepted unless that state exists.",
+    "Do not quote yacht prices as final. Treat them as preview catalog price signals only.",
+    "Website chat alone does not create or send inquiries. If the user asks to proceed, say Kai can help prepare an inquiry and ask them to use the explicit inquiry action; do not say you have prepared, created, sent, or will send an inquiry unless the structured context includes an actual inquiry result.",
     "Follow the provided planner.instructionForReply exactly. The planner is the source of truth for which slots are known and missing.",
     "Do not ask for any slot listed in planner.knownSlots unless the user clearly corrected it in their latest message.",
     "If the user asks for a non-Indonesian destination, explain BluePass is currently Indonesia-focused and offer Indonesian alternatives.",
@@ -156,16 +159,23 @@ function buildStateCard(input: GenerateKaiReplyInput) {
     "Missing slots": input.planner?.missingSlots ?? input.missingSlots ?? [],
     "Next slot to ask": input.planner?.nextSlotToAsk ?? "none",
     "Instruction": input.planner?.instructionForReply ?? "Use deterministic missing slots.",
-    "Matched packages": input.matches?.map((match) => ({
-      title: match.title,
-      operatorName: match.operatorName,
-      location: match.location,
-      priceCents: match.priceCents,
-      currency: match.currency,
-      orderUrl: match.orderUrl,
-      reason: match.reason,
-      pmsPlatform: match.pmsPlatform,
+    "Yacht suggestions": input.matches?.map((match) => ({
+      slug: match.slug,
+      name: match.name,
+      region: match.region,
+      tier: match.tier,
+      cabinBookable: match.cabinBookable,
+      maxGuests: match.maxGuests,
+      cabins: match.cabins,
+      pricePerCabin: match.pricePerCabin,
+      charterPrice: match.charterPrice,
+      charterOnly: match.charterOnly,
+      matchingReasons: match.matchingReasons,
+      departuresPreview: match.departuresPreview,
+      score: match.score,
     })) ?? [],
+    "Yacht suggestion constraints":
+      "Static BluePass preview catalog only; no invented yachts, live availability, final prices, confirmed bookings, operator acceptance, or automatic inquiry dispatch from chat. Proceeding requires an explicit inquiry action.",
   };
 }
 

@@ -8,7 +8,7 @@ interface Message {
   matches?: MatchCard[];
 }
 
-interface MatchCard {
+interface TripMatchCard {
   tripId: string;
   operatorId: string;
   externalId?: string;
@@ -24,6 +24,24 @@ interface MatchCard {
   pmsPlatform?: string;
 }
 
+interface YachtMatchCard {
+  slug: string;
+  name: string;
+  region: "Komodo" | "Raja Ampat";
+  tier: string;
+  cabinBookable: boolean;
+  maxGuests: number;
+  cabins: number;
+  pricePerCabin: string;
+  charterPrice: string | null;
+  charterOnly: boolean;
+  matchingReasons: string[];
+  departuresPreview: string[];
+  score: number;
+}
+
+type MatchCard = TripMatchCard | YachtMatchCard;
+
 const GREETING: Message = {
   role: "assistant",
   content:
@@ -38,6 +56,8 @@ export function KaiWebChat() {
   const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [sendingInquirySlug, setSendingInquirySlug] = useState<string | null>(null);
+  const [sentInquirySlugs, setSentInquirySlugs] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // sessionId drives no rendering — ref avoids synchronous setState in effects
@@ -140,6 +160,73 @@ export function KaiWebChat() {
       setTimeout(() => textareaRef.current?.focus(), 0);
     }
   }, [input, isSending, messages]);
+
+  const sendInquiry = useCallback(async (match: YachtMatchCard) => {
+    const sessionId = sessionIdRef.current;
+
+    if (!sessionId || sendingInquirySlug || sentInquirySlugs.includes(match.slug)) {
+      return;
+    }
+
+    setError(null);
+    setSendingInquirySlug(match.slug);
+
+    try {
+      const res = await fetch("/api/kai/web-chat/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          selectedYachtSlug: match.slug,
+          confirm: true,
+        }),
+      });
+
+      const data: {
+        ok?: boolean;
+        dispatched?: boolean;
+        missingSlots?: string[];
+        error?: string;
+      } = await res.json();
+
+      if (!res.ok || !data.ok) {
+        const missing = data.missingSlots?.length
+          ? ` Missing: ${data.missingSlots.join(", ")}.`
+          : "";
+        throw new Error(data.error ?? `Inquiry is not ready.${missing}`);
+      }
+
+      if (!data.dispatched) {
+        throw new Error(data.error ?? "Inquiry was prepared, but operator dispatch is not configured.");
+      }
+
+      setSentInquirySlugs((prev) =>
+        prev.includes(match.slug) ? prev : [...prev, match.slug],
+      );
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `Done - I sent the ${match.name} inquiry to the operator number on file. This is an availability request, not a confirmed booking yet.`,
+        },
+      ]);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "I couldn't send that inquiry right now. Please try again.";
+      setError(message);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: message,
+        },
+      ]);
+    } finally {
+      setSendingInquirySlug(null);
+    }
+  }, [sendingInquirySlug, sentInquirySlugs]);
 
   function startNewChat() {
     localStorage.removeItem(LS_KEY);
@@ -261,8 +348,18 @@ export function KaiWebChat() {
                       msg.matches &&
                       msg.matches.length > 0 && (
                         <div className="mt-3 space-y-2">
-                          {msg.matches.map((match) => (
-                            <KaiMatchCard key={match.tripId} match={match} />
+                          {msg.matches.map((match, index) => (
+                            <KaiMatchCard
+                              key={getMatchKey(match, index)}
+                              match={match}
+                              onSendInquiry={sendInquiry}
+                              isSendingInquiry={
+                                isYachtMatch(match) && sendingInquirySlug === match.slug
+                              }
+                              isInquirySent={
+                                isYachtMatch(match) && sentInquirySlugs.includes(match.slug)
+                              }
+                            />
                           ))}
                         </div>
                       )}
@@ -425,7 +522,28 @@ export function KaiWebChat() {
   );
 }
 
-function KaiMatchCard({ match }: { match: MatchCard }) {
+function KaiMatchCard({
+  match,
+  onSendInquiry,
+  isSendingInquiry,
+  isInquirySent,
+}: {
+  match: MatchCard;
+  onSendInquiry: (match: YachtMatchCard) => void;
+  isSendingInquiry: boolean;
+  isInquirySent: boolean;
+}) {
+  if (isYachtMatch(match)) {
+    return (
+      <KaiYachtMatchCard
+        match={match}
+        onSendInquiry={onSendInquiry}
+        isSendingInquiry={isSendingInquiry}
+        isInquirySent={isInquirySent}
+      />
+    );
+  }
+
   const price = formatMatchPrice(match);
   const location = formatMatchLocation(match.location);
 
@@ -498,6 +616,89 @@ function KaiMatchCard({ match }: { match: MatchCard }) {
   );
 }
 
+function KaiYachtMatchCard({
+  match,
+  onSendInquiry,
+  isSendingInquiry,
+  isInquirySent,
+}: {
+  match: YachtMatchCard;
+  onSendInquiry: (match: YachtMatchCard) => void;
+  isSendingInquiry: boolean;
+  isInquirySent: boolean;
+}) {
+  const price = match.charterOnly
+    ? match.charterPrice ?? "Quote on request"
+    : match.pricePerCabin;
+  const priceLabel = match.charterOnly ? "Private charter" : "Cabin signal";
+
+  return (
+    <div className="rounded-lg border border-white/12 bg-[#071a29] p-3 text-white shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold leading-snug">
+            {match.name}
+          </p>
+          <p className="mt-1 text-[11px] leading-snug text-white/55">
+            {match.region}
+            {match.tier ? ` · ${match.tier}` : ""}
+          </p>
+        </div>
+        {match.cabinBookable && (
+          <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-emerald-100">
+            Cabins
+          </span>
+        )}
+      </div>
+
+      <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-white/70">
+        <span className="rounded-full bg-white/8 px-2 py-1">
+          Up to {match.maxGuests} guests
+        </span>
+        <span className="rounded-full bg-white/8 px-2 py-1">
+          {match.cabins} cabins
+        </span>
+        <span className="rounded-full bg-white/8 px-2 py-1">
+          {priceLabel}: {price}
+        </span>
+      </div>
+
+      {match.matchingReasons.length > 0 && (
+        <p className="mt-2 text-[11px] leading-relaxed text-white/62">
+          {match.matchingReasons.slice(0, 3).join(", ")}
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={() => onSendInquiry(match)}
+        disabled={isSendingInquiry || isInquirySent}
+        className="bp-focus-ring mt-3 inline-flex w-full items-center justify-center rounded-md bg-[#075e54] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#0b6f63] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isInquirySent ? "Inquiry sent" : isSendingInquiry ? "Sending..." : "Send inquiry"}
+      </button>
+      <a
+        href={`/yachts/${match.slug}`}
+        className="bp-focus-ring mt-2 inline-flex w-full items-center justify-center rounded-md border border-white/12 bg-white/8 px-3 py-2 text-[12px] font-semibold text-white/80 transition-colors hover:bg-white/12"
+      >
+        View yacht
+      </a>
+    </div>
+  );
+}
+
+function getMatchKey(match: MatchCard, index: number) {
+  if (isYachtMatch(match)) {
+    return `yacht-${match.slug}`;
+  }
+
+  return match.tripId ?? `match-${index}`;
+}
+
+function isYachtMatch(match: MatchCard): match is YachtMatchCard {
+  return "slug" in match && "matchingReasons" in match;
+}
+
 function formatMatchLocation(location?: string) {
   if (!location || /^[A-Za-z_]+\/[A-Za-z_]+(?:\/[A-Za-z_]+)?$/.test(location)) {
     return undefined;
@@ -506,7 +707,7 @@ function formatMatchLocation(location?: string) {
   return location;
 }
 
-function buildWhatsAppBookingHref(match: MatchCard) {
+function buildWhatsAppBookingHref(match: TripMatchCard) {
   const message = [
     "Hi BluePass, I want to book this trip:",
     match.title,
@@ -519,7 +720,7 @@ function buildWhatsAppBookingHref(match: MatchCard) {
   return `${WA_HREF}?text=${encodeURIComponent(message)}`;
 }
 
-function formatMatchPrice(match: MatchCard) {
+function formatMatchPrice(match: TripMatchCard) {
   if (!match.priceCents || !match.currency) {
     return undefined;
   }

@@ -344,73 +344,89 @@ describe("Kai conversation service", () => {
     );
   });
 
-  it("returns synced Bokun package matches once the required trip intent is known", async () => {
+  it("does not expose yacht cards while required inquiry slots are still missing", async () => {
     const store = buildStore();
-    matchMocks.matchTripsForKai.mockResolvedValue([
-      {
-        tripId: "trip_bokun_raja_1",
-        operatorId: "operator_bokun_1",
-        operatorName: "Raja Blue Liveaboards",
-        title: "Raja Ampat Sailing Expedition",
-        location: "Raja Ampat",
-        priceCents: 125000,
-        currency: "USD",
-        score: 95,
-        reason: "matches Raja Ampat, fits sailing, from a synced Bokun operator",
-        pmsPlatform: "bokun",
-      },
-    ]);
     const service = createKaiConversationService(store);
 
     const result = await service.handleUserMessage({
       channel: "web",
-      message: "Raja Ampat sailing for 3 guests in October with $2,000 budget",
+      message: "Raja Ampat sailing for 3 guests",
     });
 
-    expect(matchMocks.matchTripsForKai).toHaveBeenCalledWith(
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        destination: "Raja Ampat",
+        tripType: "sailing",
+        guests: 3,
+      }),
+    );
+    expect(result.matches).toEqual([]);
+    expect(result.reply).toContain("When are you hoping to travel");
+  });
+
+  it("returns static yacht catalog matches once the inquiry is ready to match", async () => {
+    const store = buildStore();
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      message: "Raja Ampat sailing for 3 guests around October with a $4000 budget",
+    });
+
+    expect(result.intent).toEqual(
       expect.objectContaining({
         destination: "Raja Ampat",
         tripType: "sailing",
         guests: 3,
         dateWindow: "October",
-        budget: "$2,000",
+        budget: "$4000",
       }),
     );
-    expect(result.matches).toHaveLength(1);
-    expect(result.reply).toContain("Raja Ampat Sailing Expedition");
-    expect(result.reply).toContain("synced operator package");
-    expect(result.reply).not.toContain("start matching suitable Indonesia trips");
+    expect(result.matches?.length).toBeGreaterThan(0);
+    expect(result.matches?.[0]).toEqual(
+      expect.objectContaining({
+        slug: expect.any(String),
+        name: expect.any(String),
+        region: "Raja Ampat",
+        matchingReasons: expect.arrayContaining(["Raja Ampat route", "fits 3 guests"]),
+      }),
+    );
   });
 
-  it("overrides a generic LLM reply when synced Bokun matches exist", async () => {
+  it("overrides a generic LLM reply when static yacht matches exist", async () => {
     const store = buildStore();
-    matchMocks.matchTripsForKai.mockResolvedValue([
-      {
-        tripId: "trip_bokun_labuan_1",
-        operatorId: "operator_lucid_tours",
-        operatorName: "Lucid Tours",
-        title: "Labuan Bajo Sunset Tour",
-        location: "Asia/Jakarta",
-        priceCents: 0,
-        currency: "USD",
-        score: 95,
-        reason: "matches Komodo, fits sunset tour, from a synced Bokun operator",
-        pmsPlatform: "bokun",
-      },
-    ]);
     llmMocks.generateKaiReply.mockResolvedValue(
-      "Perfect. I can start matching suitable Indonesia trips for Komodo based on your sunset tour plans for 2 guests.",
+      "Perfect. I can start matching suitable Indonesia trips for Komodo based on your sailing plans for 2 guests.",
     );
     const service = createKaiConversationService(store);
 
     const result = await service.handleUserMessage({
       channel: "web",
-      message: "Labuan Bajo sunset tour for 2 people on 20th June under $1,000",
+      message: "Labuan Bajo sailing for 2 people on 20th June under $1,000",
     });
 
-    expect(result.reply).toContain("Labuan Bajo Sunset Tour");
-    expect(result.reply).toContain("synced operator package");
+    expect(result.matches?.length).toBeGreaterThan(0);
+    expect(result.reply).toContain("BluePass preview fleet");
     expect(result.reply).not.toContain("Perfect. I can start matching");
+  });
+
+  it("overrides LLM replies that claim an inquiry was prepared or sent from chat", async () => {
+    const store = buildStore();
+    llmMocks.generateKaiReply.mockResolvedValue(
+      "I've prepared an inquiry for Calico Jack. I'll send it through our system to check availability.",
+    );
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      message:
+        "Komodo liveaboard for 3 guests around July 3rd, budget $4000, beginner",
+    });
+
+    expect(result.reply).toContain("Based on the current BluePass preview fleet");
+    expect(result.reply).toContain("If you'd like to proceed, I can prepare an inquiry");
+    expect(result.reply).not.toContain("I've prepared an inquiry");
+    expect(result.reply).not.toContain("I'll send it");
   });
 
   it("falls back safely when LLM reply generation throws", async () => {

@@ -127,6 +127,28 @@ export function buildOperatorInquiryTemplatePayload(
   };
 }
 
+export function buildOperatorInquiryFreeText(
+  input: OperatorInquiryTemplateInput,
+): FreeTextMessage {
+  return {
+    type: "text",
+    body: [
+      "New BluePass inquiry",
+      "",
+      `Inquiry: ${input.inquiryTitle}`,
+      `Traveller: ${input.travellerName}`,
+      `Traveller WhatsApp: ${input.travellerPhone}`,
+      `Dates: ${input.dateRange}`,
+      `Guests: ${input.guests}`,
+      `Budget / quote signal: ${input.quote}`,
+      `Trip: ${input.tripTitle}`,
+      `Notes: ${input.notes}`,
+      "",
+      `Reply accept:${input.bookingId}, decline:${input.bookingId}, or counter:${input.bookingId}.`,
+    ].join("\n"),
+  };
+}
+
 export function buildOperatorAcceptedFreeText(
   input: OperatorBookingSummaryInput,
 ): FreeTextMessage {

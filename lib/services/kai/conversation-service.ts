@@ -2,9 +2,9 @@ import { randomUUID } from "crypto";
 import { planKaiConversation } from "@/lib/services/kai/conversation-planner";
 import { sanitizeObjectForResponse } from "@/lib/services/kai/json-safety";
 import { generateKaiReply } from "@/lib/services/kai/llm-provider";
-import { matchTripsForKai } from "@/lib/services/kai/match";
 import { prismaKaiConversationStore } from "@/lib/services/kai/prisma-conversation-store";
 import { extractKaiTravelIntent } from "@/lib/services/kai/slot-extractor";
+import { searchYachtsForIntent } from "@/lib/services/kai/yacht-catalog-search";
 import type {
   KaiChannel,
   KaiConversationInput,
@@ -14,7 +14,7 @@ import type {
   KaiSessionContext,
   KaiSessionStatus,
   KaiTravelIntent,
-  MatchResult,
+  YachtMatch,
 } from "@/lib/services/kai/types";
 
 export const DEFAULT_KAI_REPLY =
@@ -128,7 +128,10 @@ export function createKaiConversationService(
         intentKeys: Object.keys(intent),
         missingSlots: planner.missingSlots,
       });
-      const matches = await matchTripsSafely(intent, planner, sessionId, input.channel);
+      const matches =
+        planner.conversationStage === "ready_to_match"
+          ? searchYachtsSafely(intent, sessionId, input.channel)
+          : [];
       const deterministicReply = buildDeterministicReply(intent, planner, input.message, matches);
       const context = buildSessionContext(intent, planner);
       const userMessage = buildMessage({
@@ -243,7 +246,7 @@ export function buildDeterministicReply(
     channel: "web",
   }),
   latestUserMessage = "",
-  matches: MatchResult[] = [],
+  matches: YachtMatch[] = [],
 ) {
   if (intent.unsupportedDestination) {
     return "BluePass is currently focused on Indonesia. I can help with places like Komodo, Raja Ampat, Bali, Nusa Penida, Alor, Wakatobi, and other Indonesian marine destinations. Are you open to an Indonesia-based trip?";
@@ -471,9 +474,13 @@ function enforcePlannerReply(
   deterministicReply: string,
   planner: ReturnType<typeof planKaiConversation>,
   latestUserMessage = "",
-  matches: MatchResult[] = [],
+  matches: YachtMatch[] = [],
 ) {
-  if (matches.length > 0 && !replyMentionsAnyMatch(reply, matches)) {
+  if (
+    planner.conversationStage === "ready_to_match" &&
+    matches.length > 0 &&
+    !replyMentionsAnyMatch(reply, matches)
+  ) {
     console.warn("kai.reply.overrode_missing_matched_packages", {
       knownSlots: planner.knownSlots,
       missingSlots: planner.missingSlots,
@@ -486,6 +493,16 @@ function enforcePlannerReply(
 
   if (isTravelTimingQuestion(latestUserMessage) && !replyAnswersTravelTiming(reply)) {
     console.warn("kai.reply.overrode_missing_travel_advice_answer", {
+      knownSlots: planner.knownSlots,
+      missingSlots: planner.missingSlots,
+      nextSlotToAsk: planner.nextSlotToAsk,
+    });
+
+    return deterministicReply;
+  }
+
+  if (replyClaimsInquiryWasCreatedOrSent(reply)) {
+    console.warn("kai.reply.overrode_unbacked_inquiry_claim", {
       knownSlots: planner.knownSlots,
       missingSlots: planner.missingSlots,
       nextSlotToAsk: planner.nextSlotToAsk,
@@ -511,10 +528,21 @@ function enforcePlannerReply(
   return deterministicReply;
 }
 
-function replyMentionsAnyMatch(reply: string, matches: MatchResult[]) {
+function replyMentionsAnyMatch(reply: string, matches: YachtMatch[]) {
   const normalized = reply.toLowerCase();
 
-  return matches.some((match) => normalized.includes(match.title.toLowerCase()));
+  return matches.some((match) => normalized.includes(match.name.toLowerCase()));
+}
+
+function replyClaimsInquiryWasCreatedOrSent(reply: string) {
+  const normalized = reply.toLowerCase();
+
+  return (
+    /\b(?:i'?ve|i have|we'?ve|we have)\s+(?:prepared|created|made|sent)\s+(?:an?\s+)?inquiry\b/.test(normalized) ||
+    /\b(?:i'?ll|i will|we'?ll|we will)\s+send\s+(?:it|this|the inquiry|an inquiry)\b/.test(normalized) ||
+    /\b(?:inquiry|request)\s+(?:has been|was)\s+(?:prepared|created|sent)\b/.test(normalized) ||
+    /\b(?:operator|crew)\s+(?:will receive|has received|received)\s+(?:it|this|the inquiry|an inquiry)\b/.test(normalized)
+  );
 }
 
 function buildTravelAdviceReply(intent: KaiTravelIntent, latestUserMessage: string) {
@@ -539,18 +567,13 @@ function buildTravelAdviceReply(intent: KaiTravelIntent, latestUserMessage: stri
   return `${season.destination} is usually best ${season.bestWindow}.${dateText} For ${season.destination}${tripTypeText}${guestText}, ${season.note} ${nextStep}`;
 }
 
-async function matchTripsSafely(
+function searchYachtsSafely(
   intent: KaiTravelIntent,
-  planner: ReturnType<typeof planKaiConversation>,
   sessionId: string,
   channel: KaiChannel,
 ) {
-  if (planner.conversationStage !== "ready_to_match") {
-    return [];
-  }
-
   try {
-    const matches = await matchTripsForKai(intent);
+    const matches = searchYachtsForIntent(intent);
 
     logKaiStage("kai.matches.loaded", {
       sessionId,
@@ -564,43 +587,30 @@ async function matchTripsSafely(
       sessionId: maskSessionId(sessionId),
       channel,
       errorName: error instanceof Error ? error.name : "UnknownError",
-      message: error instanceof Error ? error.message : "Unable to load Kai matches",
-      prismaCode: getPrismaErrorCode(error),
+      message: error instanceof Error ? error.message : "Unable to load Kai yacht catalog matches",
     });
 
     return [];
   }
 }
 
-function buildMatchedTripsReply(intent: KaiTravelIntent, matches: MatchResult[]) {
-  const allSynced = matches.every((match) => Boolean(match.pmsPlatform));
-  const candidateLabel = allSynced ? "synced operator package" : "BluePass operator candidate";
+function buildMatchedTripsReply(intent: KaiTravelIntent, matches: YachtMatch[]) {
   const intro =
     matches.length === 1
-      ? `I found a ${candidateLabel} that looks close for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`
-      : `I found a few ${candidateLabel}s that look close for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`;
+      ? `Based on the current BluePass preview fleet, I'd shortlist this yacht for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`
+      : `Based on the current BluePass preview fleet, I'd shortlist these yachts for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`;
   const rows = matches
     .map((match, index) => {
-      const operator = match.operatorName ? ` with ${match.operatorName}` : "";
-      const price = formatMatchPrice(match);
+      const price = match.charterOnly
+        ? match.charterPrice ?? "quote on request"
+        : match.pricePerCabin;
+      const priceLabel = match.charterOnly ? "private charter quote" : "cabin price signal";
 
-      return `${index + 1}. ${match.title}${operator}${price ? ` - ${price}` : ""}. ${match.reason}.`;
+      return `${index + 1}. ${match.name} - ${priceLabel}: ${price}. ${match.matchingReasons.slice(0, 3).join(", ")}.`;
     })
     .join("\n");
 
-  return `${intro}\n${rows}\nI can use these as candidates, but I still won't claim live availability or confirm a booking until the operator/PMS hold step is wired.`;
-}
-
-function formatMatchPrice(match: MatchResult) {
-  if (!match.priceCents || !match.currency) {
-    return undefined;
-  }
-
-  return `from ${new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: match.currency,
-    maximumFractionDigits: 0,
-  }).format(match.priceCents / 100)}`;
+  return `${intro}\n${rows}\nThese are static catalog suggestions, not live availability or final prices. If you'd like to proceed, I can prepare an inquiry rather than confirm a booking.`;
 }
 
 function isTravelTimingQuestion(message: string) {
