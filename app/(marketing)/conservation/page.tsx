@@ -263,7 +263,7 @@ export default function ConservationPage() {
         <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
           <div className="bp-reveal mx-auto max-w-6xl">
             {/* Heading row */}
-            <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
                   Monthly report
@@ -272,38 +272,37 @@ export default function ConservationPage() {
                   Reports will be dated, readable, and hard to fake.
                 </h2>
               </div>
-              <p className="max-w-xs text-sm font-light leading-[1.75] text-white/36 md:text-right">
+              <p className="text-sm font-light leading-[1.75] text-white/36 md:text-right">
                 Every line tied to a named partner and a booking month.
               </p>
             </div>
 
-            {/* Editorial divider list — no cards */}
-            <div className="divide-y divide-white/[0.07]">
+            {/* Compact single-row — 3 columns divided */}
+            <div className="grid divide-y divide-white/[0.07] border border-white/[0.07] bg-white/[0.015] md:grid-cols-3 md:divide-x md:divide-y-0">
               {reportItems.map((item, i) => (
                 <div
                   key={item.title}
-                  className="grid grid-cols-[2.5rem_1fr] gap-6 py-8 md:grid-cols-[2.5rem_2.5rem_1fr] md:gap-8"
+                  className="flex items-start gap-4 px-5 py-5"
                 >
-                  {/* Step number */}
-                  <span
-                    className="pt-0.5 text-[11px] text-white/22"
-                    style={{ fontFamily: "var(--bp-font-mono)" }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {/* Icon — subtle, no box on mobile */}
-                  <div
-                    className="hidden h-9 w-9 shrink-0 items-center justify-center border border-white/[0.08] bg-white/[0.02] md:flex"
-                    style={{ borderRadius: "8px" }}
-                  >
-                    <ReportIcon type={item.icon} />
+                  <div className="flex shrink-0 flex-col items-center gap-2 pt-0.5">
+                    <span
+                      className="text-[10px] text-white/22"
+                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div
+                      className="flex h-8 w-8 items-center justify-center border border-white/[0.08] bg-white/[0.02]"
+                      style={{ borderRadius: "6px" }}
+                    >
+                      <ReportIcon type={item.icon} />
+                    </div>
                   </div>
-                  {/* Content */}
-                  <div>
-                    <h3 className="bp-page-title text-xl leading-none text-white/86">
+                  <div className="min-w-0">
+                    <h3 className="bp-page-title text-[0.9375rem] leading-tight text-white/86">
                       {item.title}
                     </h3>
-                    <p className="mt-3 max-w-xl text-sm font-light leading-[1.8] text-white/50">
+                    <p className="mt-1.5 text-[12px] font-light leading-[1.65] text-white/44">
                       {item.body}
                     </p>
                   </div>
@@ -322,21 +321,27 @@ export default function ConservationPage() {
           />
           <div className="absolute inset-0 bg-[#020b11]/58" />
           <div className="bp-film-grain absolute inset-0" />
-          <div className="bp-reveal bp-rounded-surface relative mx-auto max-w-4xl border border-white/12 bg-[#03111d]/72 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-xl md:p-10">
-            <h2 className="bp-page-title text-2xl leading-none text-white md:text-3xl">
-              5% of every booking goes back to the ocean.
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-sm font-light leading-6 text-white/56 md:text-[15px]">
-              BluePass will publish named partners, dated updates, and monthly
-              notes as bookings begin moving through the marketplace.
-            </p>
-            <Link
-              href="/explore-indonesia"
-              className="bp-focus-ring mt-8 inline-flex h-12 items-center justify-center gap-2 bg-white px-6 text-sm font-medium text-[#071827] transition-colors hover:bg-white/90"
-            >
-              Find a trip that funds the reef
-              <ArrowIcon />
-            </Link>
+          <div className="bp-reveal relative mx-auto max-w-4xl overflow-hidden rounded-2xl p-6 shadow-[0_24px_80px_rgba(0,0,0,0.30)] md:p-10">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[linear-gradient(180deg,rgba(156,126,96,0.42),rgba(20,24,30,0.44))] shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] backdrop-blur-[34px] backdrop-saturate-150"
+            />
+            <div className="relative z-10">
+              <h2 className="bp-page-title text-2xl leading-none text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.38)] md:text-3xl">
+                5% of every booking goes back to the ocean.
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-sm font-light leading-6 text-white/72 drop-shadow-[0_1px_12px_rgba(0,0,0,0.35)] md:text-[15px]">
+                BluePass will publish named partners, dated updates, and monthly
+                notes as bookings begin moving through the marketplace.
+              </p>
+              <Link
+                href="/explore-indonesia"
+                className="bp-focus-ring mt-8 inline-flex h-12 items-center justify-center gap-2 bg-white px-6 text-sm font-medium text-[#071827] transition-colors hover:bg-white/90"
+              >
+                Find a trip that funds the reef
+                <ArrowIcon />
+              </Link>
+            </div>
           </div>
         </section>
 
