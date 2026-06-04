@@ -67,9 +67,8 @@ const conservationCards = [
     handle: "@storyofsage",
     name: "Story of Sage",
     description: "Island light, reef days, quiet blue moments.",
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
-    alt: "Tropical island aerial at golden hour",
+    image: "/creators/storyofsage.jpg",
+    alt: "Story of Sage — island light and reef days",
   },
 ];
 
@@ -512,27 +511,29 @@ export default function ExploreIndonesiaPage() {
       </section>
 
       {/* 5% banner */}
-      <section className="mx-[var(--cinematic-screen-x)] mb-14 border border-[#1a7c72]/30 bg-[#0a2e2a] md:mb-20">
-        <Link
-          href="/conservation"
-          className="group flex items-start justify-between gap-4 p-5 md:items-center md:p-6"
-        >
-          <div className="flex items-start gap-3 md:items-center">
-            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#1a7c72]/50 bg-[#0d3d38] md:mt-0">
-              <LeafIcon className="text-[#5cc8be]" />
-            </span>
-            <div>
-              <p className="text-[0.9375rem] font-medium text-white">
-                5% of every trip — built into the price.
-              </p>
-              <p className="mt-0.5 text-[12px] leading-[1.6] text-white/48">
-                Vetted ocean partners get a real cut of every booking. Never an
-                add-on, never optional. Tap to see exactly where it goes →
-              </p>
+      <section className="px-[var(--cinematic-screen-x)] mb-14 md:mb-20">
+        <div className="mx-auto max-w-6xl">
+          <Link
+            href="/conservation"
+            className="group flex items-start justify-between gap-4 border border-[#1a7c72]/30 bg-[#0a2e2a] p-5 md:items-center md:p-6"
+          >
+            <div className="flex items-start gap-3 md:items-center">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#1a7c72]/50 bg-[#0d3d38] md:mt-0">
+                <LeafIcon className="text-[#5cc8be]" />
+              </span>
+              <div>
+                <p className="text-[0.9375rem] font-medium text-white">
+                  5% of every trip — built into the price.
+                </p>
+                <p className="mt-0.5 text-[12px] leading-[1.6] text-white/48">
+                  Vetted ocean partners get a real cut of every booking. Never an
+                  add-on, never optional. Tap to see exactly where it goes →
+                </p>
+              </div>
             </div>
-          </div>
-          <ArrowIcon />
-        </Link>
+            <ArrowIcon />
+          </Link>
+        </div>
       </section>
 
       {/* Footer */}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
 import { yachts, yachtBySlug } from "@/lib/data/yachts";
+import { GalleryLightbox } from "./GalleryLightbox";
 
 export async function generateStaticParams() {
   return yachts.map((y) => ({ slug: y.slug }));
@@ -88,30 +89,11 @@ export default async function YachtPage({
                 {/* Gallery */}
                 <section>
                   <SectionLabel>Gallery</SectionLabel>
-                  <div className="mt-4 grid grid-cols-2 grid-rows-2 gap-2 md:grid-cols-[1.2fr_1fr_1fr]">
-                    {/* First image — tall, spans 2 rows */}
-                    <div className="relative row-span-2 min-h-[240px] overflow-hidden">
-                      <Image
-                        src={yacht.images.gallery[0]?.src ?? yacht.images.hero}
-                        alt={yacht.images.gallery[0]?.alt ?? yacht.name}
-                        fill
-                        className="object-cover"
-                        sizes="(min-width: 1024px) 28vw, 50vw"
-                      />
-                    </div>
-                    {/* Remaining 4 images */}
-                    {yacht.images.gallery.slice(1, 5).map((img, i) => (
-                      <div key={i} className="relative aspect-[4/3] overflow-hidden">
-                        <Image
-                          src={img.src}
-                          alt={img.alt}
-                          fill
-                          className="object-cover"
-                          sizes="(min-width: 1024px) 14vw, 25vw"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  <GalleryLightbox
+                    images={yacht.images.gallery}
+                    heroFallback={yacht.images.hero}
+                    name={yacht.name}
+                  />
                 </section>
 
                 {/* About */}
