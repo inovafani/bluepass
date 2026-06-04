@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -504,7 +504,7 @@ export default async function OperatorPage({
             <Link
               href="/for-operators"
               className="mb-8 inline-flex w-fit items-center gap-2 text-[10px] tracking-[0.22em] text-white/46 transition-colors hover:text-white/80"
-              style={{ fontFamily: "var(--bp-font-mono)" }}
+             
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -525,7 +525,7 @@ export default async function OperatorPage({
 
             <p
               className="text-[10px] uppercase tracking-[0.26em] text-white/55"
-              style={{ fontFamily: "var(--bp-font-mono)" }}
+             
             >
               BluePass Operator · {op.tier} Tier
             </p>
@@ -597,7 +597,7 @@ export default async function OperatorPage({
                         <div className="flex flex-col items-center">
                           <span
                             className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#1a7c72]/60 bg-[#0d3d38] text-[9px] font-medium text-[#5cc8be]"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             {item.day}
                           </span>
@@ -608,7 +608,7 @@ export default async function OperatorPage({
                         <div className="pb-5">
                           <p
                             className="text-[10px] uppercase tracking-[0.18em] text-white/36"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             Day {item.day}
                           </p>
@@ -655,7 +655,6 @@ export default async function OperatorPage({
                               <span
                                 className="inline-flex items-center gap-1.5 border border-white/14 bg-black/50 px-2 py-[3px] text-[10px] tracking-[0.12em] text-white/80"
                                 style={{
-                                  fontFamily: "var(--bp-font-mono)",
                                   borderRadius: "6px",
                                   backdropFilter: "blur(8px)",
                                 }}
@@ -667,7 +666,7 @@ export default async function OperatorPage({
                           <div className="p-4">
                             <p
                               className="text-[10px] uppercase tracking-[0.20em] text-[#B89A5D]"
-                              style={{ fontFamily: "var(--bp-font-mono)" }}
+                             
                             >
                               {trip.duration}
                             </p>
@@ -679,7 +678,7 @@ export default async function OperatorPage({
                             </p>
                             <div
                               className="mt-3 flex items-center justify-between border-t border-white/[0.08] pt-3"
-                              style={{ fontFamily: "var(--bp-font-mono)" }}
+                             
                             >
                               <span className="text-[10px] text-white/44">
                                 from {trip.price} / cabin · night
@@ -698,7 +697,7 @@ export default async function OperatorPage({
                     <LeafIcon />
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-[#5cc8be]"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       Conservation
                     </p>
@@ -717,10 +716,10 @@ export default async function OperatorPage({
               <div>
                 <div className="sticky top-6 space-y-3">
                   {/* Price */}
-                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl bg-[#0a2538] p-5">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       Price
                     </p>
@@ -736,7 +735,7 @@ export default async function OperatorPage({
                     {op.charterOnly && (
                       <span
                         className="mt-2 inline-block border border-[#B89A5D]/30 bg-[#B89A5D]/10 px-2 py-[3px] text-[10px] tracking-[0.16em] text-[#f1d58a]"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         Whole-yacht charter only
                       </span>
@@ -744,10 +743,10 @@ export default async function OperatorPage({
                   </div>
 
                   {/* Vessel */}
-                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl bg-[#0a2538] p-5">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       Vessel
                     </p>
@@ -766,10 +765,10 @@ export default async function OperatorPage({
                   </div>
 
                   {/* Departures */}
-                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl bg-[#0a2538] p-5">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       Next Departures
                     </p>
@@ -785,7 +784,7 @@ export default async function OperatorPage({
                             </p>
                             <p
                               className="mt-0.5 text-[11px] text-white/40"
-                              style={{ fontFamily: "var(--bp-font-mono)" }}
+                             
                             >
                               {dep.duration} · {dep.berths}
                             </p>
@@ -793,7 +792,7 @@ export default async function OperatorPage({
                           <Link
                             href="https://wa.me/628213143343"
                             className="text-[11px] text-[#5cc8be] transition-colors hover:text-white"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             Hold ›
                           </Link>
@@ -851,7 +850,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p
       className="text-[10px] uppercase tracking-[0.22em] text-[#B89A5D]"
-      style={{ fontFamily: "var(--bp-font-mono)" }}
+     
     >
       {children}
     </p>

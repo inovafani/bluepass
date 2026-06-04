@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -403,7 +403,7 @@ export default async function TripPage({
           <Link
             href="/explore-indonesia"
             className="mb-6 inline-flex w-fit items-center gap-2 text-[10px] tracking-[0.22em] text-white/50 transition-colors hover:text-white/80"
-            style={{ fontFamily: "var(--bp-font-mono)" }}
+           
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -426,7 +426,6 @@ export default async function TripPage({
             <span
               className="inline-flex items-center gap-1.5 border border-white/14 bg-black/50 px-2.5 py-1 text-[10px] tracking-[0.13em] text-white/80"
               style={{
-                fontFamily: "var(--bp-font-mono)",
                 borderRadius: "6px",
                 backdropFilter: "blur(8px)",
               }}
@@ -436,7 +435,7 @@ export default async function TripPage({
             </span>
             <span
               className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2.5 py-1 text-[10px] tracking-[0.13em] text-[#f4d891]"
-              style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+              style={{ borderRadius: "6px" }}
             >
               5% reef
             </span>
@@ -444,7 +443,7 @@ export default async function TripPage({
 
           <p
             className="mt-3 text-[10px] uppercase tracking-[0.26em] text-[#B89A5D]"
-            style={{ fontFamily: "var(--bp-font-mono)" }}
+           
           >
             {trip.operator} · {trip.location}
           </p>
@@ -469,7 +468,7 @@ export default async function TripPage({
             <div key={stat.label} className="px-5 py-5">
               <p
                 className="text-[10px] tracking-[0.20em] text-white/40"
-                style={{ fontFamily: "var(--bp-font-mono)" }}
+               
               >
                 {stat.label}
               </p>
@@ -489,7 +488,7 @@ export default async function TripPage({
             <section>
               <p
                 className="text-[11px] tracking-[0.22em] text-[#B89A5D]"
-                style={{ fontFamily: "var(--bp-font-mono)" }}
+               
               >
                 About this trip
               </p>
@@ -505,7 +504,7 @@ export default async function TripPage({
             <section className="mt-10">
               <p
                 className="text-[11px] tracking-[0.22em] text-[#B89A5D]"
-                style={{ fontFamily: "var(--bp-font-mono)" }}
+               
               >
                 At a glance
               </p>
@@ -518,7 +517,7 @@ export default async function TripPage({
                   >
                     <p
                       className="text-[10px] tracking-[0.18em] text-white/40"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       {h.label}
                     </p>
@@ -536,7 +535,7 @@ export default async function TripPage({
                 <span
                   key={tag}
                   className="border border-white/12 bg-white/[0.04] px-3 py-1.5 text-[10px] tracking-[0.14em] text-white/55"
-                  style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "4px" }}
+                  style={{ borderRadius: "4px" }}
                 >
                   {tag}
                 </span>
@@ -547,7 +546,7 @@ export default async function TripPage({
             <section className="mt-12">
               <p
                 className="text-[11px] tracking-[0.22em] text-[#B89A5D]"
-                style={{ fontFamily: "var(--bp-font-mono)" }}
+               
               >
                 Day schedule
               </p>
@@ -567,7 +566,7 @@ export default async function TripPage({
                     <div className="pt-0.5">
                       <p
                         className="text-[10px] tracking-[0.18em] text-[#B89A5D]"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         {item.time}
                       </p>
@@ -590,10 +589,10 @@ export default async function TripPage({
           <div>
             <div className="sticky top-6 space-y-4">
               {/* What's included */}
-              <div className="rounded-xl border border-white/12 bg-[#03111d]/60 p-6 backdrop-blur-xl">
+              <div className="rounded-xl bg-[#0a2538] p-6">
                 <p
                   className="text-[11px] tracking-[0.22em] text-[#B89A5D]"
-                  style={{ fontFamily: "var(--bp-font-mono)" }}
+                 
                 >
                   What&apos;s included
                 </p>
@@ -610,7 +609,7 @@ export default async function TripPage({
               </div>
 
               {/* Book CTA */}
-              <div className="rounded-xl border border-white/12 bg-[#03111d]/60 p-6 backdrop-blur-xl">
+              <div className="rounded-xl bg-[#0a2538] p-6">
                 <div className="flex items-center gap-2">
                   <p className="bp-page-title text-2xl text-white">
                     From {trip.price}
@@ -618,7 +617,6 @@ export default async function TripPage({
                   <span
                     className="inline-flex items-center gap-1.5 border border-white/14 bg-black/40 px-2 py-0.5 text-[9px] tracking-[0.12em] text-white/60"
                     style={{
-                      fontFamily: "var(--bp-font-mono)",
                       borderRadius: "4px",
                     }}
                   >
@@ -664,7 +662,7 @@ export default async function TripPage({
               <div className="border border-[#B89A5D]/20 bg-[#B89A5D]/[0.04] p-5">
                 <p
                   className="text-[10px] tracking-[0.22em] text-[#B89A5D]"
-                  style={{ fontFamily: "var(--bp-font-mono)" }}
+                 
                 >
                   Reef contribution
                 </p>
@@ -675,7 +673,7 @@ export default async function TripPage({
                 <Link
                   href="/conservation"
                   className="mt-3 inline-flex items-center gap-1.5 text-[11px] tracking-[0.14em] text-[#B89A5D] transition-colors hover:text-white"
-                  style={{ fontFamily: "var(--bp-font-mono)" }}
+                 
                 >
                   How the 5% flows →
                 </Link>

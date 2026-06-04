@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
@@ -139,7 +139,7 @@ export function GalleryLightbox({
             {/* Counter */}
             <p
               className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[11px] tracking-[0.18em] text-white/44"
-              style={{ fontFamily: "var(--bp-font-mono)" }}
+             
             >
               {active + 1} / {total}
             </p>

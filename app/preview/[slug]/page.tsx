@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -755,7 +755,7 @@ export default async function PreviewPage({
           <Link
             href="/explore-indonesia"
             className="mb-6 inline-flex w-fit items-center gap-2 text-[10px] tracking-[0.22em] text-white/50 transition-colors hover:text-white/80"
-            style={{ fontFamily: "var(--bp-font-mono)" }}
+           
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -777,13 +777,13 @@ export default async function PreviewPage({
           <div className="flex items-center gap-3">
             <span
               className="border border-[#B89A5D]/28 bg-[#B89A5D]/14 px-2.5 py-1 text-[10px] tracking-[0.18em] text-[#f4d891]"
-              style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+              style={{ borderRadius: "6px" }}
             >
               Preview
             </span>
             <span
               className="border border-white/14 bg-black/40 px-2.5 py-1 text-[10px] tracking-[0.13em] text-white/70"
-              style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px", backdropFilter: "blur(8px)" }}
+              style={{ borderRadius: "6px", backdropFilter: "blur(8px)" }}
             >
               5% reef
             </span>
@@ -791,7 +791,7 @@ export default async function PreviewPage({
 
           <p
             className="mt-3 text-[10px] uppercase tracking-[0.26em] text-[#B89A5D]"
-            style={{ fontFamily: "var(--bp-font-mono)" }}
+           
           >
             {preview.location}
           </p>
@@ -816,7 +816,7 @@ export default async function PreviewPage({
             <div key={stat.label} className="px-5 py-5">
               <p
                 className="text-[10px] tracking-[0.20em] text-white/40"
-                style={{ fontFamily: "var(--bp-font-mono)" }}
+               
               >
                 {stat.label}
               </p>
@@ -836,7 +836,7 @@ export default async function PreviewPage({
             <section>
               <p
                 className="text-[11px] tracking-[0.22em] text-[#B89A5D]"
-                style={{ fontFamily: "var(--bp-font-mono)" }}
+               
               >
                 About this expedition
               </p>
@@ -852,7 +852,7 @@ export default async function PreviewPage({
             <section className="mt-10">
               <p
                 className="text-[11px] tracking-[0.22em] text-[#B89A5D]"
-                style={{ fontFamily: "var(--bp-font-mono)" }}
+               
               >
                 At a glance
               </p>
@@ -865,7 +865,7 @@ export default async function PreviewPage({
                   >
                     <p
                       className="text-[10px] tracking-[0.18em] text-white/40"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       {h.label}
                     </p>
@@ -881,7 +881,7 @@ export default async function PreviewPage({
                 <span
                   key={tag}
                   className="border border-white/12 bg-white/[0.04] px-3 py-1.5 text-[10px] tracking-[0.14em] text-white/55"
-                  style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "4px" }}
+                  style={{ borderRadius: "4px" }}
                 >
                   {tag}
                 </span>
@@ -892,7 +892,7 @@ export default async function PreviewPage({
             <section className="mt-12">
               <p
                 className="text-[11px] tracking-[0.22em] text-[#B89A5D]"
-                style={{ fontFamily: "var(--bp-font-mono)" }}
+               
               >
                 Sample itinerary
               </p>
@@ -910,7 +910,7 @@ export default async function PreviewPage({
                     <div className="pt-0.5">
                       <p
                         className="text-[10px] tracking-[0.18em] text-[#B89A5D]"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         {item.day}
                       </p>
@@ -929,10 +929,10 @@ export default async function PreviewPage({
           <div className="lg:pt-0">
             <div className="sticky top-6 space-y-4">
               {/* What's included */}
-              <div className="rounded-xl border border-white/12 bg-[#03111d]/60 p-6 backdrop-blur-xl">
+              <div className="rounded-xl bg-[#0a2538] p-6">
                 <p
                   className="text-[11px] tracking-[0.22em] text-[#B89A5D]"
-                  style={{ fontFamily: "var(--bp-font-mono)" }}
+                 
                 >
                   What&apos;s included
                 </p>
@@ -947,7 +947,7 @@ export default async function PreviewPage({
               </div>
 
               {/* Book CTA */}
-              <div className="rounded-xl border border-white/12 bg-[#03111d]/60 p-6 backdrop-blur-xl">
+              <div className="rounded-xl bg-[#0a2538] p-6">
                 <p className="bp-page-title text-2xl text-white">
                   From {preview.price}
                 </p>
@@ -989,7 +989,7 @@ export default async function PreviewPage({
               <div className="border border-[#B89A5D]/20 bg-[#B89A5D]/[0.04] p-5">
                 <p
                   className="text-[10px] tracking-[0.22em] text-[#B89A5D]"
-                  style={{ fontFamily: "var(--bp-font-mono)" }}
+                 
                 >
                   Reef contribution
                 </p>
@@ -1000,7 +1000,7 @@ export default async function PreviewPage({
                 <Link
                   href="/conservation"
                   className="mt-3 inline-flex items-center gap-1.5 text-[11px] tracking-[0.14em] text-[#B89A5D] transition-colors hover:text-white"
-                  style={{ fontFamily: "var(--bp-font-mono)" }}
+                 
                 >
                   How the 5% flows →
                 </Link>

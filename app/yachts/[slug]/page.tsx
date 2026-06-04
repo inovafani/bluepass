@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -51,7 +51,7 @@ export default async function YachtPage({
             <Link
               href="/explore-indonesia"
               className="mb-8 inline-flex w-fit items-center gap-2 text-[10px] tracking-[0.22em] text-white/46 transition-colors hover:text-white/80"
-              style={{ fontFamily: "var(--bp-font-mono)" }}
+             
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m15 18-6-6 6-6" />
@@ -61,7 +61,7 @@ export default async function YachtPage({
 
             <p
               className="text-[10px] uppercase tracking-[0.26em] text-white/55"
-              style={{ fontFamily: "var(--bp-font-mono)" }}
+             
             >
               BluePass Operator · {yacht.tier} Tier
             </p>
@@ -118,7 +118,7 @@ export default async function YachtPage({
                         <div className="flex flex-col items-center">
                           <span
                             className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#1a7c72]/60 bg-[#0d3d38] text-[9px] font-medium text-[#5cc8be]"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             {item.day}
                           </span>
@@ -129,7 +129,7 @@ export default async function YachtPage({
                         <div className="pb-5">
                           <p
                             className="text-[10px] uppercase tracking-[0.18em] text-white/36"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             Day {item.day}
                           </p>
@@ -151,13 +151,13 @@ export default async function YachtPage({
                   <div className="mt-4 space-y-2">
                     <Link
                       href="https://wa.me/628213143343"
-                      className="group flex items-center justify-between gap-4 rounded-xl border border-white/[0.09] bg-[#03111d]/50 p-4 transition-colors hover:bg-[#03111d]/80"
+                      className="group flex items-center justify-between gap-4 rounded-xl bg-[#0a2538] p-4 transition-colors hover:bg-[#0d2f47]"
                     >
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <span
                             className="border border-[#B89A5D]/28 bg-[#B89A5D]/10 px-2 py-[3px] text-[10px] tracking-[0.14em] text-[#f1d58a]"
-                            style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "4px" }}
+                            style={{ borderRadius: "4px" }}
                           >
                             LIVEABOARD · {yacht.itinerary.length}-DAY
                           </span>
@@ -178,7 +178,7 @@ export default async function YachtPage({
                         {yacht.charterPrice && (
                           <p
                             className="mt-0.5 text-[11px] text-white/38"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             or charter {yacht.charterPrice} / night · whole yacht
                           </p>
@@ -192,12 +192,12 @@ export default async function YachtPage({
                 </section>
 
                 {/* Conservation */}
-                <section className="rounded-xl border border-[#1a7c72]/28 bg-[#0d3d38]/18 p-5">
+                <section className="rounded-xl bg-[#0a2e32] p-5">
                   <div className="flex items-center gap-2">
                     <LeafIcon />
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-[#5cc8be]"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       Conservation
                     </p>
@@ -217,10 +217,10 @@ export default async function YachtPage({
                 <div className="sticky top-6 space-y-3">
 
                   {/* Price */}
-                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl bg-[#0a2538] p-5">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       Price
                     </p>
@@ -236,7 +236,7 @@ export default async function YachtPage({
                     {yacht.charterOnly && (
                       <span
                         className="mt-2.5 inline-block border border-[#B89A5D]/30 bg-[#B89A5D]/10 px-2 py-[3px] text-[10px] tracking-[0.16em] text-[#f1d58a]"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         Whole-yacht charter only
                       </span>
@@ -244,10 +244,10 @@ export default async function YachtPage({
                   </div>
 
                   {/* Vessel specs */}
-                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl bg-[#0a2538] p-5">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       Vessel
                     </p>
@@ -261,10 +261,10 @@ export default async function YachtPage({
                   </div>
 
                   {/* Departures */}
-                  <div className="rounded-xl border border-white/12 bg-[#03111d]/70 p-5 backdrop-blur-xl">
+                  <div className="rounded-xl bg-[#0a2538] p-5">
                     <p
                       className="text-[10px] uppercase tracking-[0.22em] text-white/40"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       Next Departures
                     </p>
@@ -275,7 +275,7 @@ export default async function YachtPage({
                             <p className="text-[0.8125rem] text-white/88">{dep.dates}</p>
                             <p
                               className="mt-0.5 text-[11px] text-white/38"
-                              style={{ fontFamily: "var(--bp-font-mono)" }}
+                             
                             >
                               {dep.duration} · {dep.berths}
                             </p>
@@ -283,7 +283,7 @@ export default async function YachtPage({
                           <Link
                             href="https://wa.me/628213143343"
                             className="text-[11px] text-[#5cc8be] transition-colors hover:text-white"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             Hold ›
                           </Link>
@@ -326,7 +326,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p
       className="text-[10px] uppercase tracking-[0.22em] text-[#B89A5D]"
-      style={{ fontFamily: "var(--bp-font-mono)" }}
+     
     >
       {children}
     </p>

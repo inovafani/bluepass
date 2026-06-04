@@ -9,8 +9,6 @@
     "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --bp-font-wordmark: Georgia, "Times New Roman", serif;
   --bp-font-display: var(--bp-font-sans);
-  --bp-font-mono: "SF Mono", "Cascadia Code", "Roboto Mono", Consolas,
-    "Liberation Mono", Menlo, monospace;
   --font-display: var(--bp-font-display);
   --bp-color-ink: 7 24 39;
   --bp-color-muted: 87 102 116;

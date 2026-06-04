@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { SignupForm } from "./SignupForm";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
 
@@ -179,7 +179,7 @@ export default function SignupPage() {
                     <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
                       <span
                         className="border border-[#B89A5D]/30 bg-[#B89A5D]/15 px-2 py-[3px] text-[10px] tracking-[0.14em] text-[#f4d891]"
-                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                        style={{ borderRadius: "6px" }}
                       >
                         Featured
                       </span>
@@ -187,7 +187,7 @@ export default function SignupPage() {
                     <div className="absolute right-3 top-3 z-10">
                       <span
                         className="border border-white/14 bg-black/50 px-2 py-[3px] text-[10px] tracking-[0.12em] text-white/80"
-                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px", backdropFilter: "blur(6px)" }}
+                        style={{ borderRadius: "6px", backdropFilter: "blur(6px)" }}
                       >
                         {creator.handle}
                       </span>
@@ -199,7 +199,7 @@ export default function SignupPage() {
                       </p>
                       <p
                         className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[#B89A5D]"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         {creator.location}
                       </p>
@@ -209,7 +209,7 @@ export default function SignupPage() {
                       <div className="mt-4 flex items-center gap-2 border-t border-white/[0.08] pt-3">
                         <span
                           className="text-[10px] tracking-[0.14em] text-[#B89A5D] transition-colors group-hover:text-white"
-                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                         
                         >
                           View on Instagram →
                         </span>
@@ -248,7 +248,7 @@ export default function SignupPage() {
                     <div className="absolute right-3 top-3 z-10">
                       <span
                         className="border border-white/14 bg-black/50 px-2 py-[3px] text-[10px] tracking-[0.12em] text-white/80"
-                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px", backdropFilter: "blur(6px)" }}
+                        style={{ borderRadius: "6px", backdropFilter: "blur(6px)" }}
                       >
                         {creator.handle}
                       </span>
@@ -259,7 +259,7 @@ export default function SignupPage() {
                       </p>
                       <p
                         className="mt-1 text-[10px] uppercase tracking-[0.16em] text-[#B89A5D]"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         {creator.location}
                       </p>

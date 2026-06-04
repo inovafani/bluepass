@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -30,7 +30,7 @@ export function FleetBrowser() {
         {/* Header */}
         <p
           className="text-[10px] uppercase tracking-[0.22em] text-[#B89A5D]"
-          style={{ fontFamily: "var(--bp-font-mono)" }}
+         
         >
           Browse the fleet
         </p>
@@ -104,7 +104,7 @@ export function FleetBrowser() {
                   </h3>
                   <p
                     className="mt-1 text-[11px] text-white/46"
-                    style={{ fontFamily: "var(--bp-font-mono)" }}
+                   
                   >
                     {yacht.length !== "—" ? `${yacht.length} · ` : ""}
                     {yacht.maxGuests} guests · {yacht.cabins} cabins
@@ -126,7 +126,7 @@ export function FleetBrowser() {
                         {yacht.charterPrice && (
                           <p
                             className="mt-0.5 text-[11px] text-white/36"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             or charter {yacht.charterPrice} / night · whole yacht
                           </p>
@@ -167,7 +167,7 @@ function FilterRow<T extends string>({
     <div className="flex flex-wrap items-center gap-2">
       <span
         className="w-[3.75rem] shrink-0 text-[10px] tracking-[0.20em] text-white/36"
-        style={{ fontFamily: "var(--bp-font-mono)" }}
+       
       >
         {label}
       </span>
@@ -196,7 +196,6 @@ function Badge({ children }: { children: React.ReactNode }) {
     <span
       className="border border-white/16 bg-black/52 px-2 py-[3px] text-[9px] tracking-[0.16em] text-white/80"
       style={{
-        fontFamily: "var(--bp-font-mono)",
         borderRadius: "4px",
         backdropFilter: "blur(8px)",
       }}
@@ -216,7 +215,6 @@ function TierBadge({ tier }: { tier: string }) {
     <span
       className={`border px-2 py-[3px] text-[9px] tracking-[0.16em] ${colors[tier] ?? "border-white/16 bg-black/52 text-white/80"}`}
       style={{
-        fontFamily: "var(--bp-font-mono)",
         borderRadius: "4px",
         backdropFilter: "blur(8px)",
       }}
@@ -231,7 +229,6 @@ function GreenBadge({ children }: { children: React.ReactNode }) {
     <span
       className="border border-emerald-500/30 bg-emerald-500/14 px-2 py-[3px] text-[9px] tracking-[0.14em] text-emerald-300"
       style={{
-        fontFamily: "var(--bp-font-mono)",
         borderRadius: "4px",
         backdropFilter: "blur(8px)",
       }}

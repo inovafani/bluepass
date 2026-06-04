@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
@@ -456,7 +456,7 @@ export default function CreatorsPage() {
                       <div className="absolute left-3 top-3 z-10">
                         <span
                           className="border border-white/14 bg-black/52 px-2 py-[3px] text-[10px] tracking-[0.13em] text-white/82"
-                          style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px", backdropFilter: "blur(6px)" }}
+                          style={{ borderRadius: "6px", backdropFilter: "blur(6px)" }}
                         >
                           {creator.handle}
                         </span>
@@ -467,7 +467,7 @@ export default function CreatorsPage() {
                         </p>
                         <p
                           className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/38"
-                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                         
                         >
                           {creator.location}
                         </p>

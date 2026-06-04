@@ -103,7 +103,7 @@ export function ConnectPmsForm() {
       </label>
 
       {isBokun ? (
-        <div className="grid gap-5 rounded-xl border border-white/12 p-4">
+        <div className="grid gap-5 rounded-xl bg-[#071e2e] p-4">
           <label className="grid gap-2">
             <span className="text-xs font-medium tracking-[0.16em] text-white/70">
               OCTO API base

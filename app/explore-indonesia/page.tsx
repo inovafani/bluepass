@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { yachts } from "@/lib/data/yachts";
@@ -319,7 +319,7 @@ export default function ExploreIndonesiaPage() {
                   <div className="absolute inset-x-0 bottom-0 p-5">
                     <p
                       className="text-[10px] uppercase tracking-[0.20em] text-white/55"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       {dest.label}
                     </p>
@@ -344,7 +344,7 @@ export default function ExploreIndonesiaPage() {
             <Link
               href="/for-operators"
               className="text-[12px] text-white/46 transition-colors hover:text-white/80"
-              style={{ fontFamily: "var(--bp-font-mono)" }}
+             
             >
               See all 24 →
             </Link>
@@ -377,7 +377,6 @@ export default function ExploreIndonesiaPage() {
                       <span
                         className="border border-white/16 bg-black/52 px-2 py-[3px] text-[10px] tracking-[0.18em] text-white/80"
                         style={{
-                          fontFamily: "var(--bp-font-mono)",
                           borderRadius: "4px",
                           backdropFilter: "blur(8px)",
                         }}
@@ -392,14 +391,14 @@ export default function ExploreIndonesiaPage() {
                       </h3>
                       <p
                         className="mt-0.5 text-[11px] text-white/52"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         Up to {yacht.maxGuests} guests
                       </p>
                       {yacht.tagline && (
                         <p
                           className="mt-0.5 text-[11px] text-white/40"
-                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                         
                         >
                           {yacht.tagline}
                         </p>
@@ -414,7 +413,7 @@ export default function ExploreIndonesiaPage() {
                         {yacht.charterPrice && (
                           <p
                             className="mt-0.5 text-[11px] text-white/38"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             or charter {yacht.charterPrice} / night · whole
                             yacht
@@ -435,7 +434,7 @@ export default function ExploreIndonesiaPage() {
         <div className="mx-auto max-w-6xl">
           <p
             className="text-[11px] uppercase tracking-[0.22em] text-[#5cc8be]"
-            style={{ fontFamily: "var(--bp-font-mono)" }}
+           
           >
             Conservation &amp; Partners
           </p>
@@ -469,7 +468,7 @@ export default function ExploreIndonesiaPage() {
                           <LeafIcon className="text-[#5cc8be]" />
                           <span
                             className="text-[10px] tracking-[0.14em] text-white/75"
-                            style={{ fontFamily: "var(--bp-font-mono)" }}
+                           
                           >
                             Conservation partner
                           </span>
@@ -477,7 +476,7 @@ export default function ExploreIndonesiaPage() {
                       ) : (
                         <span
                           className="text-[10px] tracking-[0.14em] text-white/75"
-                          style={{ fontFamily: "var(--bp-font-mono)" }}
+                         
                         >
                           {card.handle}
                         </span>
@@ -493,7 +492,7 @@ export default function ExploreIndonesiaPage() {
                     <div className="absolute inset-x-0 bottom-0 z-10 p-4">
                       <p
                         className="text-[10px] tracking-[0.18em] text-white/44"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         {card.id}
                       </p>

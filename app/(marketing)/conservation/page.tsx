@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
@@ -152,7 +152,7 @@ export default function ConservationPage() {
                 {/* Label + description */}
                 <p
                   className="text-[10px] uppercase tracking-[0.22em] text-white/38"
-                  style={{ fontFamily: "var(--bp-font-mono)" }}
+                 
                 >
                   {point.title}
                 </p>
@@ -221,7 +221,7 @@ export default function ConservationPage() {
                     <div className="absolute left-3 top-3 z-10">
                       <span
                         className="border border-[rgba(0,185,165,0.28)] bg-[rgba(0,185,165,0.10)] px-2 py-[3px] text-[10px] tracking-[0.14em] text-[rgba(0,220,200,0.88)]"
-                        style={{ fontFamily: "var(--bp-font-mono)", borderRadius: "6px" }}
+                        style={{ borderRadius: "6px" }}
                       >
                         Partner
                       </span>
@@ -233,7 +233,7 @@ export default function ConservationPage() {
                       </h3>
                       <p
                         className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/38"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         {partner.location}
                       </p>
@@ -242,7 +242,7 @@ export default function ConservationPage() {
                       </p>
                       <div
                         className="mt-3 flex items-center justify-between border-t border-white/[0.08] pt-3"
-                        style={{ fontFamily: "var(--bp-font-mono)" }}
+                       
                       >
                         <span className="text-[10px] uppercase tracking-[0.14em] text-white/34">
                           Next report
@@ -287,7 +287,7 @@ export default function ConservationPage() {
                   <div className="flex shrink-0 flex-col items-center gap-2 pt-0.5">
                     <span
                       className="text-[10px] text-white/22"
-                      style={{ fontFamily: "var(--bp-font-mono)" }}
+                     
                     >
                       {String(i + 1).padStart(2, "0")}
                     </span>
