@@ -9,22 +9,24 @@ export const metadata: Metadata = {
     "Find liveaboards, private yachts, dive days, sailing, surf, and reef trips across Indonesia.",
 };
 
+// ─── Destination images ────────────────────────────────────────────────────────
+// To swap: replace files in /public/destinations/
+//   labuan-bajo.webp  → Komodo card
+//   raja-ampat.jpg    → Raja Ampat card
 const destinations = [
   {
     href: "/for-operators",
     label: "FLORES · INDONESIA",
     name: "Komodo",
-    image:
-      "https://images.unsplash.com/photo-1500993855538-c6a99f437aa7?auto=format&fit=crop&w=1200&q=82",
-    alt: "Wave breaking off the Komodo coast at sunset",
+    image: "/destinations/labuan-bajo.webp",
+    alt: "Labuan Bajo, Komodo National Park",
   },
   {
     href: "/for-operators",
     label: "WEST PAPUA · INDONESIA",
     name: "Raja Ampat",
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=82",
-    alt: "Tropical beach with palm trees in Raja Ampat",
+    image: "/destinations/raja-ampat.jpg",
+    alt: "Raja Ampat karst islands from the air",
   },
 ];
 
