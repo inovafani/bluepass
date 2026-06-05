@@ -132,9 +132,9 @@ curl -X POST http://localhost:3000/api/kai/web-chat/inquiry \
 
 This creates or reuses an active `BookingInquiry` only when the persisted Kai
 session has enough intent for dispatch readiness: destination, trip type,
-guests, travel dates, and either a selected yacht or notes. Diving and
-liveaboard inquiries also require certification level before dispatch. This
-endpoint does not send WhatsApp automatically.
+guests, travel dates, budget, contact details, and either a selected yacht or
+notes. Certification level is stored when volunteered, but is not required for
+liveaboard dispatch. This endpoint does not send WhatsApp automatically.
 
 Dispatch a ready inquiry to an operator WhatsApp number for MVP testing:
 

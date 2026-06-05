@@ -37,7 +37,8 @@ const tripTypes = [
   "liveaboard",
   "diving",
   "sailing",
-  "eco resort",
+  "cruising",
+  "mixed diving/cruising",
   "snorkelling",
   "freediving",
   "surf",
@@ -64,6 +65,17 @@ const tripTypeAliases = [
   },
   { tripType: "snorkelling", patterns: ["snorkeling", "snorkelling", "snorkel"] },
   { tripType: "diving", patterns: ["scuba", "dive", "diving"] },
+  { tripType: "cruising", patterns: ["cruise", "cruising"] },
+  {
+    tripType: "mixed diving/cruising",
+    patterns: [
+      "mix",
+      "mixed",
+      "both",
+      "both diving and cruising",
+      "diving and cruising",
+    ],
+  },
   { tripType: "freediving", patterns: ["freedive", "freediving"] },
   { tripType: "surf", patterns: ["surf", "surfing"] },
 ] as const;
@@ -519,10 +531,6 @@ function computeMissingSlots(intent: KaiTravelIntent) {
     missingSlots.push("dateWindow");
   }
 
-  if (requiresCertification(intent.tripType) && !intent.certificationLevel) {
-    missingSlots.push("certificationLevel");
-  }
-
   if (!intent.budget) {
     missingSlots.push("budget");
   }
@@ -540,10 +548,6 @@ function computeMissingSlots(intent: KaiTravelIntent) {
   }
 
   return missingSlots;
-}
-
-function requiresCertification(tripType?: string) {
-  return tripType === "diving" || tripType === "liveaboard";
 }
 
 function findFirstPattern(text: string, patterns: readonly string[]) {

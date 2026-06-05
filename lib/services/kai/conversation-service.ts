@@ -116,13 +116,14 @@ export function createKaiConversationService(
         sessionId,
         channel: input.channel,
       });
-      const intent = extractKaiTravelIntent(
+      let intent = extractKaiTravelIntent(
         input.message,
         reconstructedIntent,
         {
           lastAskedSlot: inferredLastAskedSlot,
         },
       );
+      intent = defaultTripTypeToLiveaboardWhenReady(intent);
       const planner = planKaiConversation({
         intent,
         previousIntent: previousContext?.intent,
@@ -306,26 +307,15 @@ export function buildDeterministicReply(
   if (planner.missingSlots.includes("tripType")) {
     const guestText = intent.guests ? ` for ${intent.guests}` : "";
 
-    return `${intent.destination}${guestText} works. Are you thinking sailing, diving or liveaboard, snorkelling, surf, an eco resort, or something conservation-led?`;
+    return `${intent.destination}${guestText} works. Are you thinking a dive-focused liveaboard, a cruising-focused liveaboard, or a mix of both?`;
   }
 
   if (planner.missingSlots.includes("guests")) {
     return `${intent.destination} for ${intent.tripType} sounds good. How many people should I plan around?`;
   }
 
-  if (
-    planner.missingSlots.includes("dateWindow") &&
-    planner.missingSlots.includes("certificationLevel")
-  ) {
-    return `${intent.destination} ${intent.tripType} for ${intent.guests} guests - got it. When are you hoping to travel, and what certification level should I plan around?`;
-  }
-
   if (planner.missingSlots.includes("dateWindow")) {
     return `${intent.destination} ${intent.tripType} for ${intent.guests} guests - got it. When are you hoping to travel?`;
-  }
-
-  if (planner.missingSlots.includes("certificationLevel")) {
-    return "What certification level should I plan around - beginner, open water, advanced, rescue, divemaster, or instructor?";
   }
 
   if (planner.missingSlots.includes("budget")) {
@@ -570,17 +560,15 @@ function enforcePlannerReply(
   latestUserMessage = "",
   matches: YachtMatch[] = [],
 ) {
-  if (
-    planner.conversationStage === "ready_to_match" &&
-    matches.length > 0 &&
-    !replyMentionsAnyMatch(reply, matches)
-  ) {
-    console.warn("kai.reply.overrode_missing_matched_packages", {
-      knownSlots: planner.knownSlots,
-      missingSlots: planner.missingSlots,
-      nextSlotToAsk: planner.nextSlotToAsk,
-      matchCount: matches.length,
-    });
+  if (planner.conversationStage === "ready_to_match" && matches.length > 0) {
+    if (reply !== deterministicReply) {
+      console.warn("kai.reply.overrode_ready_to_match_with_cards", {
+        knownSlots: planner.knownSlots,
+        missingSlots: planner.missingSlots,
+        nextSlotToAsk: planner.nextSlotToAsk,
+        matchCount: matches.length,
+      });
+    }
 
     return deterministicReply;
   }
@@ -641,10 +629,25 @@ function enforcePlannerReply(
   return deterministicReply;
 }
 
-function replyMentionsAnyMatch(reply: string, matches: YachtMatch[]) {
-  const normalized = reply.toLowerCase();
+function defaultTripTypeToLiveaboardWhenReady(intent: KaiTravelIntent) {
+  if (
+    intent.tripType ||
+    !intent.destination ||
+    !intent.guests ||
+    !intent.dateWindow ||
+    !intent.budget ||
+    !intent.travellerName ||
+    !intent.travellerEmail ||
+    !intent.travellerPhone
+  ) {
+    return intent;
+  }
 
-  return matches.some((match) => normalized.includes(match.name.toLowerCase()));
+  return {
+    ...intent,
+    tripType: "liveaboard",
+    missingSlots: intent.missingSlots?.filter((slot) => slot !== "tripType"),
+  };
 }
 
 function replyClaimsInquiryWasCreatedOrSent(reply: string) {
@@ -847,7 +850,7 @@ function getDestinationSeasonAdvice(destination: string) {
     return {
       destination,
       bestWindow:
-        "from April to November, with June to September often excellent for dry-season sailing",
+        "from April to November, with June to September often excellent for dry-season liveaboard cruising",
       note: "June is generally a strong time for Komodo, though exact route choice still depends on sea conditions and operator schedules",
     };
   }

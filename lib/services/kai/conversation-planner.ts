@@ -75,10 +75,6 @@ function buildMissingSlots(intent: KaiTravelIntent) {
     }
   }
 
-  if (requiresCertification(intent.tripType) && !intent.certificationLevel) {
-    missingSlots.push("certificationLevel");
-  }
-
   for (const slot of contactSlots) {
     if (!intent[slot]) {
       missingSlots.push(slot);
@@ -133,13 +129,5 @@ function chooseSlotsToAsk(missingSlots: string[]) {
     return missingContactSlots;
   }
 
-  if (missingSlots.includes("dateWindow") && missingSlots.includes("certificationLevel")) {
-    return ["dateWindow", "certificationLevel"];
-  }
-
   return missingSlots.slice(0, 2);
-}
-
-function requiresCertification(tripType?: string) {
-  return tripType === "diving" || tripType === "liveaboard";
 }

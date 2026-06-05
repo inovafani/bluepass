@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { planKaiConversation } from "@/lib/services/kai/conversation-planner";
 
 describe("planKaiConversation", () => {
-  it("asks for dateWindow, budget, and certification when destination, tripType, and guests are known", () => {
+  it("asks for dateWindow and budget when destination, tripType, and guests are known", () => {
     const plan = planKaiConversation({
       intent: {
         destination: "Raja Ampat",
@@ -17,7 +17,6 @@ describe("planKaiConversation", () => {
     expect(plan.missingSlots).toEqual([
       "dateWindow",
       "budget",
-      "certificationLevel",
       "travellerName",
       "travellerEmail",
       "travellerPhone",
@@ -25,7 +24,7 @@ describe("planKaiConversation", () => {
     expect(plan.nextSlotToAsk).toBe("dateWindow");
     expect(plan.conversationStage).toBe("qualification");
     expect(plan.instructionForReply).toContain("Do not ask again for known slots");
-    expect(plan.instructionForReply).toContain("Ask only for: dateWindow, certificationLevel");
+    expect(plan.instructionForReply).toContain("Ask only for: dateWindow, budget");
   });
 
   it("asks for contact details once travel details are known", () => {

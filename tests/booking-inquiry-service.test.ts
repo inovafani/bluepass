@@ -61,7 +61,7 @@ describe("BookingInquiry service", () => {
     ).toEqual({ ok: true, missingSlots: [] });
   });
 
-  it("requires certification for diving or liveaboard before dispatch readiness", () => {
+  it("does not require certification for diving or liveaboard before dispatch readiness", () => {
     expect(
       canCreateInquiryFromIntent(
         {
@@ -76,7 +76,7 @@ describe("BookingInquiry service", () => {
         },
         { selectedYachtSlug: "aliikai" },
       ),
-    ).toEqual({ ok: false, missingSlots: ["certificationLevel"] });
+    ).toEqual({ ok: true, missingSlots: [] });
   });
 
   it("rejects selectedYachtSlug values that do not exist in yachts.ts", async () => {

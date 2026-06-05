@@ -36,7 +36,7 @@ describe("POST /api/kai/web-chat/inquiry", () => {
   it("returns missingSlots when inquiry is not ready", async () => {
     vi.mocked(createInquiryFromKaiSession).mockResolvedValue({
       ok: false,
-      missingSlots: ["dateWindow", "certificationLevel"],
+      missingSlots: ["dateWindow"],
     });
 
     const response = await CREATE_INQUIRY(
@@ -49,7 +49,7 @@ describe("POST /api/kai/web-chat/inquiry", () => {
 
     await expect(response.json()).resolves.toEqual({
       ok: false,
-      missingSlots: ["dateWindow", "certificationLevel"],
+      missingSlots: ["dateWindow"],
     });
     expect(response.status).toBe(200);
   });

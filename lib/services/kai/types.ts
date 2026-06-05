@@ -62,6 +62,7 @@ export type YachtMatch = {
   slug: string;
   name: string;
   region: "Komodo" | "Raja Ampat";
+  heroImageUrl?: string;
   tier: string;
   cabinBookable: boolean;
   maxGuests: number;

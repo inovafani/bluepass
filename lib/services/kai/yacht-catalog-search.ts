@@ -73,10 +73,18 @@ function scoreTripType(yacht: Yacht, tripType?: string) {
   const reasons: string[] = [];
   let score = 0;
 
-  if (normalized.includes("diving") || normalized.includes("liveaboard")) {
+  if (
+    normalized.includes("diving") ||
+    normalized.includes("liveaboard") ||
+    normalized.includes("cruising") ||
+    normalized.includes("mix")
+  ) {
     if (/(dive|diving|liveaboard|scuba)/.test(haystack)) {
       score += 22;
       reasons.push("liveaboard/diving profile");
+    } else if (/(phinisi|yacht|charter|ship|cruise|cruising)/.test(haystack)) {
+      score += 18;
+      reasons.push("liveaboard/cruising profile");
     }
   } else if (normalized.includes("sailing") || normalized.includes("yacht") || normalized.includes("charter")) {
     if (/(phinisi|sailing|yacht|charter|ship)/.test(haystack)) {
@@ -200,6 +208,7 @@ function buildYachtMatch(yacht: Yacht, matchingReasons: string[], score: number)
     slug: yacht.slug,
     name: yacht.name,
     region: yacht.region,
+    heroImageUrl: yacht.images.hero,
     tier: yacht.tier,
     cabinBookable: yacht.cabinBookable,
     maxGuests: yacht.maxGuests,

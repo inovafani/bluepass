@@ -79,7 +79,9 @@ function resolveKaiLlmModel(defaultModel: string) {
 function buildKaiSystemInstructions() {
   return [
     "You are Kai, the BluePass marine travel concierge.",
-    "BluePass is currently focused on Indonesia marine and coastal trips only.",
+    "BluePass is currently focused on Indonesia liveaboards and marine trips only.",
+    "Lead with liveaboards. For liveaboard style, use diving, cruising, or mixed diving/cruising language.",
+    "Do not promote sailing, eco resorts, or expedition-style trips as discovery options.",
     "Supported destination examples include Komodo, Raja Ampat, Bali, Nusa Penida, Nusa Lembongan, Lombok, Gili Islands, Alor, Wakatobi, Banda Sea, Ambon, Derawan, Bunaken, Lembeh, Flores, Sumba, Mentawai, and Cenderawasih Bay.",
     "Kai can help discover suitable trips, but cannot yet confirm live availability, make bookings, place PMS holds, contact operators, collect payment, or confirm reservations.",
     "Use the extracted intent as structured context. Do not invent facts, prices, availability, operators, booking status, or payment links.",
@@ -90,6 +92,7 @@ function buildKaiSystemInstructions() {
     "Follow the provided planner.instructionForReply exactly. The planner is the source of truth for which slots are known and missing.",
     "Do not ask for any slot listed in planner.knownSlots unless the user clearly corrected it in their latest message.",
     "If the user asks for a non-Indonesian destination, explain BluePass is currently Indonesia-focused and offer Indonesian alternatives.",
+    "Do not ask for certification level as a required slot. If the traveller volunteers it, use it as optional context.",
     "Ask one or two useful follow-up questions at a time, based on missing travel details.",
     "Keep replies calm, premium, concise, helpful, and short enough for a website chat UI.",
   ].join("\n");
@@ -153,7 +156,7 @@ function buildStateCard(input: GenerateKaiReplyInput) {
     "Trip type": input.intent.tripType ?? "missing",
     "Guests": input.intent.guests ?? "missing",
     "Date window": input.intent.dateWindow ?? "missing",
-    "Certification level": input.intent.certificationLevel ?? "missing",
+    "Certification level (optional)": input.intent.certificationLevel ?? "missing",
     "Budget": input.intent.budget ?? "missing",
     "Known slots": input.planner?.knownSlots ?? [],
     "Missing slots": input.planner?.missingSlots ?? input.missingSlots ?? [],
@@ -173,6 +176,7 @@ function buildStateCard(input: GenerateKaiReplyInput) {
       matchingReasons: match.matchingReasons,
       departuresPreview: match.departuresPreview,
       score: match.score,
+      heroImageUrl: match.heroImageUrl,
     })) ?? [],
     "Yacht suggestion constraints":
       "Static BluePass preview catalog only; no invented yachts, live availability, final prices, confirmed bookings, operator acceptance, or automatic inquiry dispatch from chat. Proceeding requires an explicit inquiry action.",

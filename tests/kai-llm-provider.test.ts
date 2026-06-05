@@ -168,14 +168,14 @@ describe("generateKaiReply", () => {
         tripType: "diving",
         guests: 3,
       },
-      missingSlots: ["dateWindow", "certificationLevel"],
+      missingSlots: ["dateWindow", "budget"],
       planner: {
         knownSlots: ["destination", "tripType", "guests"],
-        missingSlots: ["dateWindow", "certificationLevel"],
+        missingSlots: ["dateWindow", "budget"],
         nextSlotToAsk: "dateWindow",
         conversationStage: "qualification",
         instructionForReply:
-          "Do not ask again for known slots: destination, tripType, guests. Ask only for: dateWindow, certificationLevel.",
+          "Do not ask again for known slots: destination, tripType, guests. Ask only for: dateWindow, budget.",
       },
     });
 
@@ -193,11 +193,11 @@ describe("generateKaiReply", () => {
         "Trip type": "diving",
         Guests: 3,
         "Date window": "missing",
-        "Certification level": "missing",
+        "Certification level (optional)": "missing",
       }),
     );
     expect(context.planner.instructionForReply).toContain("Do not ask again for known slots");
-    expect(context.planner.instructionForReply).toContain("Ask only for: dateWindow, certificationLevel");
+    expect(context.planner.instructionForReply).toContain("Ask only for: dateWindow, budget");
   });
 
   it("includes static yacht suggestion constraints in LLM context", async () => {

@@ -28,6 +28,7 @@ interface YachtMatchCard {
   slug: string;
   name: string;
   region: "Komodo" | "Raja Ampat";
+  heroImageUrl?: string;
   tier: string;
   cabinBookable: boolean;
   maxGuests: number;
@@ -45,7 +46,7 @@ type MatchCard = TripMatchCard | YachtMatchCard;
 const GREETING: Message = {
   role: "assistant",
   content:
-    "Hey, I'm Kai. Tell me what kind of ocean experience you're looking for — diving, liveaboards, sailing, eco resorts, or an expedition-style trip.",
+    "Hey, I'm Kai. Tell me what kind of liveaboard experience you're looking for - diving, cruising, or a mix of both.",
 };
 
 const LS_KEY = "bluepass:kaiSessionId";
@@ -407,7 +408,7 @@ export function KaiWebChat() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onInput={handleTextareaInput}
-                placeholder="Ask Kai about Komodo, diving, liveaboards, sailing..."
+                placeholder="Ask Kai about Komodo, diving, liveaboards..."
                 rows={1}
                 aria-label="Message to Kai"
                 disabled={isSending}
@@ -634,6 +635,15 @@ function KaiYachtMatchCard({
 
   return (
     <div className="rounded-lg border border-white/12 bg-[#071a29] p-3 text-white shadow-sm">
+      {match.heroImageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={match.heroImageUrl}
+          alt=""
+          className="mb-3 h-28 w-full rounded-md object-cover"
+          loading="lazy"
+        />
+      )}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[13px] font-semibold leading-snug">

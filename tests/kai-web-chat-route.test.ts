@@ -243,14 +243,14 @@ describe("POST /api/kai/web-chat", () => {
           tripType: "diving",
           dateWindow: "October",
           guests: 2,
-          missingSlots: ["certificationLevel", "budget"],
+          missingSlots: ["budget"],
         }),
         intent: expect.objectContaining({
           destination: "Komodo",
           tripType: "diving",
           dateWindow: "October",
           guests: 2,
-          missingSlots: expect.arrayContaining(["certificationLevel", "budget"]),
+          missingSlots: expect.arrayContaining(["budget"]),
         }),
       }),
     );

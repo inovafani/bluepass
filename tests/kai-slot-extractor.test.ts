@@ -39,6 +39,16 @@ describe("extractKaiTravelIntent", () => {
     );
   });
 
+  it("treats both as mixed diving and cruising when Kai asked for trip type", () => {
+    expect(
+      extractKaiTravelIntent("both", {}, { lastAskedSlot: "tripType" }),
+    ).toEqual(
+      expect.objectContaining({
+        tripType: "mixed diving/cruising",
+      }),
+    );
+  });
+
   it("extracts a luxury sailing group around Labuan Bajo", () => {
     expect(extractKaiTravelIntent("Luxury sailing trip for 4 guests around Labuan Bajo")).toEqual(
       expect.objectContaining({

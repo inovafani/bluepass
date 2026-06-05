@@ -50,10 +50,6 @@ export function canCreateInquiryFromIntent(
     missingSlots.push("selectedYachtSlug");
   }
 
-  if (requiresCertification(intent.tripType) && !intent.certificationLevel) {
-    missingSlots.push("certificationLevel");
-  }
-
   if (!intent.travellerName) {
     missingSlots.push("travellerName");
   }
@@ -253,10 +249,6 @@ function extractIntentFromSessionSlots(slots: unknown): KaiTravelIntent {
   }
 
   return intent;
-}
-
-function requiresCertification(tripType?: string) {
-  return tripType === "diving" || tripType === "liveaboard";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

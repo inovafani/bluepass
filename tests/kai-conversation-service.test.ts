@@ -157,7 +157,7 @@ describe("Kai conversation service", () => {
     expect(result.reply).toContain("How many people");
   });
 
-  it("asks for certification level for diving or liveaboard trips", async () => {
+  it("does not require certification level for diving or liveaboard trips", async () => {
     const store = buildStore();
     const service = createKaiConversationService(store);
 
@@ -166,8 +166,9 @@ describe("Kai conversation service", () => {
       message: "Komodo diving in October for 2 people",
     });
 
-    expect(result.intent.missingSlots).toContain("certificationLevel");
-    expect(result.reply).toContain("certification level");
+    expect(result.intent.missingSlots).not.toContain("certificationLevel");
+    expect(result.reply).toContain("What budget range");
+    expect(result.reply).not.toContain("certification level");
   });
 
   it("loads previous session intent before extracting the next answer", async () => {
@@ -417,6 +418,85 @@ describe("Kai conversation service", () => {
         ]),
       }),
     );
+  });
+
+  it("shows yacht options with thumbnails instead of asking to suggest options once ready", async () => {
+    const store = buildStore();
+    vi.mocked(store.getSessionContext).mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "mixed diving/cruising",
+        guests: 4,
+        dateWindow: "4th of July",
+        budget: "$4000",
+        travellerName: "Novi",
+        travellerEmail: "novi@gmail.com",
+      },
+      lastAskedSlot: "travellerPhone",
+    });
+    llmMocks.generateKaiReply.mockResolvedValue(
+      "Komodo for 4 works. Are you thinking a dive-focused liveaboard, a cruising-focused liveaboard, or a mix of both?",
+    );
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_ready_options_after_phone",
+      message: "085665780988",
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "mixed diving/cruising",
+        guests: 4,
+        dateWindow: "4th of July",
+        budget: "$4000",
+        travellerName: "Novi",
+        travellerEmail: "novi@gmail.com",
+        travellerPhone: "085665780988",
+      }),
+    );
+    expect(result.matches?.length).toBeGreaterThan(0);
+    expect(result.matches?.[0]).toEqual(
+      expect.objectContaining({
+        heroImageUrl: expect.stringMatching(/^\/yachts\/.+\/hero\./),
+      }),
+    );
+    expect(result.reply).toContain("BluePass preview fleet");
+    expect(result.reply).not.toMatch(/are you thinking|would you like/i);
+  });
+
+  it("defaults to liveaboard instead of re-asking trip type when an old session has all other details", async () => {
+    const store = buildStore();
+    vi.mocked(store.getSessionContext).mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        guests: 4,
+        dateWindow: "4th of July",
+        budget: "$4000",
+        travellerName: "Novi",
+        travellerEmail: "novi@gmail.com",
+      },
+      lastAskedSlot: "travellerPhone",
+    });
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_ready_missing_trip_type",
+      message: "085665780988",
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        tripType: "liveaboard",
+        travellerPhone: "085665780988",
+      }),
+    );
+    expect(result.matches?.length).toBeGreaterThan(0);
+    expect(result.reply).toContain("BluePass preview fleet");
+    expect(result.reply).not.toMatch(/are you thinking|trip type/i);
   });
 
   it("asks for traveller contact instead of re-listing yachts after a yacht is selected", async () => {
@@ -727,7 +807,6 @@ describe("Kai conversation service", () => {
         missingSlots: [
           "dateWindow",
           "budget",
-          "certificationLevel",
           "travellerName",
           "travellerEmail",
           "travellerPhone",
@@ -736,7 +815,7 @@ describe("Kai conversation service", () => {
       }),
     );
     expect(threeGuests.reply).toContain("When are you hoping to travel");
-    expect(threeGuests.reply).toContain("certification level");
+    expect(threeGuests.reply).not.toContain("certification level");
     expect(threeGuests.reply).not.toMatch(
       /what type|trip type|how many|destination|area/i,
     );
@@ -961,7 +1040,7 @@ describe("Kai conversation service", () => {
       }),
     );
     expect(guests.reply).toContain("When are you hoping to travel");
-    expect(guests.reply).toContain("certification level");
+    expect(guests.reply).not.toContain("certification level");
     expect(guests.reply).not.toMatch(
       /thinking sailing|what kind|trip type|how many/i,
     );
