@@ -71,21 +71,27 @@ describe("POST /api/kai/web-chat", () => {
 
     expect(response.status).toBe(200);
     expect(body.sessionId).toEqual(expect.stringMatching(/^kai_/));
-    expect(body.reply).toContain("Where in Indonesia");
+    expect(body.reply).toContain("Komodo or Raja Ampat");
     expect(body.intent.missingSlots).toContain("destination");
+    expect(body.suggestedReplies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Tell me about Komodo" }),
+        expect.objectContaining({ label: "Tell me about Raja Ampat" }),
+      ]),
+    );
   });
 
   it("handles first then second web chat POST with the same sessionId", async () => {
     const firstResponse = await POST(
       buildPostRequest({
-        message: "Nusa Penida sailing",
+        message: "Komodo sailing",
       }),
     );
     const firstBody = await firstResponse.json();
 
     storeMocks.getSessionContext.mockResolvedValue({
       intent: {
-        destination: "Nusa Penida",
+        destination: "Komodo",
         tripType: "sailing",
         missingSlots: ["guests", "dateWindow", "budget"],
       },
@@ -321,7 +327,7 @@ describe("POST /api/kai/web-chat", () => {
   it("uses stored lastAskedSlot to resolve a short guests answer", async () => {
     storeMocks.getSessionContext.mockResolvedValue({
       intent: {
-        destination: "Nusa Penida",
+        destination: "Komodo",
         tripType: "sailing",
         missingSlots: ["guests", "dateWindow", "budget"],
       },
@@ -341,7 +347,7 @@ describe("POST /api/kai/web-chat", () => {
         sessionId: "kai_short_answer_session",
         reply: expect.stringContaining("When are you hoping to travel"),
         intent: expect.objectContaining({
-          destination: "Nusa Penida",
+          destination: "Komodo",
           tripType: "sailing",
           guests: 2,
         }),
@@ -368,7 +374,7 @@ describe("POST /api/kai/web-chat", () => {
           {
             role: "assistant",
             content:
-              "Got it: sailing. Where in Indonesia feels best - Komodo, Raja Ampat, Bali/Nusa Penida, Lombok/Gili, or somewhere else in Indonesia?",
+              "Got it: sailing. Where feels best for this liveaboard - Komodo or Raja Ampat?",
           },
           {
             role: "user",
@@ -686,7 +692,7 @@ describe("GET /api/kai/web-chat/history", () => {
         sessionId: "kai_multi_history",
         channel: "web",
         role: "user",
-        content: "Nusa Penida sailing",
+        content: "Komodo liveaboard",
         createdAt: new Date("2026-06-02T01:00:00.000Z"),
       },
       {

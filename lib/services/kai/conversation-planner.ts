@@ -103,7 +103,7 @@ function buildInstruction(
   missingSlots: string[],
 ) {
   if (intent.unsupportedDestination) {
-    return "Explain BluePass is currently focused on Indonesia and ask whether the traveller is open to an Indonesia-based marine trip.";
+    return "Explain BluePass is currently focused on Komodo and Raja Ampat liveaboards, then offer those two destinations.";
   }
 
   const knownSlots = buildKnownSlots(intent);

@@ -96,8 +96,20 @@ describe("Kai conversation service", () => {
     });
 
     expect(result.sessionId).toMatch(/^kai_/);
-    expect(result.reply).toContain("Where in Indonesia");
+    expect(result.reply).toContain("Komodo or Raja Ampat");
     expect(result.intent.missingSlots).toContain("destination");
+    expect(result.suggestedReplies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Tell me about Komodo",
+          message: "Tell me about Komodo liveaboards",
+        }),
+        expect.objectContaining({
+          label: "Tell me about Raja Ampat",
+          message: "Tell me about Raja Ampat liveaboards",
+        }),
+      ]),
+    );
     expect(store.upsertSession).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "web",
@@ -140,7 +152,13 @@ describe("Kai conversation service", () => {
     });
 
     expect(result.intent.unsupportedDestination).toBe("Maldives");
-    expect(result.reply).toContain("currently focused on Indonesia");
+    expect(result.reply).toContain("focused on Komodo and Raja Ampat");
+    expect(result.suggestedReplies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: "Tell me about Komodo" }),
+        expect.objectContaining({ label: "Tell me about Raja Ampat" }),
+      ]),
+    );
   });
 
   it("asks for guests when destination and trip type exist but guests are missing", async () => {
@@ -207,7 +225,7 @@ describe("Kai conversation service", () => {
     const store = buildStore();
     vi.mocked(store.getSessionContext).mockResolvedValue({
       intent: {
-        destination: "Nusa Penida",
+        destination: "Komodo",
         tripType: "sailing",
         missingSlots: ["guests", "dateWindow", "budget"],
       },
@@ -238,7 +256,7 @@ describe("Kai conversation service", () => {
     const store = buildStore();
     vi.mocked(store.getSessionContext).mockResolvedValue({
       intent: {
-        destination: "Nusa Penida",
+        destination: "Komodo",
         tripType: "sailing",
       },
       lastAskedSlot: "guests",
@@ -259,7 +277,7 @@ describe("Kai conversation service", () => {
     const store = buildStore();
     vi.mocked(store.getSessionContext).mockResolvedValue({
       intent: {
-        destination: "Nusa Penida",
+        destination: "Komodo",
         tripType: "sailing",
         guests: 2,
       },
@@ -277,13 +295,13 @@ describe("Kai conversation service", () => {
     expect(result.reply).toContain("What budget range");
   });
 
-  it("merges Nusa Penida sailing answers across multiple web messages", async () => {
+  it("merges Komodo sailing answers across multiple web messages", async () => {
     const store = buildStore();
     vi.mocked(store.getSessionContext)
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce({
         intent: {
-          destination: "Nusa Penida",
+          destination: "Komodo",
           tripType: "sailing",
           missingSlots: ["guests", "dateWindow", "budget"],
         },
@@ -291,7 +309,7 @@ describe("Kai conversation service", () => {
       })
       .mockResolvedValueOnce({
         intent: {
-          destination: "Nusa Penida",
+          destination: "Komodo",
           tripType: "sailing",
           guests: 2,
           missingSlots: ["dateWindow", "budget"],
@@ -303,7 +321,7 @@ describe("Kai conversation service", () => {
     await service.handleUserMessage({
       channel: "web",
       sessionId: "kai_multi_turn_session",
-      message: "Nusa Penida sailing",
+      message: "Komodo sailing",
     });
     const guestResult = await service.handleUserMessage({
       channel: "web",
@@ -320,7 +338,7 @@ describe("Kai conversation service", () => {
     expect(guestResult.reply).toContain("When are you hoping to travel");
     expect(dateResult.intent).toEqual(
       expect.objectContaining({
-        destination: "Nusa Penida",
+        destination: "Komodo",
         tripType: "sailing",
         guests: 2,
         dateWindow: "next month",
@@ -417,6 +435,13 @@ describe("Kai conversation service", () => {
           "fits 3 guests",
         ]),
       }),
+    );
+    expect(result.suggestedReplies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: expect.stringContaining(result.matches?.[0]?.name ?? ""),
+        }),
+      ]),
     );
   });
 
@@ -694,7 +719,7 @@ describe("Kai conversation service", () => {
 
     const result = await service.handleUserMessage({
       channel: "web",
-      message: "Nusa Penida sailing",
+      message: "Komodo sailing",
     });
 
     expect(result.reply).toContain("How many people");
@@ -713,7 +738,7 @@ describe("Kai conversation service", () => {
     const first = await service.handleUserMessage({
       channel: "web",
       sessionId: "kai_repeat_memory_session",
-      message: "Nusa Penida sailing",
+      message: "Komodo sailing",
     });
     const second = await service.handleUserMessage({
       channel: "web",
@@ -911,7 +936,7 @@ describe("Kai conversation service", () => {
         {
           role: "assistant",
           content:
-            "Where in Indonesia are you hoping to go - Komodo, Raja Ampat, Bali, or somewhere else?",
+            "Where feels best for this liveaboard - Komodo or Raja Ampat?",
         },
         {
           role: "user",
@@ -941,7 +966,7 @@ describe("Kai conversation service", () => {
       message: "what best time to go there actually?",
       recentMessages: [
         { role: "user", content: "Sailing" },
-        { role: "assistant", content: "Where in Indonesia feels best?" },
+        { role: "assistant", content: "Where feels best - Komodo or Raja Ampat?" },
         { role: "user", content: "Raja Ampat maybe?" },
         { role: "assistant", content: "How many people should I plan around?" },
         { role: "user", content: "I have 3 people" },

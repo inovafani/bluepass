@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 
 const suggestions = [
-  { label: "Mantas in Komodo", query: "I'm looking for a trip to see manta rays in Komodo. Can you help me find something?" },
+  { label: "Mantas in Komodo", query: "I'm looking for a Komodo liveaboard focused on manta rays and diving." },
   { label: "Raja Ampat biodiversity", query: "I want to explore Raja Ampat — looking for a liveaboard focused on biodiversity and reef diving." },
-  { label: "Couples-only yacht", query: "We're a couple looking for a private yacht charter in Indonesia. Any recommendations?" },
-  { label: "Cabin on a liveaboard", query: "I'd like to book a single cabin on a liveaboard in Indonesia. What's available?" },
-  { label: "Under $5k a night", query: "What yacht or liveaboard options does BluePass have under $5,000 per night?" },
+  { label: "Komodo cabin trip", query: "I'd like a cabin on a Komodo liveaboard for a small group." },
+  { label: "Raja Ampat cabin trip", query: "I'd like a cabin on a Raja Ampat liveaboard for a small group." },
+  { label: "Around $5k", query: "What Komodo or Raja Ampat liveaboard options does BluePass have around $5,000?" },
 ];
 
 function openKai(query: string) {
@@ -102,13 +102,13 @@ export function KaiSearchHero() {
         </div>
 
         {/* Suggestion chips — same nav glass recipe */}
-        <div className="mt-3 flex flex-wrap justify-center gap-2 px-2">
+        <div className="mt-3 flex w-full max-w-[44rem] flex-wrap gap-2 px-0 lg:flex-nowrap lg:justify-between">
           {suggestions.map((s) => (
             <button
               key={s.label}
               type="button"
               onClick={() => openKai(s.query)}
-              className="rounded-full border border-white/[0.12] bg-black/[0.15] px-4 py-2 text-[11px] font-medium text-white/72 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-[40px] transition-colors hover:bg-white/[0.10] hover:text-white/95"
+              className="shrink-0 whitespace-nowrap rounded-full border border-white/[0.12] bg-black/[0.15] px-4 py-2 text-[11px] font-medium text-white/72 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-[40px] transition-colors hover:bg-white/[0.10] hover:text-white/95"
             >
               {s.label}
             </button>

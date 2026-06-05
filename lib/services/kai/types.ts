@@ -75,6 +75,11 @@ export type YachtMatch = {
   score: number;
 };
 
+export type KaiSuggestedReply = {
+  label: string;
+  message: string;
+};
+
 export type YachtInquiryHandoffPlan = {
   selectedYachtSlug: string;
   travellerApproved: boolean;
@@ -117,6 +122,7 @@ export type KaiConversationResult = {
   reply: string;
   intent: KaiTravelIntent;
   matches?: YachtMatch[];
+  suggestedReplies?: KaiSuggestedReply[];
   planner?: KaiConversationPlan;
   messages: KaiConversationMessage[];
 };

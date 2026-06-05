@@ -6,6 +6,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   matches?: MatchCard[];
+  suggestedReplies?: SuggestedReply[];
 }
 
 interface TripMatchCard {
@@ -43,10 +44,29 @@ interface YachtMatchCard {
 
 type MatchCard = TripMatchCard | YachtMatchCard;
 
+interface SuggestedReply {
+  label: string;
+  message: string;
+}
+
 const GREETING: Message = {
   role: "assistant",
   content:
     "Hey, I'm Kai. Tell me what kind of liveaboard experience you're looking for - diving, cruising, or a mix of both.",
+  suggestedReplies: [
+    {
+      label: "Tell me about Komodo",
+      message: "Tell me about Komodo liveaboards",
+    },
+    {
+      label: "Tell me about Raja Ampat",
+      message: "Tell me about Raja Ampat liveaboards",
+    },
+    {
+      label: "I want to dive",
+      message: "I want a dive-focused liveaboard",
+    },
+  ],
 };
 
 const LS_KEY = "bluepass:kaiSessionId";
@@ -123,8 +143,8 @@ export function KaiWebChat() {
     return () => window.removeEventListener("kai:open", handleKaiOpen);
   }, []);
 
-  const sendMessage = useCallback(async () => {
-    const text = input.trim();
+  const sendMessage = useCallback(async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || isSending) return;
     const recentMessages = messages.slice(-10).map((message) => ({
       role: message.role,
@@ -151,8 +171,12 @@ export function KaiWebChat() {
 
       if (!res.ok) throw new Error("non-ok response");
 
-      const data: { sessionId: string; reply: string; matches?: MatchCard[] } =
-        await res.json();
+      const data: {
+        sessionId: string;
+        reply: string;
+        matches?: MatchCard[];
+        suggestedReplies?: SuggestedReply[];
+      } = await res.json();
 
       if (data.sessionId !== sessionIdRef.current) {
         sessionIdRef.current = data.sessionId;
@@ -161,7 +185,12 @@ export function KaiWebChat() {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.reply, matches: data.matches },
+        {
+          role: "assistant",
+          content: data.reply,
+          matches: data.matches,
+          suggestedReplies: data.suggestedReplies,
+        },
       ]);
     } catch {
       setError("Couldn't reach Kai right now. Please try again.");
@@ -371,6 +400,24 @@ export function KaiWebChat() {
                                 isYachtMatch(match) && sentInquirySlugs.includes(match.slug)
                               }
                             />
+                          ))}
+                        </div>
+                      )}
+                    {msg.role === "assistant" &&
+                      i === messages.length - 1 &&
+                      msg.suggestedReplies &&
+                      msg.suggestedReplies.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {msg.suggestedReplies.map((suggestion) => (
+                            <button
+                              key={suggestion.label}
+                              type="button"
+                              onClick={() => void sendMessage(suggestion.message)}
+                              disabled={isSending}
+                              className="bp-focus-ring rounded-full border border-white/15 bg-white/8 px-2.5 py-1.5 text-left text-[11px] font-semibold leading-tight text-white/82 transition-colors hover:bg-white/12 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {suggestion.label}
+                            </button>
                           ))}
                         </div>
                       )}

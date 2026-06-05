@@ -14,6 +14,7 @@ import type {
   KaiMissingSlot,
   KaiSessionContext,
   KaiSessionStatus,
+  KaiSuggestedReply,
   KaiTravelIntent,
   YachtMatch,
 } from "@/lib/services/kai/types";
@@ -156,6 +157,7 @@ export function createKaiConversationService(
         input.message,
         matches,
       );
+      const suggestedReplies = buildSuggestedReplies(intent, planner, matches);
       const context = buildSessionContext(intent, planner);
       const userMessage = buildMessage({
         sessionId,
@@ -203,7 +205,7 @@ export function createKaiConversationService(
         channel: input.channel,
         role: "assistant",
         content: safeReply,
-        metadata: { intent, matches, lastAskedSlot: context.lastAskedSlot },
+        metadata: { intent, matches, suggestedReplies, lastAskedSlot: context.lastAskedSlot },
       });
 
       const sessionToPersist = {
@@ -256,6 +258,7 @@ export function createKaiConversationService(
         reply: assistantMessage.content,
         intent: sanitizeObjectForResponse(intent),
         matches: sanitizeObjectForResponse(matches),
+        suggestedReplies: sanitizeObjectForResponse(suggestedReplies),
         planner: shouldExposePlanner()
           ? sanitizeObjectForResponse(planner)
           : undefined,
@@ -284,7 +287,7 @@ export function buildDeterministicReply(
   matches: YachtMatch[] = [],
 ) {
   if (intent.unsupportedDestination) {
-    return "BluePass is currently focused on Indonesia. I can help with places like Komodo, Raja Ampat, Bali, Nusa Penida, Alor, Wakatobi, and other Indonesian marine destinations. Are you open to an Indonesia-based trip?";
+    return `BluePass is currently focused on Komodo and Raja Ampat liveaboards. I can't match ${intent.unsupportedDestination} yet, but I can help compare Komodo and Raja Ampat if either works for you.`;
   }
 
   const travelAdviceReply = buildTravelAdviceReply(intent, latestUserMessage);
@@ -301,7 +304,7 @@ export function buildDeterministicReply(
     const prefix =
       knownParts.length > 0 ? `Got it: ${knownParts.join(" ")}. ` : "";
 
-    return `${prefix}Where in Indonesia feels best - Komodo, Raja Ampat, Bali/Nusa Penida, Lombok/Gili, or somewhere else in Indonesia?`;
+    return `${prefix}Where feels best for this liveaboard - Komodo or Raja Ampat?`;
   }
 
   if (planner.missingSlots.includes("tripType")) {
@@ -359,6 +362,106 @@ export function buildDeterministicReply(
   }
 
   return `Perfect. I can start matching suitable Indonesia trips for ${intent.destination} based on your ${intent.tripType} plans for ${intent.guests} guests. I won't claim live availability yet, but I can help narrow the right fit.`;
+}
+
+export function buildSuggestedReplies(
+  intent: KaiTravelIntent,
+  planner = planKaiConversation({
+    intent,
+    latestUserMessage: "",
+    channel: "web",
+  }),
+  matches: YachtMatch[] = [],
+): KaiSuggestedReply[] {
+  if (intent.unsupportedDestination) {
+    return [
+      {
+        label: "Tell me about Komodo",
+        message: "Tell me about Komodo liveaboards",
+      },
+      {
+        label: "Tell me about Raja Ampat",
+        message: "Tell me about Raja Ampat liveaboards",
+      },
+    ];
+  }
+
+  if (planner.conversationStage === "ready_to_match" && matches.length > 0) {
+    return matches.slice(0, 3).map((match) => ({
+      label: match.name,
+      message: `I'm interested in ${match.name}`,
+    }));
+  }
+
+  const nextSlot = planner.nextSlotToAsk;
+
+  if (!nextSlot || nextSlot === "destination") {
+    return [
+      {
+        label: "Tell me about Komodo",
+        message: "Tell me about Komodo liveaboards",
+      },
+      {
+        label: "Tell me about Raja Ampat",
+        message: "Tell me about Raja Ampat liveaboards",
+      },
+      {
+        label: "I want to dive",
+        message: "I want a dive-focused liveaboard",
+      },
+      {
+        label: "Just exploring",
+        message: "I'm just exploring liveaboard options",
+      },
+    ];
+  }
+
+  if (nextSlot === "tripType") {
+    return [
+      { label: "Dive-focused", message: "Dive-focused liveaboard" },
+      { label: "Cruising-focused", message: "Cruising-focused liveaboard" },
+      { label: "A mix of both", message: "A mix of diving and cruising" },
+    ];
+  }
+
+  if (nextSlot === "guests") {
+    return [
+      { label: "Couple / 2 guests", message: "2 guests" },
+      { label: "Small group of 4", message: "4 guests" },
+      { label: "Group of 6", message: "6 guests" },
+    ];
+  }
+
+  if (nextSlot === "dateWindow") {
+    const destination = intent.destination ?? "there";
+    return [
+      { label: "Best season?", message: `What is the best time to go to ${destination}?` },
+      { label: "July 2026", message: "July 2026" },
+      { label: "October 2026", message: "October 2026" },
+    ];
+  }
+
+  if (nextSlot === "budget") {
+    return [
+      { label: "Around $4,000", message: "Around $4,000" },
+      { label: "Under $8,000", message: "Under $8,000" },
+      { label: "Luxury fit", message: "Luxury budget" },
+    ];
+  }
+
+  if (nextSlot === "travellerName") {
+    return [];
+  }
+
+  if (nextSlot === "travellerEmail") {
+    return [];
+  }
+
+  if (nextSlot === "travellerPhone") {
+    return [];
+  }
+
+  return [];
 }
 
 export function buildSessionContext(

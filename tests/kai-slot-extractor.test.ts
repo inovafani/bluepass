@@ -28,10 +28,10 @@ describe("extractKaiTravelIntent", () => {
     );
   });
 
-  it("extracts Bali beginners and snorkelling", () => {
+  it("marks Bali as unsupported for now", () => {
     expect(extractKaiTravelIntent("We are beginners in Bali and want snorkelling")).toEqual(
       expect.objectContaining({
-        destination: "Bali",
+        unsupportedDestination: "Bali",
         tripType: "snorkelling",
         certificationLevel: "beginner",
         interests: expect.arrayContaining(["beginner-friendly"]),
@@ -111,14 +111,14 @@ describe("extractKaiTravelIntent", () => {
       extractKaiTravelIntent(
         "2",
         {
-          destination: "Nusa Penida",
+          destination: "Komodo",
           tripType: "sailing",
         },
         { lastAskedSlot: "guests" },
       ),
     ).toEqual(
       expect.objectContaining({
-        destination: "Nusa Penida",
+        destination: "Komodo",
         tripType: "sailing",
         guests: 2,
       }),
@@ -130,7 +130,7 @@ describe("extractKaiTravelIntent", () => {
       extractKaiTravelIntent(
         "two",
         {
-          destination: "Nusa Penida",
+          destination: "Komodo",
           tripType: "sailing",
         },
         { lastAskedSlot: "guests" },

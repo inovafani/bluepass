@@ -47,6 +47,9 @@ export async function POST(request: NextRequest) {
       reply: result.reply,
       intent: result.intent,
       ...(result.matches ? { matches: result.matches } : {}),
+      ...(result.suggestedReplies
+        ? { suggestedReplies: result.suggestedReplies }
+        : {}),
       ...(result.planner ? { planner: result.planner } : {}),
     });
   } catch (error) {
