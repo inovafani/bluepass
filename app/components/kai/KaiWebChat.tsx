@@ -113,6 +113,16 @@ export function KaiWebChat() {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    function handleKaiOpen(e: Event) {
+      const query = (e as CustomEvent<{ query?: string }>).detail?.query ?? "";
+      setIsOpen(true);
+      if (query) setInput(query);
+    }
+    window.addEventListener("kai:open", handleKaiOpen);
+    return () => window.removeEventListener("kai:open", handleKaiOpen);
+  }, []);
+
   const sendMessage = useCallback(async () => {
     const text = input.trim();
     if (!text || isSending) return;
