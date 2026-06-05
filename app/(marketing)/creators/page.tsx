@@ -69,14 +69,6 @@ const creators = [
     image: "/creators/camvaughne.jpg",
   },
   {
-    name: "Christian LeBlanc",
-    handle: "@lostleblanc",
-    location: "Global",
-    role: "Travel and filmmaking creator behind Lost LeBlanc, built around cinematic guides and creator education.",
-    href: "https://www.instagram.com/lostleblanc/",
-    image: "/creators/lostleblanc.jpg",
-  },
-  {
     name: "Story of Sage",
     handle: "@storyofsage",
     location: "Indonesia",
@@ -137,14 +129,6 @@ const featuredReels = [
     title: "Remote Indonesia by sail, film, and sea",
     views: "Most viewed",
     reelHref: "https://www.instagram.com/reel/Ck8BkRDhLhy/",
-    videoSrc: "",
-  },
-  {
-    creator: "Christian LeBlanc",
-    handle: "@lostleblanc",
-    title: "Travel stories built for cinematic discovery",
-    views: "Most viewed",
-    reelHref: "https://www.instagram.com/reel/DXO0GAiiYWz/",
     videoSrc: "",
   },
   {

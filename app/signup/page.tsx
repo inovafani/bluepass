@@ -24,14 +24,6 @@ const creators = [
     image: "/creators/camvaughne.jpg",
   },
   {
-    name: "Christian LeBlanc",
-    handle: "@lostleblanc",
-    location: "Global",
-    role: "Travel and filmmaking creator behind Lost LeBlanc, built around cinematic guides.",
-    href: "https://www.instagram.com/lostleblanc/",
-    image: "/creators/lostleblanc.jpg",
-  },
-  {
     name: "Story of Sage",
     handle: "@storyofsage",
     location: "Indonesia",

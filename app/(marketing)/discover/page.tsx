@@ -42,16 +42,6 @@ const conservationCards = [
     alt: "Cam Vaughne",
     href: "https://www.instagram.com/reel/Ck8BkRDhLhy/",
   },
-  {
-    id: "04",
-    type: "creator",
-    handle: "@lostleblanc",
-    name: "Christian LeBlanc",
-    description: "Travel stories built for cinematic discovery.",
-    image: "/creators/lostleblanc.jpg",
-    alt: "Christian LeBlanc",
-    href: "https://www.instagram.com/reel/DXO0GAiiYWz/",
-  },
 ];
 
 export default function DiscoverPage() {
