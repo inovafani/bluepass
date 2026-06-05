@@ -31,9 +31,9 @@ export function BluePassFooter() {
           <p className="text-xs font-normal tracking-[0.18em] text-[#B89A5D]">
             Marketplace
           </p>
-          <Link href="/explore-indonesia">Trips</Link>
-          <Link href="/for-operators">Operators</Link>
-          <Link href="/explore-indonesia">Destinations</Link>
+          <Link href="/discover">Trips</Link>
+          <Link href="/discover">Operators</Link>
+          <Link href="/discover">Destinations</Link>
         </div>
         <div className="grid gap-2">
           <p className="text-xs font-normal tracking-[0.18em] text-[#B89A5D]">
@@ -47,7 +47,7 @@ export function BluePassFooter() {
           <p className="text-xs font-normal tracking-[0.18em] text-[#B89A5D]">
             Operators
           </p>
-          <Link href="/for-operators">BluePass for Operators</Link>
+          <Link href="/discover">BluePass for Operators</Link>
           <Link href="/signup">Claim your business</Link>
           <a href="mailto:jeff@bluepass.travel">Founding cohort</a>
         </div>

@@ -502,7 +502,7 @@ export default async function OperatorPage({
 
           <div className="relative flex min-h-[72svh] flex-col justify-end px-[var(--cinematic-screen-x)] pb-10 pt-28">
             <Link
-              href="/for-operators"
+              href="/discover"
               className="mb-8 inline-flex w-fit items-center gap-2 text-[10px] tracking-[0.22em] text-white/46 transition-colors hover:text-white/80"
              
             >

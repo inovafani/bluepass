@@ -49,10 +49,10 @@ export default function HomePage() {
               Start with Kai
             </Link>
             <Link
-              href="/explore-indonesia"
+              href="/discover"
               className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center rounded-full border border-white/54 bg-transparent px-6 text-[11px] font-black text-white transition-colors hover:bg-white/10 active:scale-[0.98]"
             >
-              Explore Indonesia
+              Discover
             </Link>
           </div>
         </section>

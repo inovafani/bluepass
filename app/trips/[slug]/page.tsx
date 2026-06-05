@@ -401,7 +401,7 @@ export default async function TripPage({
 
         <div className="relative flex min-h-[72svh] flex-col justify-end px-[var(--cinematic-screen-x)] pb-12 pt-28">
           <Link
-            href="/explore-indonesia"
+            href="/discover"
             className="mb-6 inline-flex w-fit items-center gap-2 text-[10px] tracking-[0.22em] text-white/50 transition-colors hover:text-white/80"
            
           >
@@ -651,7 +651,7 @@ export default async function TripPage({
                   Check availability with Kai
                 </Link>
                 <Link
-                  href="/explore-indonesia"
+                  href="/discover"
                   className="mt-2.5 flex h-10 w-full items-center justify-center border border-white/20 text-[11px] font-medium text-white/70 transition-colors hover:border-white/40 hover:text-white"
                 >
                   Back to all trips

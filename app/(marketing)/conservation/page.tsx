@@ -110,7 +110,7 @@ export default function ConservationPage() {
               </div>
               <div className="mt-9 flex flex-wrap gap-3 md:gap-5">
                 <Link
-                  href="/explore-indonesia"
+                  href="/discover"
                   className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center rounded-full bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
                 >
                   Find a trip
@@ -335,7 +335,7 @@ export default function ConservationPage() {
                 notes as bookings begin moving through the marketplace.
               </p>
               <Link
-                href="/explore-indonesia"
+                href="/discover"
                 className="bp-focus-ring mt-8 inline-flex h-12 items-center justify-center gap-2 bg-white px-6 text-sm font-medium text-[#071827] transition-colors hover:bg-white/90"
               >
                 Find a trip that funds the reef
