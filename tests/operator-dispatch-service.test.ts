@@ -3,7 +3,10 @@ import {
   buildInquiryTemplateInput,
   dispatchInquiryToOperator,
 } from "@/lib/services/operators/operator-dispatch-service";
-import { sendTemplateMessage, sendWhatsAppText } from "@/lib/services/whatsapp/client";
+import {
+  sendTemplateMessage,
+  sendWhatsAppText,
+} from "@/lib/services/whatsapp/client";
 
 const prismaMocks = vi.hoisted(() => ({
   bookingInquiry: {
@@ -75,9 +78,16 @@ describe("operator dispatch service", () => {
   });
 
   it("calls WhatsApp send pipeline, persists outbound context, and marks inquiry pending", async () => {
-    prismaMocks.bookingInquiry.findUniqueOrThrow.mockResolvedValue(readyInquiry);
-    prismaMocks.whatsAppOutboundMessage.create.mockResolvedValue({ id: "wa_out_123" });
-    prismaMocks.whatsAppOutboundMessage.update.mockResolvedValue({ id: "wa_out_123" });
+    process.env.WHATSAPP_OPERATOR_INQUIRY_SEND_MODE = "template";
+    prismaMocks.bookingInquiry.findUniqueOrThrow.mockResolvedValue(
+      readyInquiry,
+    );
+    prismaMocks.whatsAppOutboundMessage.create.mockResolvedValue({
+      id: "wa_out_123",
+    });
+    prismaMocks.whatsAppOutboundMessage.update.mockResolvedValue({
+      id: "wa_out_123",
+    });
     prismaMocks.bookingInquiry.update.mockResolvedValue({
       id: "inq_123",
       status: "OPERATOR_PENDING",
@@ -135,13 +145,66 @@ describe("operator dispatch service", () => {
     });
   });
 
+  it("sends operator inquiry as free text by default for demo-safe local sends", async () => {
+    prismaMocks.bookingInquiry.findUniqueOrThrow.mockResolvedValue(
+      readyInquiry,
+    );
+    prismaMocks.whatsAppOutboundMessage.create.mockResolvedValue({
+      id: "wa_out_text_default",
+      templateName: "booking_inquiry_operator",
+    });
+    prismaMocks.whatsAppOutboundMessage.update.mockResolvedValue({
+      id: "wa_out_text_default",
+    });
+    prismaMocks.bookingInquiry.update.mockResolvedValue({
+      id: "inq_123",
+      status: "OPERATOR_PENDING",
+    });
+    vi.mocked(sendWhatsAppText).mockResolvedValue({
+      providerMessageId: "wamid.operator_text",
+    });
+
+    await expect(
+      dispatchInquiryToOperator({
+        inquiryId: "inq_123",
+        operatorPhone: "+62 821-3143-342",
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        providerMessageId: "wamid.operator_text",
+      }),
+    );
+    expect(sendTemplateMessage).not.toHaveBeenCalled();
+    expect(sendWhatsAppText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "628213143342",
+        role: "ops",
+        body: expect.stringContaining("New BluePass inquiry"),
+      }),
+    );
+    expect(prismaMocks.whatsAppOutboundMessage.update).toHaveBeenCalledWith({
+      where: { id: "wa_out_text_default" },
+      data: expect.objectContaining({
+        status: "SENT",
+        templateName: "operator_inquiry_text",
+        providerMessageId: "wamid.operator_text",
+      }),
+    });
+  });
+
   it("falls back to text when Meta rejects the operator template as unavailable", async () => {
-    prismaMocks.bookingInquiry.findUniqueOrThrow.mockResolvedValue(readyInquiry);
+    process.env.WHATSAPP_OPERATOR_INQUIRY_SEND_MODE = "template";
+    prismaMocks.bookingInquiry.findUniqueOrThrow.mockResolvedValue(
+      readyInquiry,
+    );
     prismaMocks.whatsAppOutboundMessage.create.mockResolvedValue({
       id: "wa_out_fallback",
       templateName: "booking_inquiry_operator",
     });
-    prismaMocks.whatsAppOutboundMessage.update.mockResolvedValue({ id: "wa_out_fallback" });
+    prismaMocks.whatsAppOutboundMessage.update.mockResolvedValue({
+      id: "wa_out_fallback",
+    });
     prismaMocks.bookingInquiry.update.mockResolvedValue({
       id: "inq_123",
       status: "OPERATOR_PENDING",
@@ -167,6 +230,57 @@ describe("operator dispatch service", () => {
     );
     expect(prismaMocks.whatsAppOutboundMessage.update).toHaveBeenCalledWith({
       where: { id: "wa_out_fallback" },
+      data: expect.objectContaining({
+        status: "SENT",
+        templateName: "operator_inquiry_text",
+        providerMessageId: "wamid.operator_text",
+      }),
+    });
+  });
+
+  it("falls back to text when Meta rejects the operator template for any template send error", async () => {
+    process.env.WHATSAPP_OPERATOR_INQUIRY_SEND_MODE = "template";
+    prismaMocks.bookingInquiry.findUniqueOrThrow.mockResolvedValue(
+      readyInquiry,
+    );
+    prismaMocks.whatsAppOutboundMessage.create.mockResolvedValue({
+      id: "wa_out_template_error",
+      templateName: "booking_inquiry_operator",
+    });
+    prismaMocks.whatsAppOutboundMessage.update.mockResolvedValue({
+      id: "wa_out_template_error",
+    });
+    prismaMocks.bookingInquiry.update.mockResolvedValue({
+      id: "inq_123",
+      status: "OPERATOR_PENDING",
+    });
+    vi.mocked(sendTemplateMessage).mockRejectedValue(
+      new Error("Meta Graph API rejected the WhatsApp send. code=100"),
+    );
+    vi.mocked(sendWhatsAppText).mockResolvedValue({
+      providerMessageId: "wamid.operator_text",
+    });
+
+    await expect(
+      dispatchInquiryToOperator({
+        inquiryId: "inq_123",
+        operatorPhone: "+62 821-3143-342",
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        providerMessageId: "wamid.operator_text",
+      }),
+    );
+    expect(sendWhatsAppText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "628213143342",
+        role: "ops",
+        body: expect.stringContaining("New BluePass inquiry"),
+      }),
+    );
+    expect(prismaMocks.whatsAppOutboundMessage.update).toHaveBeenCalledWith({
+      where: { id: "wa_out_template_error" },
       data: expect.objectContaining({
         status: "SENT",
         templateName: "operator_inquiry_text",

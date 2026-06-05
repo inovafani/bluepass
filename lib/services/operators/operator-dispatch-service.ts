@@ -2,7 +2,10 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { yachtBySlug } from "@/lib/data/yachts";
 import { sanitizeJsonForPrisma } from "@/lib/services/kai/json-safety";
-import { sendTemplateMessage, sendWhatsAppText } from "@/lib/services/whatsapp/client";
+import {
+  sendTemplateMessage,
+  sendWhatsAppText,
+} from "@/lib/services/whatsapp/client";
 import {
   buildOperatorInquiryFreeText,
   buildOperatorInquiryTemplatePayload,
@@ -10,13 +13,20 @@ import {
 } from "@/lib/services/whatsapp/operator-dispatch";
 import { whatsappTemplateNames } from "@/lib/services/whatsapp/templates";
 
+const operatorInquirySendMode = {
+  template: "template",
+  text: "text",
+} as const;
+
 export type DispatchInquiryToOperatorInput = {
   inquiryId: string;
   operatorPhone: string;
   operatorId?: string;
 };
 
-export async function dispatchInquiryToOperator(input: DispatchInquiryToOperatorInput) {
+export async function dispatchInquiryToOperator(
+  input: DispatchInquiryToOperatorInput,
+) {
   const inquiry = await prisma.bookingInquiry.findUniqueOrThrow({
     where: { id: input.inquiryId },
   });
@@ -61,7 +71,10 @@ export async function dispatchInquiryToOperator(input: DispatchInquiryToOperator
     data: {
       status: "SENT",
       sentAt: new Date(),
-      templateName: sendResult.messageKind === "text" ? "operator_inquiry_text" : outbound.templateName,
+      templateName:
+        sendResult.messageKind === "text"
+          ? "operator_inquiry_text"
+          : outbound.templateName,
       providerMessageId: sendResult.providerMessageId,
     },
   });
@@ -89,8 +102,11 @@ async function sendOperatorInquiryMessage(input: {
   languageCode: string;
   components: Parameters<typeof sendTemplateMessage>[0]["components"];
   textBody: string;
-}): Promise<{ messageKind: "template" | "text"; providerMessageId: string | null }> {
-  if (process.env.WHATSAPP_OPERATOR_INQUIRY_SEND_MODE === "text") {
+}): Promise<{
+  messageKind: "template" | "text";
+  providerMessageId: string | null;
+}> {
+  if (resolveOperatorInquirySendMode() === operatorInquirySendMode.text) {
     const result = await sendWhatsAppText({
       to: input.to,
       role: "ops",
@@ -109,12 +125,11 @@ async function sendOperatorInquiryMessage(input: {
       components: input.components,
     });
 
-    return { messageKind: "template", providerMessageId: result.providerMessageId };
-  } catch (error) {
-    if (!isUnavailableTemplateError(error)) {
-      throw error;
-    }
-
+    return {
+      messageKind: "template",
+      providerMessageId: result.providerMessageId,
+    };
+  } catch {
     const result = await sendWhatsAppText({
       to: input.to,
       role: "ops",
@@ -125,8 +140,11 @@ async function sendOperatorInquiryMessage(input: {
   }
 }
 
-function isUnavailableTemplateError(error: unknown): boolean {
-  return error instanceof Error && error.message.includes("code=132001");
+function resolveOperatorInquirySendMode() {
+  return process.env.WHATSAPP_OPERATOR_INQUIRY_SEND_MODE ===
+    operatorInquirySendMode.template
+    ? operatorInquirySendMode.template
+    : operatorInquirySendMode.text;
 }
 
 export function buildInquiryTemplateInput(input: {
@@ -179,7 +197,9 @@ export function buildInquiryTemplateInput(input: {
     travellerName: input.inquiry.travellerName ?? "BluePass traveller",
     travellerPhone: input.inquiry.travellerPhone ?? "Not provided",
     dateRange: input.inquiry.dateWindow ?? "Not provided",
-    guests: input.inquiry.guests ? String(input.inquiry.guests) : "Not provided",
+    guests: input.inquiry.guests
+      ? String(input.inquiry.guests)
+      : "Not provided",
     quote: input.inquiry.budget ?? "Quote requested",
     tripTitle,
     notes: notes || "No additional notes",

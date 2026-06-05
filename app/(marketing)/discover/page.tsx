@@ -7,8 +7,7 @@ import { KaiSearchHero } from "./KaiSearchHero";
 
 export const metadata: Metadata = {
   title: "Discover | BluePass",
-  description:
-    "Browse every vetted Indonesian liveaboard partner on BluePass.",
+  description: "Browse every vetted Indonesian liveaboard partner on BluePass.",
 };
 
 const conservationCards = [
@@ -66,11 +65,11 @@ export default function DiscoverPage() {
               A carousel for the people and partners moving the ocean forward.
             </h2>
             <p className="mt-2 max-w-xl text-sm font-light text-white/50">
-              The conservation partners that receive 5% of every booking, plus the
-              creators we trust to tell the story.
+              The conservation partners that receive 5% of every booking, plus
+              the creators we trust to tell the story.
             </p>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mx-auto mt-8 grid max-w-5xl gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {conservationCards.map((card) => (
                 <Link
                   key={card.id}

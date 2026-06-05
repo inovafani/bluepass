@@ -201,7 +201,6 @@ export default function CreatorsPage() {
           />
           <div className="relative mx-auto max-w-6xl">
             <div className="grid gap-5 md:gap-8 lg:grid-cols-2 lg:items-stretch">
-
               {/* Left — image panel fills the grid row height */}
               <div className="relative min-h-[360px] overflow-hidden rounded-[var(--bp-radius-md)] shadow-[0_28px_90px_rgba(0,0,0,0.36)] lg:min-h-0">
                 <div
@@ -228,7 +227,6 @@ export default function CreatorsPage() {
 
               {/* Right — header + editorial step list + CTA */}
               <div className="bp-reveal bp-reveal-delay-1 flex flex-col justify-between gap-10 lg:py-2">
-
                 {/* Header */}
                 <div>
                   <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
@@ -248,7 +246,10 @@ export default function CreatorsPage() {
                 {/* Editorial step list — no boxes, just clean divider rows */}
                 <div className="divide-y divide-white/[0.07]">
                   {steps.map((step, index) => (
-                    <div key={step.verb} className="group flex items-start gap-5 py-6">
+                    <div
+                      key={step.verb}
+                      className="group flex items-start gap-5 py-6"
+                    >
                       {/* Large ambient step number — decorative, not a badge */}
                       <span
                         aria-hidden="true"
@@ -282,7 +283,6 @@ export default function CreatorsPage() {
                   </p>
                 </div>
               </div>
-
             </div>
           </div>
         </section>
@@ -353,7 +353,6 @@ export default function CreatorsPage() {
           <div className="relative mx-auto max-w-6xl overflow-hidden border-y border-white/10 py-14 md:py-20">
             <OceanCurrentOrnament />
             <div className="bp-reveal relative">
-
               {/* Heading row */}
               <div className="mb-10 grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
                 <div>
@@ -400,7 +399,6 @@ export default function CreatorsPage() {
                   </article>
                 ))}
               </div>
-
             </div>
           </div>
         </section>
@@ -416,7 +414,7 @@ export default function CreatorsPage() {
             <h2 className="bp-page-title mt-4 max-w-3xl text-xl leading-none text-white/82 md:text-2xl">
               The kind of taste BluePass is built for.
             </h2>
-            <div className="bp-reveal mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="bp-reveal mx-auto mt-8 grid max-w-5xl gap-4 md:grid-cols-2 xl:grid-cols-3">
               {creators.map((creator) => (
                 <Link key={creator.name} href={creator.href} className="block">
                   <article className="bp-tech-card group border border-white/[0.09]">
@@ -440,7 +438,10 @@ export default function CreatorsPage() {
                       <div className="absolute left-3 top-3 z-10">
                         <span
                           className="border border-white/14 bg-black/52 px-2 py-[3px] text-[10px] tracking-[0.13em] text-white/82"
-                          style={{ borderRadius: "6px", backdropFilter: "blur(6px)" }}
+                          style={{
+                            borderRadius: "6px",
+                            backdropFilter: "blur(6px)",
+                          }}
                         >
                           {creator.handle}
                         </span>
@@ -449,10 +450,7 @@ export default function CreatorsPage() {
                         <p className="bp-page-title text-[1.2rem] leading-tight text-white/92">
                           {creator.name}
                         </p>
-                        <p
-                          className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/38"
-                         
-                        >
+                        <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/38">
                           {creator.location}
                         </p>
                         <p className="mt-2 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/56">
@@ -564,37 +562,102 @@ function BenefitIcon({ type }: { type: string }) {
 
 function PersonaIcon({ type }: { type: string }) {
   const cls = "h-4 w-4 text-[#B89A5D]";
-  if (type === "wave") return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
-      <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-      <path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-      <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-    </svg>
-  );
-  if (type === "camera") return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
-      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-      <circle cx="12" cy="13" r="3" />
-    </svg>
-  );
-  if (type === "pen") return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
-      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-      <path d="m15 5 4 4" />
-    </svg>
-  );
-  if (type === "compass") return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-    </svg>
-  );
-  if (type === "leaf") return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={cls} aria-hidden="true">
-      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-    </svg>
-  );
+  if (type === "wave")
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={cls}
+        aria-hidden="true"
+      >
+        <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
+        <path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
+        <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
+      </svg>
+    );
+  if (type === "camera")
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={cls}
+        aria-hidden="true"
+      >
+        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+        <circle cx="12" cy="13" r="3" />
+      </svg>
+    );
+  if (type === "pen")
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={cls}
+        aria-hidden="true"
+      >
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        <path d="m15 5 4 4" />
+      </svg>
+    );
+  if (type === "compass")
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={cls}
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+      </svg>
+    );
+  if (type === "leaf")
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={cls}
+        aria-hidden="true"
+      >
+        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+      </svg>
+    );
   return null;
 }
 

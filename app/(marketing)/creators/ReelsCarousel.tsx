@@ -92,6 +92,7 @@ export function ReelsCarousel({ reels }: { reels: Reel[] }) {
                     active={offset === 0}
                     index={index}
                     offset={offset}
+                    reelCount={reels.length}
                     reel={reel}
                     onClick={() => {
                       if (offset === 0) {
@@ -201,16 +202,18 @@ function ReelCard({
   active,
   index,
   offset,
+  reelCount,
   reel,
   onClick,
 }: {
   active: boolean;
   index: number;
   offset: number;
+  reelCount: number;
   reel: Reel;
   onClick: () => void;
 }) {
-  const position = getPosition(offset);
+  const position = getPosition(offset, reelCount);
 
   return (
     <button
@@ -231,11 +234,19 @@ function ReelCard({
       >
         {active && reel.reelHref ? (
           <>
-            <InstagramMediaFrame reel={reel} className="h-full w-full" autoplay />
+            <InstagramMediaFrame
+              reel={reel}
+              className="h-full w-full"
+              autoplay
+            />
             <span className="absolute inset-0 z-20 cursor-pointer" />
           </>
         ) : (
-          <ReelThumbnail index={index} reel={reel} visible={Math.abs(offset) <= 2} />
+          <ReelThumbnail
+            index={index}
+            reel={reel}
+            visible={Math.abs(offset) <= 2}
+          />
         )}
 
         <div className="pointer-events-none absolute left-4 top-4 z-30 flex items-center gap-2 rounded-full bg-black/30 px-3 py-2 text-[11px] font-light text-white/86 backdrop-blur-xl">
@@ -287,32 +298,42 @@ function ReelPlayer({ reel }: { reel: Reel }) {
   );
 }
 
-function getPosition(offset: number): {
+function getPosition(
+  offset: number,
+  reelCount: number,
+): {
   className: string;
   style: CSSProperties;
 } {
+  if (reelCount <= 4 && Math.abs(offset) > 1) {
+    return {
+      className: "pointer-events-none z-0 opacity-0",
+      style: getTransform(offset < 0 ? "-30rem" : "30rem", 0.76),
+    };
+  }
+
   if (offset < -2) {
     return {
       className: "pointer-events-none z-0 opacity-0",
-      style: getTransform("-37rem", 0.7),
+      style: getTransform("-30rem", 0.76),
     };
   }
 
   if (offset > 2) {
     return {
       className: "pointer-events-none z-0 opacity-0",
-      style: getTransform("37rem", 0.7),
+      style: getTransform("30rem", 0.76),
     };
   }
 
   const positions = {
     "-2": {
       className: "z-0 opacity-[0.52] blur-[0.4px] hover:opacity-70",
-      style: getTransform("-37rem", 0.7),
+      style: getTransform("-30rem", 0.76),
     },
     "-1": {
       className: "z-10 opacity-[0.84] hover:opacity-95",
-      style: getTransform("-20rem", 0.84),
+      style: getTransform("-18rem", 0.86),
     },
     "0": {
       className: "z-30 opacity-100",
@@ -320,11 +341,11 @@ function getPosition(offset: number): {
     },
     "1": {
       className: "z-10 opacity-[0.84] hover:opacity-95",
-      style: getTransform("20rem", 0.84),
+      style: getTransform("18rem", 0.86),
     },
     "2": {
       className: "z-0 opacity-[0.52] blur-[0.4px] hover:opacity-70",
-      style: getTransform("37rem", 0.7),
+      style: getTransform("30rem", 0.76),
     },
   } as const;
 

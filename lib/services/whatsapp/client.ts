@@ -223,6 +223,18 @@ async function postWhatsAppMessage(
       providerMessageId: providerMessageId ? "present" : "missing",
     });
 
+    if (
+      process.env.NODE_ENV !== "production" ||
+      process.env.KAI_DEBUG === "true"
+    ) {
+      console.info("whatsapp.send.debug", {
+        role,
+        to: payload.to,
+        type: payload.type,
+        providerMessageId,
+      });
+    }
+
     return { providerMessageId };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {

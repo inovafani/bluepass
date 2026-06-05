@@ -104,12 +104,18 @@ export default function SignupPage() {
                 "url('https://images.unsplash.com/photo-1644027621533-633fe3de243a?w=1920&q=80&fit=crop')",
             }}
           />
-          <div aria-hidden="true" className="absolute inset-0 bg-[#020b11]/70" />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-[#020b11]/70"
+          />
           <div
             aria-hidden="true"
             className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,11,17,0.78),rgba(2,11,17,0.18)_40%,rgba(2,11,17,0.18)_60%,rgba(2,11,17,0.88))]"
           />
-          <div aria-hidden="true" className="absolute inset-0 bg-[#0c3b3a]/14 mix-blend-color" />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-[#0c3b3a]/14 mix-blend-color"
+          />
 
           <div className="bp-reveal relative z-10 mx-auto max-w-6xl px-[var(--cinematic-screen-x)]">
             {/* Header */}
@@ -123,24 +129,37 @@ export default function SignupPage() {
               <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
                 <p className="max-w-xl text-sm font-light leading-[1.85] text-pretty text-white/56 md:text-[15px]">
                   BluePass only partners with verified ocean creators — dive
-                  instructors, photographers, sailors, and conservation educators
-                  who took the trip before they ever recommended it. When they
-                  share a booking link, their audience already trusts it.
+                  instructors, photographers, sailors, and conservation
+                  educators who took the trip before they ever recommended it.
+                  When they share a booking link, their audience already trusts
+                  it.
                 </p>
                 <a
                   href="#join"
                   className="bp-focus-ring shrink-0 inline-flex h-11 items-center gap-2 bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
                 >
                   Join as a creator
-                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
-                    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                  <svg
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
                   </svg>
                 </a>
               </div>
             </div>
 
             {/* Creator cards — editorial masonry layout */}
-            <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr]">
+            <div className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-2 xl:grid-cols-3">
               {/* First card — taller, featured */}
               {creators.slice(0, 1).map((creator) => (
                 <a
@@ -148,7 +167,7 @@ export default function SignupPage() {
                   href={creator.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bp-tech-card group col-span-1 border border-white/[0.09] xl:row-span-1"
+                  className="bp-tech-card group col-span-1 border border-white/[0.09]"
                 >
                   <div className="relative aspect-[2/3] overflow-hidden">
                     <Image
@@ -179,7 +198,10 @@ export default function SignupPage() {
                     <div className="absolute right-3 top-3 z-10">
                       <span
                         className="border border-white/14 bg-black/50 px-2 py-[3px] text-[10px] tracking-[0.12em] text-white/80"
-                        style={{ borderRadius: "6px", backdropFilter: "blur(6px)" }}
+                        style={{
+                          borderRadius: "6px",
+                          backdropFilter: "blur(6px)",
+                        }}
                       >
                         {creator.handle}
                       </span>
@@ -189,20 +211,14 @@ export default function SignupPage() {
                       <p className="bp-page-title text-[1.25rem] leading-tight text-white">
                         {creator.name}
                       </p>
-                      <p
-                        className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[#B89A5D]"
-                       
-                      >
+                      <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[#B89A5D]">
                         {creator.location}
                       </p>
                       <p className="mt-2 text-[0.78rem] leading-[1.55] text-white/60">
                         {creator.role}
                       </p>
                       <div className="mt-4 flex items-center gap-2 border-t border-white/[0.08] pt-3">
-                        <span
-                          className="text-[10px] tracking-[0.14em] text-[#B89A5D] transition-colors group-hover:text-white"
-                         
-                        >
+                        <span className="text-[10px] tracking-[0.14em] text-[#B89A5D] transition-colors group-hover:text-white">
                           View on Instagram →
                         </span>
                       </div>
@@ -240,7 +256,10 @@ export default function SignupPage() {
                     <div className="absolute right-3 top-3 z-10">
                       <span
                         className="border border-white/14 bg-black/50 px-2 py-[3px] text-[10px] tracking-[0.12em] text-white/80"
-                        style={{ borderRadius: "6px", backdropFilter: "blur(6px)" }}
+                        style={{
+                          borderRadius: "6px",
+                          backdropFilter: "blur(6px)",
+                        }}
                       >
                         {creator.handle}
                       </span>
@@ -249,10 +268,7 @@ export default function SignupPage() {
                       <p className="bp-page-title text-[1.15rem] leading-tight text-white">
                         {creator.name}
                       </p>
-                      <p
-                        className="mt-1 text-[10px] uppercase tracking-[0.16em] text-[#B89A5D]"
-                       
-                      >
+                      <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-[#B89A5D]">
                         {creator.location}
                       </p>
                       <p className="mt-2 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/56">
@@ -267,7 +283,8 @@ export default function SignupPage() {
             {/* Join CTA strip below cards */}
             <div className="mt-8 flex flex-col items-center gap-3 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm font-light text-white/44">
-                Verified ocean creators only. Free to join — commission on bookings.
+                Verified ocean creators only. Free to join — commission on
+                bookings.
               </p>
               <a
                 href="#join"
