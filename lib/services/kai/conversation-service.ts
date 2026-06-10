@@ -26,7 +26,9 @@ type PersistSessionInput = {
   id: string;
   channel: KaiChannel;
   externalUserId?: string;
+  travellerId?: string;
   travellerPhone?: string;
+  referralAttribution?: KaiConversationInput["referralAttribution"];
   status: KaiSessionStatus;
   context?: KaiSessionContext;
 };
@@ -103,6 +105,10 @@ export function createKaiConversationService(
         conversationMemory,
         previousContext?.intent,
       );
+      const prefilledIntent = mergeTravellerProfileIntoIntent(
+        reconstructedIntent,
+        input.travellerProfile,
+      );
       const inferredLastAskedSlot =
         previousContext?.lastAskedSlot ??
         inferLastAskedSlotFromHistory(conversationMemory);
@@ -119,7 +125,7 @@ export function createKaiConversationService(
       });
       let intent = extractKaiTravelIntent(
         input.message,
-        reconstructedIntent,
+        prefilledIntent,
         {
           lastAskedSlot: inferredLastAskedSlot,
         },
@@ -168,6 +174,12 @@ export function createKaiConversationService(
           ...(input.bookingContext
             ? { bookingContext: input.bookingContext }
             : {}),
+          ...(input.travellerProfile
+            ? { travellerProfile: input.travellerProfile }
+            : {}),
+          ...(input.referralAttribution
+            ? { referralAttribution: input.referralAttribution }
+            : {}),
           intent,
           matches,
           lastAskedSlot: inferredLastAskedSlot,
@@ -211,8 +223,13 @@ export function createKaiConversationService(
       const sessionToPersist = {
         id: sessionId,
         channel: input.channel,
-        externalUserId: input.externalUserId,
-        travellerPhone: input.travellerPhone,
+        externalUserId: buildExternalUserId(
+          input.externalUserId,
+          input.travellerProfile,
+        ),
+        travellerId: input.travellerProfile?.travellerId,
+        travellerPhone: input.travellerProfile?.phone ?? input.travellerPhone,
+        referralAttribution: input.referralAttribution,
         status: "open",
         context,
       } satisfies PersistSessionInput;
@@ -266,6 +283,41 @@ export function createKaiConversationService(
       };
     },
   };
+}
+
+function mergeTravellerProfileIntoIntent(
+  intent: KaiTravelIntent,
+  travellerProfile?: KaiConversationInput["travellerProfile"],
+): KaiTravelIntent {
+  if (!travellerProfile) {
+    return intent;
+  }
+
+  return {
+    ...intent,
+    travellerName: intent.travellerName ?? travellerProfile.name,
+    travellerEmail: intent.travellerEmail ?? travellerProfile.email,
+    travellerPhone: intent.travellerPhone ?? travellerProfile.phone,
+  };
+}
+
+function buildExternalUserId(
+  explicitExternalUserId?: string,
+  travellerProfile?: KaiConversationInput["travellerProfile"],
+) {
+  if (explicitExternalUserId) {
+    return explicitExternalUserId;
+  }
+
+  if (!travellerProfile) {
+    return undefined;
+  }
+
+  if (travellerProfile.travellerId) {
+    return `traveller:${travellerProfile.travellerId}`;
+  }
+
+  return `account:${travellerProfile.accountId ?? travellerProfile.id}`;
 }
 
 export const kaiConversationService = createKaiConversationService(

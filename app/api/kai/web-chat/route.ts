@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getCurrentTraveller } from "@/lib/services/auth/session";
 import { kaiConversationService } from "@/lib/services/kai/conversation-service";
+import { getReferralAttributionFromCookies } from "@/lib/services/referrals/attribution";
 
 const webChatRequestSchema = z.object({
   sessionId: z.string().trim().min(1).optional(),
@@ -35,9 +37,13 @@ export async function POST(request: NextRequest) {
   const sessionId = normalizeSessionId(parsed.data.sessionId);
 
   try {
+    const traveller = await getCurrentTravellerSafely();
+    const referralAttribution = await getReferralAttributionSafely();
     const result = await kaiConversationService.handleUserMessage({
       channel: "web",
       sessionId,
+      travellerProfile: traveller,
+      referralAttribution,
       message: parsed.data.message,
       recentMessages: parsed.data.recentMessages,
     });
@@ -70,6 +76,36 @@ function normalizeSessionId(sessionId?: string) {
   }
 
   return sessionIdSchema.safeParse(sessionId).success ? sessionId : undefined;
+}
+
+async function getCurrentTravellerSafely() {
+  try {
+    return await getCurrentTraveller();
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("outside a request scope")
+    ) {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
+async function getReferralAttributionSafely() {
+  try {
+    return await getReferralAttributionFromCookies();
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("outside a request scope")
+    ) {
+      return undefined;
+    }
+
+    throw error;
+  }
 }
 
 function maskSessionId(sessionId?: string) {

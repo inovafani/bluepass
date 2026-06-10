@@ -161,6 +161,8 @@ export function buildInquiryTemplateInput(input: {
     certificationLevel: string | null;
     budget: string | null;
     notes: string | null;
+    referralCode: string | null;
+    referralRole: string | null;
   };
   operatorPhone: string;
 }): OperatorInquiryTemplateInput {
@@ -186,6 +188,9 @@ export function buildInquiryTemplateInput(input: {
     input.inquiry.selectedYachtSlug
       ? `Selected yacht: ${input.inquiry.selectedYachtSlug}`
       : undefined,
+    input.inquiry.referralCode
+      ? `Referral: ${formatReferralSource(input.inquiry.referralCode, input.inquiry.referralRole)}`
+      : undefined,
   ]
     .filter(Boolean)
     .join(" | ");
@@ -204,6 +209,10 @@ export function buildInquiryTemplateInput(input: {
     tripTitle,
     notes: notes || "No additional notes",
   };
+}
+
+function formatReferralSource(code: string, role?: string | null) {
+  return role ? `${role.toLowerCase()} / ${code}` : code;
 }
 
 function normalizePhone(value: string) {

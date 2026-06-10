@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { FormEvent } from "react";
 import { useState } from "react";
 
@@ -16,10 +17,22 @@ type SignupRole = "OPERATOR" | "CREATOR";
 type SignupRoleChoice = (typeof roles)[number]["value"];
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
-export function SignupForm() {
+type CurrentTraveller = {
+  name: string;
+  email: string;
+  phone: string;
+};
+
+export function SignupForm({
+  currentTraveller,
+}: {
+  currentTraveller: CurrentTraveller | null;
+}) {
   const [roleChoice, setRoleChoice] = useState<SignupRoleChoice>("OPERATOR");
   const [state, setState] = useState<SubmitState>("idle");
   const [error, setError] = useState("");
+  const selectedRoles: readonly SignupRole[] =
+    roles.find((item) => item.value === roleChoice)?.roles ?? roles[0].roles;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -31,8 +44,10 @@ export function SignupForm() {
     const selectedOption = roles.find((item) => item.value === roleChoice);
     const payload = {
       name: String(formData.get("name") ?? ""),
-      email: String(formData.get("email") ?? ""),
       phone: String(formData.get("phone") ?? ""),
+      instagramUrl: String(formData.get("instagramUrl") ?? ""),
+      youtubeUrl: String(formData.get("youtubeUrl") ?? ""),
+      websiteUrl: String(formData.get("websiteUrl") ?? ""),
       roles: [
         ...(selectedOption?.roles ?? ["OPERATOR"]),
       ] satisfies SignupRole[],
@@ -49,7 +64,11 @@ export function SignupForm() {
 
       if (!response.ok) {
         setState("error");
-        setError("Please check your details and try again.");
+        setError(
+          response.status === 401
+            ? "Please create or sign in to your BluePass account first."
+            : "Please check your details and try again.",
+        );
         return;
       }
 
@@ -60,6 +79,44 @@ export function SignupForm() {
       setState("error");
       setError("Something went wrong. Please try again.");
     }
+  }
+
+  if (!currentTraveller) {
+    return (
+      <div className="relative w-full max-w-[500px]">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 rounded-2xl bg-[rgba(20,24,30,0.34)] shadow-[0_24px_80px_rgba(0,0,0,0.30),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[34px] backdrop-saturate-150"
+        />
+        <div className="bp-signup-glass-form relative z-10 w-full p-5 sm:p-6 md:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
+            BluePass account
+          </p>
+          <h1 className="bp-page-title mt-4 text-[clamp(2.2rem,8vw,4rem)] leading-none text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.38)]">
+            Create account first
+          </h1>
+          <p className="mt-5 text-sm leading-6 text-white/72 drop-shadow-[0_1px_12px_rgba(0,0,0,0.35)]">
+            Creator and operator applications are tied to a verified BluePass
+            account, so referral links and dashboards stay attached to the right
+            person.
+          </p>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <Link
+              href="/register?next=/signup%23join"
+              className="bp-focus-ring inline-flex h-12 items-center justify-center rounded-full bg-white px-5 text-sm font-black text-[#071827] transition-colors hover:bg-white/88"
+            >
+              Create account
+            </Link>
+            <Link
+              href="/login?next=/signup%23join"
+              className="bp-focus-ring inline-flex h-12 items-center justify-center rounded-full border border-white/28 bg-white/[0.07] px-5 text-sm font-black text-white backdrop-blur-sm transition-colors hover:bg-white/[0.14]"
+            >
+              Sign in
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -77,8 +134,8 @@ export function SignupForm() {
           Join BluePass
         </h1>
         <p className="mt-5 text-sm leading-6 text-white/72 drop-shadow-[0_1px_12px_rgba(0,0,0,0.35)]">
-          Tell us where you fit. We will use this to follow up as BluePass opens
-          access.
+          Apply from your verified BluePass account. We will use this to review
+          creator/operator access.
         </p>
 
         <div className="mt-8 space-y-4">
@@ -94,6 +151,7 @@ export function SignupForm() {
               autoComplete="name"
               placeholder="Your name"
               className={inputClassName}
+              defaultValue={currentTraveller.name}
             />
           </label>
 
@@ -107,7 +165,9 @@ export function SignupForm() {
               required
               autoComplete="email"
               placeholder="you@example.com"
-              className={inputClassName}
+              readOnly
+              value={currentTraveller.email}
+              className={`${inputClassName} cursor-not-allowed bg-white/80 text-slate-600`}
             />
           </label>
 
@@ -123,6 +183,7 @@ export function SignupForm() {
               autoComplete="tel"
               placeholder="+62..."
               className={inputClassName}
+              defaultValue={currentTraveller.phone}
             />
           </label>
         </div>
@@ -151,6 +212,57 @@ export function SignupForm() {
           </div>
         </fieldset>
 
+        {selectedRoles.includes("CREATOR") && (
+          <div className="mt-6 space-y-4">
+            <p className="text-sm font-medium text-white/78 drop-shadow-[0_1px_10px_rgba(0,0,0,0.32)]">
+              Creator links{" "}
+              <span className="font-normal text-white/46">(optional)</span>
+            </p>
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-[0.12em] text-white/50">
+                Instagram
+              </span>
+              <input
+                name="instagramUrl"
+                type="text"
+                autoComplete="url"
+                placeholder="@handle or instagram.com/handle"
+                className={inputClassName}
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-[0.12em] text-white/50">
+                YouTube
+              </span>
+              <input
+                name="youtubeUrl"
+                type="text"
+                autoComplete="url"
+                placeholder="@channel or youtube.com/@channel"
+                className={inputClassName}
+              />
+            </label>
+          </div>
+        )}
+
+        {selectedRoles.includes("OPERATOR") && (
+          <div className="mt-6">
+            <label className="block">
+              <span className="text-sm font-medium text-white/78 drop-shadow-[0_1px_10px_rgba(0,0,0,0.32)]">
+                Operator website{" "}
+                <span className="font-normal text-white/46">(optional)</span>
+              </span>
+              <input
+                name="websiteUrl"
+                type="text"
+                autoComplete="url"
+                placeholder="https://yourcompany.com"
+                className={inputClassName}
+              />
+            </label>
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={state === "submitting"}
@@ -161,7 +273,7 @@ export function SignupForm() {
 
         {state === "success" ? (
           <p className="mt-4 border border-emerald-300/30 bg-emerald-400/10 p-3 text-sm leading-6 text-emerald-100">
-            Thanks. Your BluePass signup was saved.
+            Thanks. Your application was saved to your BluePass account.
           </p>
         ) : null}
 

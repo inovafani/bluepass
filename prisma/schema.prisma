@@ -64,6 +64,20 @@ enum SignupRole {
   CREATOR
 }
 
+enum BluePassAccountRole {
+  TRAVELLER
+  CREATOR
+  OPERATOR
+  ADMIN
+}
+
+enum ApplicationStatus {
+  PENDING_REVIEW
+  APPROVED
+  DECLINED
+  LIVE
+}
+
 enum KaiChannel {
   WEB      @map("web")
   WHATSAPP @map("whatsapp")
@@ -97,6 +111,14 @@ enum WhatsAppOutboundStatus {
   FAILED
 }
 
+enum ReferralPartnerRole {
+  CREATOR
+  OPERATOR
+  DIVE_SHOP
+  GROUP
+  TRAVELLER
+}
+
 model Operator {
   id           String                @id @default(cuid())
   name         String
@@ -109,6 +131,63 @@ model Operator {
   integrations OperatorIntegration[]
   bookingInquiries BookingInquiry[]
   whatsappOutboundMessages WhatsAppOutboundMessage[]
+}
+
+model ReferralPartner {
+  id        String              @id @default(cuid())
+  role      ReferralPartnerRole
+  name      String
+  handle    String?
+  email     String?
+  phone     String?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  links     ReferralLink[]
+  clicks    ReferralClick[]
+  kaiSessions KaiSession[]
+  bookingInquiries BookingInquiry[]
+  creatorProfiles CreatorProfile[]
+  operatorProfiles OperatorProfile[]
+
+  @@index([role])
+  @@index([handle])
+  @@index([email])
+}
+
+model ReferralLink {
+  id        String          @id @default(cuid())
+  partnerId String
+  code      String          @unique
+  label     String?
+  targetPath String?
+  active    Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  partner   ReferralPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  clicks    ReferralClick[]
+  kaiSessions KaiSession[]
+  bookingInquiries BookingInquiry[]
+
+  @@index([partnerId])
+  @@index([active])
+}
+
+model ReferralClick {
+  id        String           @id @default(cuid())
+  referralLinkId String?
+  referralPartnerId String?
+  code      String
+  landingPath String?
+  referrer  String?
+  userAgent String?
+  createdAt DateTime         @default(now())
+  referralLink ReferralLink? @relation(fields: [referralLinkId], references: [id], onDelete: SetNull)
+  referralPartner ReferralPartner? @relation(fields: [referralPartnerId], references: [id], onDelete: SetNull)
+
+  @@index([referralLinkId])
+  @@index([referralPartnerId])
+  @@index([code])
+  @@index([createdAt])
 }
 
 model Trip {
@@ -134,12 +213,155 @@ model Trip {
 model Traveller {
   id           String       @id @default(cuid())
   whatsappE164 String       @unique
+  email        String?      @unique
+  emailVerifiedAt DateTime?
+  passwordHash String?
   displayName  String?
+  account      BluePassAccount?
   certLevel    CertLevel    @default(NONE)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   bookings     Booking[]
   kaiSessions  KaiSession[]
+  sessions     TravellerSession[]
+  emailVerificationTokens TravellerEmailVerificationToken[]
+
+  @@index([email])
+}
+
+model BluePassAccount {
+  id              String                @id @default(cuid())
+  email           String                @unique
+  emailVerifiedAt DateTime?
+  passwordHash    String
+  displayName     String?
+  phone           String?
+  roles           BluePassAccountRole[] @default([TRAVELLER])
+  travellerId     String?               @unique
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  traveller       Traveller?            @relation(fields: [travellerId], references: [id], onDelete: SetNull)
+  sessions        BluePassAccountSession[]
+  emailVerificationTokens BluePassAccountEmailVerificationToken[]
+  creatorProfile  CreatorProfile?
+  operatorProfile OperatorProfile?
+  commissionEntries CommissionLedgerEntry[]
+
+  @@index([email])
+  @@index([travellerId])
+}
+
+model BluePassAccountSession {
+  id        String          @id @default(cuid())
+  accountId String
+  tokenHash String          @unique
+  expiresAt DateTime
+  createdAt DateTime        @default(now())
+  account   BluePassAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([expiresAt])
+}
+
+model BluePassAccountEmailVerificationToken {
+  id        String          @id @default(cuid())
+  accountId String
+  tokenHash String          @unique
+  email     String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime        @default(now())
+  account   BluePassAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model CreatorProfile {
+  id          String            @id @default(cuid())
+  accountId   String            @unique
+  referralPartnerId String?     @unique
+  status      ApplicationStatus @default(PENDING_REVIEW)
+  handle      String?
+  audienceUrl String?
+  instagramUrl String?
+  youtubeUrl  String?
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  account     BluePassAccount   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  referralPartner ReferralPartner? @relation(fields: [referralPartnerId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([handle])
+  @@index([referralPartnerId])
+}
+
+model OperatorProfile {
+  id          String            @id @default(cuid())
+  accountId   String            @unique
+  referralPartnerId String?     @unique
+  status      ApplicationStatus @default(PENDING_REVIEW)
+  companyName String?
+  whatsappE164 String?
+  websiteUrl  String?
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  account     BluePassAccount   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  referralPartner ReferralPartner? @relation(fields: [referralPartnerId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([companyName])
+  @@index([referralPartnerId])
+}
+
+model CommissionLedgerEntry {
+  id               String           @id @default(cuid())
+  bookingInquiryId String?
+  accountId        String?
+  referralPartnerId String?
+  role             BluePassAccountRole?
+  kind             String
+  amountCents      Int
+  currency         String           @default("USD")
+  status           String           @default("ESTIMATED")
+  metadata         Json?
+  createdAt        DateTime         @default(now())
+  account          BluePassAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@index([bookingInquiryId])
+  @@index([accountId])
+  @@index([referralPartnerId])
+  @@index([status])
+}
+
+model TravellerEmailVerificationToken {
+  id          String    @id @default(cuid())
+  travellerId String
+  tokenHash   String    @unique
+  email       String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  traveller   Traveller @relation(fields: [travellerId], references: [id], onDelete: Cascade)
+
+  @@index([travellerId])
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model TravellerSession {
+  id        String    @id @default(cuid())
+  travellerId String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  traveller Traveller @relation(fields: [travellerId], references: [id], onDelete: Cascade)
+
+  @@index([travellerId])
+  @@index([expiresAt])
 }
 
 model Booking {
@@ -188,17 +410,26 @@ model KaiSession {
   externalUserId String?
   travellerId    String?
   travellerPhone String?
+  referralLinkId String?
+  referralPartnerId String?
+  referralCode   String?
+  referralRole   ReferralPartnerRole?
   status         KaiSessionStatus @default(OPEN)
   slots          Json?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   traveller      Traveller?       @relation(fields: [travellerId], references: [id])
+  referralLink   ReferralLink?    @relation(fields: [referralLinkId], references: [id])
+  referralPartner ReferralPartner? @relation(fields: [referralPartnerId], references: [id])
   messages       KaiMessage[]
 
   @@index([channel, status])
   @@index([externalUserId])
   @@index([travellerId])
   @@index([travellerPhone])
+  @@index([referralLinkId])
+  @@index([referralPartnerId])
+  @@index([referralCode])
 }
 
 model KaiMessage {
@@ -232,16 +463,25 @@ model BookingInquiry {
   budget              String?
   interests           Json?
   notes               String?
+  referralLinkId      String?
+  referralPartnerId   String?
+  referralCode        String?
+  referralRole        ReferralPartnerRole?
   status              BookingInquiryStatus  @default(DRAFT)
   operatorId          String?
   createdAt           DateTime               @default(now())
   updatedAt           DateTime               @updatedAt
   operator            Operator?              @relation(fields: [operatorId], references: [id])
+  referralLink        ReferralLink?          @relation(fields: [referralLinkId], references: [id])
+  referralPartner     ReferralPartner?       @relation(fields: [referralPartnerId], references: [id])
   outboundMessages    WhatsAppOutboundMessage[]
 
   @@index([kaiSessionId, status])
   @@index([selectedYachtSlug])
   @@index([operatorId, status])
+  @@index([referralLinkId])
+  @@index([referralPartnerId])
+  @@index([referralCode])
   @@index([createdAt])
 }
 
@@ -296,6 +536,9 @@ model SignupLead {
   email     String
   phone     String
   roles     SignupRole[] @default([])
+  instagramUrl String?
+  youtubeUrl  String?
+  websiteUrl  String?
   createdAt DateTime   @default(now())
 
   @@index([createdAt])

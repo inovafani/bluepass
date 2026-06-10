@@ -5,7 +5,10 @@ import { createInquiryFromKaiSession } from "@/lib/services/booking/booking-inqu
 import { dispatchInquiryToOperator } from "@/lib/services/operators/operator-dispatch-service";
 
 const inquiryRequestSchema = z.object({
-  sessionId: z.string().trim().regex(/^kai_[A-Za-z0-9_-]+$/),
+  sessionId: z
+    .string()
+    .trim()
+    .regex(/^kai_[A-Za-z0-9_-]+$/),
   selectedYachtSlug: z.string().trim().min(1).optional(),
   confirm: z.literal(true),
 });
@@ -48,11 +51,14 @@ export async function POST(request: NextRequest) {
   });
 
   if (!result.ok) {
-    return NextResponse.json({
-      ok: false,
-      missingSlots: result.missingSlots,
-      ...(result.error ? { error: result.error } : {}),
-    });
+    return NextResponse.json(
+      {
+        ok: false,
+        missingSlots: result.missingSlots,
+        ...(result.error ? { error: result.error } : {}),
+      },
+      { status: result.missingSlots.includes("sessionId") ? 404 : 200 },
+    );
   }
 
   const operatorPhone = process.env.BLUEPASS_TEST_OPERATOR_PHONE?.trim();
@@ -76,7 +82,8 @@ export async function POST(request: NextRequest) {
     console.warn("kai.web_chat.inquiry.dispatch_failed", {
       inquiryId: result.inquiry.id,
       errorName: error instanceof Error ? error.name : "UnknownError",
-      message: error instanceof Error ? error.message : "Unable to dispatch inquiry",
+      message:
+        error instanceof Error ? error.message : "Unable to dispatch inquiry",
     });
 
     return undefined;

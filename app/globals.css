@@ -61,6 +61,161 @@ body {
   letter-spacing: 0;
 }
 
+.site-account {
+  position: relative;
+  z-index: 55;
+}
+
+.site-account-button {
+  display: inline-flex;
+  height: 2.625rem;
+  width: 2.625rem;
+  min-width: 2.625rem;
+  max-width: 2.625rem;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 0;
+  color: #1e293b;
+  font-size: 0.75rem;
+  font-weight: 750;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.site-account-button:hover {
+  border-color: #006f8e;
+  color: #006f8e;
+}
+
+.site-account-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.75rem);
+  width: min(18rem, calc(100vw - 2rem));
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(24px);
+}
+
+.site-account-summary {
+  display: grid;
+  gap: 0.25rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.78);
+  padding: 1rem;
+}
+
+.site-account-kicker {
+  font-size: 0.625rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #006f8e;
+}
+
+.site-account-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.site-account-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.site-account-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding-top: 0.375rem;
+}
+
+.site-account-role {
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  border: 1px solid rgba(0, 111, 142, 0.18);
+  border-radius: 9999px;
+  background: rgba(0, 111, 142, 0.08);
+  padding: 0.25rem 0.55rem;
+  font-size: 0.625rem;
+  font-weight: 750;
+  line-height: 1;
+  color: #006f8e;
+}
+
+.bp-dashboard-role {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  border: 1px solid rgba(159, 232, 223, 0.24);
+  border-radius: 9999px;
+  background: rgba(159, 232, 223, 0.1);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(217, 255, 250, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.cinematic-page a.bp-review-icon-link {
+  min-height: 2.5rem !important;
+  min-width: 2.5rem !important;
+  height: 2.5rem !important;
+  width: 2.5rem !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.cinematic-page a.bp-review-icon-link:hover {
+  color: #071827 !important;
+}
+
+.bp-review-icon {
+  display: block;
+  flex: 0 0 auto;
+  color: currentColor;
+  opacity: 1;
+}
+
+.bp-review-icon :where(path, rect, circle, line) {
+  vector-effect: non-scaling-stroke;
+}
+
+.site-account-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: #1e293b;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.site-account-item:hover {
+  background: #f8fafc;
+  color: #006f8e;
+}
+
 .site-brand-mark {
   display: flex;
   height: 2.25rem;
@@ -169,6 +324,14 @@ body {
 }
 
 .cinematic-page form.bp-signup-glass-form {
+  overflow: visible;
+  border-color: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.cinematic-page form.bp-auth-form {
   overflow: visible;
   border-color: transparent !important;
   background-color: transparent !important;
@@ -325,7 +488,8 @@ body:has(.cinematic-page) .site-header nav {
 
 body:has(.cinematic-page) .site-brand,
 body:has(.cinematic-page) .site-nav,
-body:has(.cinematic-page) .site-operator {
+body:has(.cinematic-page) .site-operator,
+body:has(.cinematic-page) .site-account {
   color: white;
 }
 
@@ -526,7 +690,7 @@ body:has(.cinematic-page) .site-nav-link[aria-current="page"] {
 
 body:has(.cinematic-page) .site-operator {
   position: absolute;
-  right: var(--cinematic-screen-x);
+  right: calc(var(--cinematic-screen-x) + 3.25rem);
   top: 50%;
   z-index: 50;
   transform: translateY(-50%);
@@ -541,6 +705,57 @@ body:has(.cinematic-page) .site-operator:hover {
   border-color: rgba(255, 255, 255, 0.5);
   background: white;
   color: #071827;
+}
+
+body:has(.cinematic-page) .site-account {
+  position: absolute;
+  right: var(--cinematic-screen-x);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+body:has(.cinematic-page) .site-account-button {
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 12px 40px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+body:has(.cinematic-page) .site-account-button:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: white;
+  color: #071827;
+}
+
+body:has(.cinematic-page) .site-account-menu {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(3, 17, 29, 0.94);
+  color: white;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+}
+
+body:has(.cinematic-page) .site-account-summary {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body:has(.cinematic-page) .site-account-email {
+  color: rgba(255, 255, 255, 0.52);
+}
+
+body:has(.cinematic-page) .site-account-role {
+  border-color: rgba(159, 232, 223, 0.22);
+  background: rgba(159, 232, 223, 0.1);
+  color: rgba(217, 255, 250, 0.92);
+}
+
+body:has(.cinematic-page) .site-account-item {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+body:has(.cinematic-page) .site-account-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
 }
 
 body:has(.cinematic-page) .site-menu-button {

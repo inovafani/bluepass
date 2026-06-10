@@ -85,6 +85,10 @@ export async function createInquiryFromKaiSession(input: CreateInquiryFromKaiSes
       id: true,
       channel: true,
       travellerPhone: true,
+      referralLinkId: true,
+      referralPartnerId: true,
+      referralCode: true,
+      referralRole: true,
       slots: true,
     },
   });
@@ -133,6 +137,10 @@ export async function createInquiryFromKaiSession(input: CreateInquiryFromKaiSes
         budget: intent.budget,
         interests: sanitizeJsonForPrisma(intent.interests) as Prisma.InputJsonValue | undefined,
         notes: input.notes ?? existing.notes,
+        referralLinkId: session.referralLinkId ?? existing.referralLinkId,
+        referralPartnerId: session.referralPartnerId ?? existing.referralPartnerId,
+        referralCode: session.referralCode ?? existing.referralCode,
+        referralRole: session.referralRole ?? existing.referralRole,
         status: "READY_TO_DISPATCH",
       },
     });
@@ -162,6 +170,10 @@ export async function createInquiryFromKaiSession(input: CreateInquiryFromKaiSes
       budget: intent.budget,
       interests: sanitizeJsonForPrisma(intent.interests) as Prisma.InputJsonValue | undefined,
       notes: input.notes,
+      referralLinkId: session.referralLinkId,
+      referralPartnerId: session.referralPartnerId,
+      referralCode: session.referralCode,
+      referralRole: session.referralRole,
       status: "READY_TO_DISPATCH",
     },
   });

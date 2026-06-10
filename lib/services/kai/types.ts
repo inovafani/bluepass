@@ -1,4 +1,5 @@
 import type { CertLevel } from "@prisma/client";
+import type { ReferralAttribution } from "@/lib/services/referrals/attribution";
 import type { BookingAdapterPlatform } from "@/lib/services/booking/adapters/types";
 
 export type KaiChannel = "web" | "whatsapp";
@@ -97,6 +98,15 @@ export type KaiBookingContext = {
   metadata?: Record<string, unknown>;
 };
 
+export type KaiTravellerProfile = {
+  id: string;
+  accountId?: string;
+  travellerId?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+};
+
 export type KaiConversationMessage = {
   id?: string;
   sessionId: string;
@@ -112,6 +122,8 @@ export type KaiConversationInput = {
   sessionId?: string;
   externalUserId?: string;
   travellerPhone?: string;
+  travellerProfile?: KaiTravellerProfile;
+  referralAttribution?: ReferralAttribution;
   message: string;
   recentMessages?: Array<Pick<KaiConversationMessage, "role" | "content">>;
   bookingContext?: KaiBookingContext;

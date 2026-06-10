@@ -77,7 +77,9 @@ export function KaiWebChat() {
   const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [sendingInquirySlug, setSendingInquirySlug] = useState<string | null>(null);
+  const [sendingInquirySlug, setSendingInquirySlug] = useState<string | null>(
+    null,
+  );
   const [sentInquirySlugs, setSentInquirySlugs] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,10 +116,18 @@ export function KaiWebChat() {
             role: m.role as "user" | "assistant",
             content: m.content,
           }));
-        if (visible.length > 0) setMessages(visible);
+        if (visible.length > 0) {
+          setMessages(visible);
+          return;
+        }
+
+        localStorage.removeItem(LS_KEY);
+        sessionIdRef.current = null;
       })
       .catch(() => {
-        // History unavailable; messages stays as [GREETING]
+        localStorage.removeItem(LS_KEY);
+        sessionIdRef.current = null;
+        // History unavailable; messages stays as [GREETING].
       });
   }, []);
 
@@ -143,130 +153,151 @@ export function KaiWebChat() {
     return () => window.removeEventListener("kai:open", handleKaiOpen);
   }, []);
 
-  const sendMessage = useCallback(async (overrideText?: string) => {
-    const text = (overrideText ?? input).trim();
-    if (!text || isSending) return;
-    const recentMessages = messages.slice(-10).map((message) => ({
-      role: message.role,
-      content: message.content,
-    }));
+  const sendMessage = useCallback(
+    async (overrideText?: string) => {
+      const text = (overrideText ?? input).trim();
+      if (!text || isSending) return;
+      const recentMessages = messages.slice(-10).map((message) => ({
+        role: message.role,
+        content: message.content,
+      }));
 
-    setInput("");
-    setError(null);
-    setMessages((prev) => [...prev, { role: "user", content: text }]);
-    setIsSending(true);
+      setInput("");
+      setError(null);
+      setMessages((prev) => [...prev, { role: "user", content: text }]);
+      setIsSending(true);
 
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
 
-    try {
-      const res = await fetch("/api/kai/web-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: sessionIdRef.current ?? undefined,
-          message: text,
-          recentMessages,
-        }),
-      });
+      try {
+        const res = await fetch("/api/kai/web-chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: sessionIdRef.current ?? undefined,
+            message: text,
+            recentMessages,
+          }),
+        });
 
-      if (!res.ok) throw new Error("non-ok response");
+        if (!res.ok) throw new Error("non-ok response");
 
-      const data: {
-        sessionId: string;
-        reply: string;
-        matches?: MatchCard[];
-        suggestedReplies?: SuggestedReply[];
-      } = await res.json();
+        const data: {
+          sessionId: string;
+          reply: string;
+          matches?: MatchCard[];
+          suggestedReplies?: SuggestedReply[];
+        } = await res.json();
 
-      if (data.sessionId !== sessionIdRef.current) {
-        sessionIdRef.current = data.sessionId;
-        localStorage.setItem(LS_KEY, data.sessionId);
+        if (data.sessionId !== sessionIdRef.current) {
+          sessionIdRef.current = data.sessionId;
+          localStorage.setItem(LS_KEY, data.sessionId);
+        }
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: data.reply,
+            matches: data.matches,
+            suggestedReplies: data.suggestedReplies,
+          },
+        ]);
+      } catch {
+        setError("Couldn't reach Kai right now. Please try again.");
+      } finally {
+        setIsSending(false);
+        // textarea re-enables after React re-renders, so defer focus one tick
+        setTimeout(() => textareaRef.current?.focus(), 0);
+      }
+    },
+    [input, isSending, messages],
+  );
+
+  const sendInquiry = useCallback(
+    async (match: YachtMatchCard) => {
+      const sessionId = sessionIdRef.current;
+
+      if (
+        !sessionId ||
+        sendingInquirySlug ||
+        sentInquirySlugs.includes(match.slug)
+      ) {
+        return;
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.reply,
-          matches: data.matches,
-          suggestedReplies: data.suggestedReplies,
-        },
-      ]);
-    } catch {
-      setError("Couldn't reach Kai right now. Please try again.");
-    } finally {
-      setIsSending(false);
-      // textarea re-enables after React re-renders, so defer focus one tick
-      setTimeout(() => textareaRef.current?.focus(), 0);
-    }
-  }, [input, isSending, messages]);
+      setError(null);
+      setSendingInquirySlug(match.slug);
 
-  const sendInquiry = useCallback(async (match: YachtMatchCard) => {
-    const sessionId = sessionIdRef.current;
+      try {
+        const res = await fetch("/api/kai/web-chat/inquiry", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            selectedYachtSlug: match.slug,
+            confirm: true,
+          }),
+        });
 
-    if (!sessionId || sendingInquirySlug || sentInquirySlugs.includes(match.slug)) {
-      return;
-    }
+        const data: {
+          ok?: boolean;
+          dispatched?: boolean;
+          missingSlots?: string[];
+          error?: string;
+        } = await res.json();
 
-    setError(null);
-    setSendingInquirySlug(match.slug);
+        if (!res.ok || !data.ok) {
+          if (data.missingSlots?.includes("sessionId")) {
+            localStorage.removeItem(LS_KEY);
+            sessionIdRef.current = null;
+          }
+          const missing = data.missingSlots?.length
+            ? ` Missing: ${data.missingSlots.join(", ")}.`
+            : "";
+          throw new Error(
+            data.missingSlots?.includes("sessionId")
+              ? "This Kai chat expired. Please start a new chat or send your trip details once more, then tap Send inquiry again."
+              : (data.error ?? `Inquiry is not ready.${missing}`),
+          );
+        }
 
-    try {
-      const res = await fetch("/api/kai/web-chat/inquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId,
-          selectedYachtSlug: match.slug,
-          confirm: true,
-        }),
-      });
+        if (!data.dispatched) {
+          throw new Error(
+            data.error ??
+              "Inquiry was prepared, but operator dispatch is not configured.",
+          );
+        }
 
-      const data: {
-        ok?: boolean;
-        dispatched?: boolean;
-        missingSlots?: string[];
-        error?: string;
-      } = await res.json();
-
-      if (!res.ok || !data.ok) {
-        const missing = data.missingSlots?.length
-          ? ` Missing: ${data.missingSlots.join(", ")}.`
-          : "";
-        throw new Error(data.error ?? `Inquiry is not ready.${missing}`);
+        setSentInquirySlugs((prev) =>
+          prev.includes(match.slug) ? prev : [...prev, match.slug],
+        );
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `Done - I sent the ${match.name} inquiry to the operator number on file. This is an availability request, not a confirmed booking yet.`,
+          },
+        ]);
+      } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "I couldn't send that inquiry right now. Please try again.";
+        setError(message);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: message,
+          },
+        ]);
+      } finally {
+        setSendingInquirySlug(null);
       }
-
-      if (!data.dispatched) {
-        throw new Error(data.error ?? "Inquiry was prepared, but operator dispatch is not configured.");
-      }
-
-      setSentInquirySlugs((prev) =>
-        prev.includes(match.slug) ? prev : [...prev, match.slug],
-      );
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: `Done - I sent the ${match.name} inquiry to the operator number on file. This is an availability request, not a confirmed booking yet.`,
-        },
-      ]);
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "I couldn't send that inquiry right now. Please try again.";
-      setError(message);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: message,
-        },
-      ]);
-    } finally {
-      setSendingInquirySlug(null);
-    }
-  }, [sendingInquirySlug, sentInquirySlugs]);
+    },
+    [sendingInquirySlug, sentInquirySlugs],
+  );
 
   function startNewChat() {
     localStorage.removeItem(LS_KEY);
@@ -394,10 +425,12 @@ export function KaiWebChat() {
                               match={match}
                               onSendInquiry={sendInquiry}
                               isSendingInquiry={
-                                isYachtMatch(match) && sendingInquirySlug === match.slug
+                                isYachtMatch(match) &&
+                                sendingInquirySlug === match.slug
                               }
                               isInquirySent={
-                                isYachtMatch(match) && sentInquirySlugs.includes(match.slug)
+                                isYachtMatch(match) &&
+                                sentInquirySlugs.includes(match.slug)
                               }
                             />
                           ))}
@@ -412,7 +445,9 @@ export function KaiWebChat() {
                             <button
                               key={suggestion.label}
                               type="button"
-                              onClick={() => void sendMessage(suggestion.message)}
+                              onClick={() =>
+                                void sendMessage(suggestion.message)
+                              }
                               disabled={isSending}
                               className="bp-focus-ring rounded-full border border-white/15 bg-white/8 px-2.5 py-1.5 text-left text-[11px] font-semibold leading-tight text-white/82 transition-colors hover:bg-white/12 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                             >
@@ -507,24 +542,6 @@ export function KaiWebChat() {
 
       {/* ── Launcher row ─────────────────────────────────────── */}
       <div className="flex items-center gap-2.5">
-        <a
-          href={WA_HREF}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Chat with Kai on WhatsApp"
-          className="bp-focus-ring flex h-14 items-center gap-2.5 rounded-full border border-white/15 bg-[#075e54]/80 px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,0.35)] transition-transform hover:scale-[1.02] hover:bg-[#0b6f63]"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="h-[18px] w-[18px] flex-shrink-0"
-            aria-hidden="true"
-          >
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-          </svg>
-          <span className="text-[13px] font-semibold">WhatsApp</span>
-        </a>
-
         <button
           onClick={() => setIsOpen((v) => !v)}
           aria-label={
@@ -686,7 +703,7 @@ function KaiYachtMatchCard({
   isInquirySent: boolean;
 }) {
   const price = match.charterOnly
-    ? match.charterPrice ?? "Quote on request"
+    ? (match.charterPrice ?? "Quote on request")
     : match.pricePerCabin;
   const priceLabel = match.charterOnly ? "Private charter" : "Cabin signal";
 
@@ -703,9 +720,7 @@ function KaiYachtMatchCard({
       )}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[13px] font-semibold leading-snug">
-            {match.name}
-          </p>
+          <p className="text-[13px] font-semibold leading-snug">{match.name}</p>
           <p className="mt-1 text-[11px] leading-snug text-white/55">
             {match.region}
             {match.tier ? ` · ${match.tier}` : ""}
@@ -742,7 +757,11 @@ function KaiYachtMatchCard({
         disabled={isSendingInquiry || isInquirySent}
         className="bp-focus-ring mt-3 inline-flex w-full items-center justify-center rounded-md bg-[#075e54] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#0b6f63] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isInquirySent ? "Inquiry sent" : isSendingInquiry ? "Sending..." : "Send inquiry"}
+        {isInquirySent
+          ? "Inquiry sent"
+          : isSendingInquiry
+            ? "Sending..."
+            : "Send inquiry"}
       </button>
       <a
         href={`/yachts/${match.slug}`}

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { AccountMenu } from "@/app/components/auth/AccountMenu";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -73,6 +74,7 @@ export function SiteHeader() {
         </div>
         <div className="hidden items-center gap-3 xl:flex">
           <SignupLink signupActive={signupActive} />
+          <AccountMenu />
         </div>
         <button
           type="button"
@@ -120,6 +122,7 @@ export function SiteHeader() {
             mobile
             onClick={() => setMenuOpen(false)}
           />
+          <AccountMenu mobile onNavigate={() => setMenuOpen(false)} />
         </div>
       </div>
     </header>

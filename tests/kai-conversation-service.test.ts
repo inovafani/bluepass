@@ -38,6 +38,68 @@ function buildStore(): KaiConversationStore {
   };
 }
 
+it("prefills logged-in traveller contact details without requiring Kai to ask again", async () => {
+  const store = buildStore();
+  const service = createKaiConversationService(store);
+
+  const result = await service.handleUserMessage({
+    channel: "web",
+    sessionId: "kai_logged_in_profile",
+    travellerProfile: {
+      id: "traveller_ari",
+      travellerId: "traveller_ari",
+      name: "Ari",
+      email: "ari@example.com",
+      phone: "+628123456789",
+    },
+    message: "Komodo liveaboard for 2 guests in October around $4000",
+  });
+
+  expect(result.intent).toEqual(
+    expect.objectContaining({
+      travellerName: "Ari",
+      travellerEmail: "ari@example.com",
+      travellerPhone: "+628123456789",
+    }),
+  );
+  expect(result.intent.missingSlots ?? []).not.toEqual(
+    expect.arrayContaining(["travellerName", "travellerEmail", "travellerPhone"]),
+  );
+  expect(store.upsertSession).toHaveBeenCalledWith(
+    expect.objectContaining({
+      travellerId: "traveller_ari",
+      travellerPhone: "+628123456789",
+      externalUserId: "traveller:traveller_ari",
+    }),
+  );
+});
+
+it("does not persist an account id into the Kai traveller foreign key", async () => {
+  const store = buildStore();
+  const service = createKaiConversationService(store);
+
+  await service.handleUserMessage({
+    channel: "web",
+    sessionId: "kai_account_only_profile",
+    travellerProfile: {
+      id: "account_only",
+      accountId: "account_only",
+      name: "Ari",
+      email: "ari@example.com",
+      phone: "+628123456789",
+    },
+    message: "Komodo liveaboard for 2 guests in October around $4000",
+  });
+
+  expect(store.upsertSession).toHaveBeenCalledWith(
+    expect.objectContaining({
+      travellerId: undefined,
+      travellerPhone: "+628123456789",
+      externalUserId: "account:account_only",
+    }),
+  );
+});
+
 function buildInMemoryStore(): KaiConversationStore & {
   sessions: Map<string, unknown>;
   messages: Array<{ sessionId: string; role: string; content: string }>;
