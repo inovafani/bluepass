@@ -475,6 +475,7 @@ model BookingInquiry {
   referralLink        ReferralLink?          @relation(fields: [referralLinkId], references: [id])
   referralPartner     ReferralPartner?       @relation(fields: [referralPartnerId], references: [id])
   outboundMessages    WhatsAppOutboundMessage[]
+  events              BookingInquiryEvent[]
 
   @@index([kaiSessionId, status])
   @@index([selectedYachtSlug])
@@ -483,6 +484,19 @@ model BookingInquiry {
   @@index([referralPartnerId])
   @@index([referralCode])
   @@index([createdAt])
+}
+
+model BookingInquiryEvent {
+  id               String               @id @default(cuid())
+  bookingInquiryId String
+  fromStatus       BookingInquiryStatus?
+  toStatus         BookingInquiryStatus
+  actorType        ActorType
+  payload          Json?
+  createdAt        DateTime             @default(now())
+  bookingInquiry   BookingInquiry       @relation(fields: [bookingInquiryId], references: [id], onDelete: Cascade)
+
+  @@index([bookingInquiryId, createdAt])
 }
 
 model WhatsAppOutboundMessage {

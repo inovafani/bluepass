@@ -468,6 +468,10 @@ function findTravellerName(
   normalized: string,
   lastAskedSlot?: KaiMissingSlot,
 ) {
+  if (looksLikeYachtSelection(normalized)) {
+    return undefined;
+  }
+
   const explicitMatch = original.match(
     /\b(?:my name is|name is|i am|i'm|this is)\s+([A-Za-z][A-Za-z' -]{1,60})(?=,|\.|$|\s+(?:and|email|phone|whatsapp)\b)/i,
   );
@@ -481,7 +485,11 @@ function findTravellerName(
       .split(/[,;]|\b(?:email|phone|whatsapp)\b/i)[0]
       .trim();
 
-    if (/^[A-Za-z][A-Za-z' -]{1,60}$/.test(candidate) && !containsAny(normalized, tripTypes)) {
+    if (
+      /^[A-Za-z][A-Za-z' -]{1,60}$/.test(candidate) &&
+      !containsAny(normalized, tripTypes) &&
+      !looksLikeYachtSelection(normalize(candidate))
+    ) {
       return cleanTravellerName(candidate);
     }
   }
@@ -491,6 +499,14 @@ function findTravellerName(
 
 function cleanTravellerName(value: string) {
   return value.replace(/\s+/g, " ").trim();
+}
+
+function looksLikeYachtSelection(normalized: string) {
+  return (
+    /\b(?:interested in|i like|i want|choose|select|book|send inquiry|send the inquiry)\b/.test(
+      normalized,
+    ) && Boolean(findSelectedYachtSlug(normalized))
+  );
 }
 
 function looksLikeDateOrBudget(original: string, candidate: string) {

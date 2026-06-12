@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyMetaSignature } from "@/lib/services/whatsapp/client";
+import { sendWhatsAppText, verifyMetaSignature } from "@/lib/services/whatsapp/client";
 import { handleWhatsAppWebhook } from "@/lib/services/whatsapp/webhook-handler";
 
 export const runtime = "nodejs";
@@ -27,6 +27,12 @@ export async function POST(request: NextRequest) {
   const signatureHeader = request.headers.get("x-hub-signature-256");
   const appSecret = process.env.WHATSAPP_APP_SECRET ?? "";
 
+  if (!appSecret) {
+    console.warn("whatsapp.webhook.missing_app_secret", {
+      note: "WHATSAPP_APP_SECRET is required to verify Meta webhook signatures.",
+    });
+  }
+
   const validSignature = verifyMetaSignature({
     appSecret,
     rawBody,
@@ -34,13 +40,41 @@ export async function POST(request: NextRequest) {
   });
 
   if (!validSignature) {
+    console.warn("whatsapp.webhook.invalid_signature", {
+      hasSignatureHeader: Boolean(signatureHeader),
+      hasAppSecret: Boolean(appSecret),
+    });
     return NextResponse.json({ error: "Invalid signature." }, { status: 401 });
   }
 
+  let payload: unknown;
+
   try {
-    void handleWhatsAppWebhook(JSON.parse(rawBody) as unknown);
+    payload = JSON.parse(rawBody) as unknown;
   } catch {
     return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
+  }
+
+  try {
+    await handleWhatsAppWebhook(payload, {
+      onOperatorFollowUp: async (message, context) => {
+        if (!context.to) {
+          return;
+        }
+
+        await sendWhatsAppText({
+          to: context.to,
+          role: "ops",
+          body: message.body,
+        });
+      },
+    });
+  } catch (error) {
+    console.warn("whatsapp.webhook.handler_failed", {
+      errorName: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : "Unable to process webhook",
+    });
+    return NextResponse.json({ error: "Unable to process webhook." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

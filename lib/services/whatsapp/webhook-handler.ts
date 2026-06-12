@@ -4,6 +4,10 @@ import {
   declineByOperator,
   requestCounterOffer,
 } from "@/lib/services/booking/orchestrator";
+import {
+  processOperatorInquiryAction,
+  type ProcessOperatorInquiryActionResult,
+} from "@/lib/services/booking/booking-inquiry-actions";
 import { prisma } from "@/lib/db/prisma";
 import { maskPhoneNumber } from "@/lib/services/whatsapp/client";
 import {
@@ -25,11 +29,25 @@ type OrchestratorDeps = {
   ) => Promise<unknown>;
 };
 
+type InquiryActionDeps = {
+  processOperatorInquiryAction: (
+    input: {
+      inquiryId: string;
+      action: OperatorButtonPayload["action"];
+      actorPayload: ActorPayload;
+    },
+  ) => Promise<ProcessOperatorInquiryActionResult>;
+};
+
 export type WhatsAppWebhookHandlerOptions = {
   orchestrator?: Partial<OrchestratorDeps>;
+  inquiryActions?: Partial<InquiryActionDeps>;
   logger?: Pick<typeof console, "info" | "warn" | "error">;
   peerOperatorName?: string;
-  onOperatorFollowUp?: (message: FreeTextMessage) => Promise<void> | void;
+  onOperatorFollowUp?: (
+    message: FreeTextMessage,
+    context: { to?: string },
+  ) => Promise<void> | void;
 };
 
 type IncomingWhatsAppMessage = {
@@ -48,10 +66,20 @@ type IncomingWhatsAppStatus = {
 
 type IncomingMessageRoute = "operator_action" | "traveller_or_unclassified";
 
+const pendingInquiryStatuses = [
+  "READY_TO_DISPATCH",
+  "OPERATOR_PENDING",
+  "COUNTER_OFFERED",
+] as const;
+
 const defaultOrchestrator: OrchestratorDeps = {
   acceptByOperator,
   declineByOperator,
   requestCounterOffer,
+};
+
+const defaultInquiryActions: InquiryActionDeps = {
+  processOperatorInquiryAction,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -224,6 +252,10 @@ export async function handleWhatsAppWebhook(
     ...defaultOrchestrator,
     ...options.orchestrator,
   };
+  const inquiryActions = {
+    ...defaultInquiryActions,
+    ...options.inquiryActions,
+  };
 
   const parsedPayload =
     typeof payload === "string" ? (JSON.parse(payload) as unknown) : payload;
@@ -257,50 +289,86 @@ export async function handleWhatsAppWebhook(
         parseOperatorButtonPayloadCandidates(message);
       const actorPayload = buildActorPayload(message);
 
-      if (parsedButton.bookingId === null) {
-        /*
-         * TODO: Resolve booking context for Meta text-only quick replies. We need
-         * a future BookingOutboundMessage or WhatsAppOutboundMessage table keyed by
-         * outbound WhatsApp message id, bookingId, recipient phone, templateName,
-         * sentAt, and provider message id. Inbound button replies can then resolve
-         * the booking from the original outbound message or latest pending booking
-         * for that operator before mutating booking state.
-         */
+      const resolvedInquiryId =
+        parsedButton.bookingId ??
+        (await resolveLatestPendingInquiryIdForOperatorReply({
+          senderPhone: message.from,
+          logger,
+        }));
+
+      if (!resolvedInquiryId) {
         logger.info("whatsapp.operator_button_without_booking_context", {
           action: parsedButton.action,
           sender: maskOptionalPhone(message.from),
           messageId: message.id ?? null,
           buttonPayloadOrText,
-          note: "Booking context resolution is required before processing this operator action.",
+          note: "Unable to resolve a pending inquiry for this operator reply.",
+        });
+        continue;
+      }
+
+      const inquiryActionResult =
+        await inquiryActions.processOperatorInquiryAction({
+          inquiryId: resolvedInquiryId,
+          action: parsedButton.action,
+          actorPayload,
+        });
+
+      if (inquiryActionResult.processed) {
+        if (parsedButton.action === "decline") {
+          await options.onOperatorFollowUp?.(
+            buildOperatorDeclinedFreeText({
+              peerOperatorName: options.peerOperatorName ?? "a peer operator",
+            }),
+            { to: message.from },
+          );
+        }
+
+        if (parsedButton.action === "counter") {
+          await options.onOperatorFollowUp?.(
+            buildOperatorCounterPrompt({
+              bookingShortCode: resolvedInquiryId,
+            }),
+            { to: message.from },
+          );
+        }
+
+        logger.info("whatsapp.webhook.operator_inquiry_action_processed", {
+          action: parsedButton.action,
+          inquiryId: inquiryActionResult.inquiryId,
+          fromStatus: inquiryActionResult.fromStatus,
+          toStatus: inquiryActionResult.toStatus,
         });
         continue;
       }
 
       if (parsedButton.action === "accept") {
-        await orchestrator.acceptByOperator(parsedButton.bookingId, actorPayload);
+        await orchestrator.acceptByOperator(resolvedInquiryId, actorPayload);
       }
 
       if (parsedButton.action === "decline") {
-        await orchestrator.declineByOperator(parsedButton.bookingId, actorPayload);
+        await orchestrator.declineByOperator(resolvedInquiryId, actorPayload);
         await options.onOperatorFollowUp?.(
           buildOperatorDeclinedFreeText({
             peerOperatorName: options.peerOperatorName ?? "a peer operator",
           }),
+          { to: message.from },
         );
       }
 
       if (parsedButton.action === "counter") {
-        await orchestrator.requestCounterOffer(parsedButton.bookingId, actorPayload);
+        await orchestrator.requestCounterOffer(resolvedInquiryId, actorPayload);
         await options.onOperatorFollowUp?.(
           buildOperatorCounterPrompt({
-            bookingShortCode: parsedButton.bookingId,
+            bookingShortCode: resolvedInquiryId,
           }),
+          { to: message.from },
         );
       }
 
       logger.info("whatsapp.webhook.operator_action_processed", {
         action: parsedButton.action,
-        bookingId: parsedButton.bookingId,
+        bookingId: resolvedInquiryId,
       });
     } catch (error) {
       logger.warn("whatsapp.webhook.message_failed", {
@@ -309,6 +377,54 @@ export async function handleWhatsAppWebhook(
       });
     }
   }
+}
+
+async function resolveLatestPendingInquiryIdForOperatorReply(input: {
+  senderPhone?: string;
+  logger: Pick<typeof console, "info" | "warn" | "error">;
+}) {
+  const recipientPhone = normalizePhoneDigits(input.senderPhone);
+
+  if (!recipientPhone) {
+    return undefined;
+  }
+
+  const outbound = await prisma.whatsAppOutboundMessage.findFirst({
+    where: {
+      recipientPhone,
+      bookingInquiry: {
+        status: { in: [...pendingInquiryStatuses] },
+      },
+    },
+    orderBy: [{ sentAt: "desc" }, { createdAt: "desc" }],
+    select: {
+      bookingInquiryId: true,
+      bookingInquiry: {
+        select: { id: true, status: true },
+      },
+    },
+  });
+
+  if (!outbound) {
+    input.logger.info("whatsapp.operator_button_context_not_found", {
+      sender: maskOptionalPhone(input.senderPhone),
+    });
+    return undefined;
+  }
+
+  input.logger.info("whatsapp.operator_button_context_resolved", {
+    sender: maskOptionalPhone(input.senderPhone),
+    inquiryId: outbound.bookingInquiryId,
+    inquiryStatus: outbound.bookingInquiry.status,
+  });
+
+  return outbound.bookingInquiryId;
+}
+
+function normalizePhoneDigits(value: string | undefined) {
+  const digits = value?.replace(/[^\d]/g, "") ?? "";
+
+  return digits.length > 0 ? digits : undefined;
 }
 
 async function handleWhatsAppStatuses(

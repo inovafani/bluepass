@@ -4,6 +4,7 @@ import { handleWhatsAppWebhook } from "@/lib/services/whatsapp/webhook-handler";
 const prismaMocks = vi.hoisted(() => ({
   whatsAppOutboundMessage: {
     updateMany: vi.fn(),
+    findFirst: vi.fn(),
   },
 }));
 
@@ -13,6 +14,7 @@ vi.mock("@/lib/db/prisma", () => ({
 
 afterEach(() => {
   prismaMocks.whatsAppOutboundMessage.updateMany.mockReset();
+  prismaMocks.whatsAppOutboundMessage.findFirst.mockReset();
 });
 
 function metaPayload(payload: string, type = "button", phoneNumberId = "shared_phone_id") {
@@ -98,6 +100,12 @@ function mockOptions() {
       declineByOperator: vi.fn().mockResolvedValue(undefined),
       requestCounterOffer: vi.fn().mockResolvedValue(undefined),
     },
+    inquiryActions: {
+      processOperatorInquiryAction: vi.fn().mockResolvedValue({
+        processed: false,
+        reason: "not_found",
+      }),
+    },
     logger: {
       info: vi.fn(),
       warn: vi.fn(),
@@ -150,6 +158,11 @@ describe("handleWhatsAppWebhook", () => {
 
     await handleWhatsAppWebhook(metaPayload("accept:booking_123"), options);
 
+    expect(options.inquiryActions.processOperatorInquiryAction).toHaveBeenCalledWith({
+      inquiryId: "booking_123",
+      action: "accept",
+      actorPayload: expect.objectContaining({ source: "whatsapp" }),
+    });
     expect(options.orchestrator.acceptByOperator).toHaveBeenCalledWith(
       "booking_123",
       expect.objectContaining({ source: "whatsapp" }),
@@ -187,7 +200,75 @@ describe("handleWhatsAppWebhook", () => {
       expect.objectContaining({
         body: expect.stringContaining("Komodo Backup Crew"),
       }),
+      { to: "628213143342" },
     );
+  });
+
+  it("updates inquiry status for inquiry button payloads before falling back to booking orchestrator", async () => {
+    const options = mockOptions();
+    options.inquiryActions.processOperatorInquiryAction.mockResolvedValue({
+      processed: true,
+      inquiryId: "inq_123",
+      fromStatus: "OPERATOR_PENDING",
+      toStatus: "OPERATOR_ACCEPTED",
+    });
+
+    await handleWhatsAppWebhook(metaPayload("accept:inq_123"), options);
+
+    expect(options.inquiryActions.processOperatorInquiryAction).toHaveBeenCalledWith({
+      inquiryId: "inq_123",
+      action: "accept",
+      actorPayload: expect.objectContaining({
+        source: "whatsapp",
+        operatorWhatsApp: "628213143342",
+      }),
+    });
+    expect(options.orchestrator.acceptByOperator).not.toHaveBeenCalled();
+    expect(options.logger.info).toHaveBeenCalledWith(
+      "whatsapp.webhook.operator_inquiry_action_processed",
+      {
+        action: "accept",
+        inquiryId: "inq_123",
+        fromStatus: "OPERATOR_PENDING",
+        toStatus: "OPERATOR_ACCEPTED",
+      },
+    );
+  });
+
+  it("resolves text-only template button replies to the latest pending operator inquiry", async () => {
+    const options = mockOptions();
+    options.inquiryActions.processOperatorInquiryAction.mockResolvedValue({
+      processed: true,
+      inquiryId: "inq_latest",
+      fromStatus: "OPERATOR_PENDING",
+      toStatus: "OPERATOR_ACCEPTED",
+    });
+    prismaMocks.whatsAppOutboundMessage.findFirst.mockResolvedValue({
+      bookingInquiryId: "inq_latest",
+      bookingInquiry: { id: "inq_latest", status: "OPERATOR_PENDING" },
+    });
+
+    await handleWhatsAppWebhook(metaButtonTextOnlyPayload("Accept"), options);
+
+    expect(prismaMocks.whatsAppOutboundMessage.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          recipientPhone: "628213143342",
+          bookingInquiry: expect.objectContaining({
+            status: { in: ["READY_TO_DISPATCH", "OPERATOR_PENDING", "COUNTER_OFFERED"] },
+          }),
+        }),
+      }),
+    );
+    expect(options.inquiryActions.processOperatorInquiryAction).toHaveBeenCalledWith({
+      inquiryId: "inq_latest",
+      action: "accept",
+      actorPayload: expect.objectContaining({
+        source: "whatsapp",
+        operatorWhatsApp: "628213143342",
+      }),
+    });
+    expect(options.orchestrator.acceptByOperator).not.toHaveBeenCalled();
   });
 
   it("calls counter orchestrator for counter button payloads", async () => {
@@ -207,6 +288,7 @@ describe("handleWhatsAppWebhook", () => {
       expect.objectContaining({
         body: expect.stringContaining("Counter requested"),
       }),
+      { to: "628213143342" },
     );
   });
 
@@ -230,7 +312,7 @@ describe("handleWhatsAppWebhook", () => {
     expect(options.orchestrator.requestCounterOffer).not.toHaveBeenCalled();
   });
 
-  it("logs text-only operator buttons for future booking context resolution", async () => {
+  it("logs text-only operator buttons when no pending inquiry context is found", async () => {
     const options = mockOptions();
 
     await handleWhatsAppWebhook(metaButtonTextOnlyPayload("Counter-offer"), options);
@@ -242,7 +324,7 @@ describe("handleWhatsAppWebhook", () => {
         sender: "********3342",
         messageId: "wamid.test",
         buttonPayloadOrText: "Counter-offer",
-        note: "Booking context resolution is required before processing this operator action.",
+        note: "Unable to resolve a pending inquiry for this operator reply.",
       },
     );
   });

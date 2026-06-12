@@ -1,0 +1,227 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/db/prisma";
+import { requireCurrentAdmin } from "@/lib/services/auth/admin";
+
+export const metadata = {
+  title: "Inquiries | BluePass Admin",
+};
+
+export default async function AdminInquiriesPage() {
+  const admin = await requireCurrentAdmin();
+
+  if (!admin) {
+    redirect("/login?next=/admin/inquiries");
+  }
+
+  const inquiries = await prisma.bookingInquiry.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      referralPartner: {
+        select: { role: true, handle: true, name: true },
+      },
+      outboundMessages: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          recipientPhone: true,
+          templateName: true,
+          status: true,
+          sentAt: true,
+        },
+        take: 1,
+      },
+      events: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          fromStatus: true,
+          toStatus: true,
+          actorType: true,
+          createdAt: true,
+        },
+        take: 3,
+      },
+    },
+    take: 40,
+  });
+
+  return (
+    <section className="cinematic-page home-hero relative min-h-svh overflow-hidden bg-[#020b11] text-white">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 scale-105 bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://assets.mixkit.co/videos/36621/36621-thumb-720-0.jpg')",
+        }}
+      />
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        poster="https://assets.mixkit.co/videos/36621/36621-thumb-720-0.jpg"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+      >
+        <source
+          src="https://assets.mixkit.co/videos/36621/36621-1080.mp4"
+          type="video/mp4"
+        />
+      </video>
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.78),rgba(0,15,21,0.45)_45%,rgba(0,8,14,0.68)),linear-gradient(180deg,rgba(0,0,0,0.34),rgba(0,0,0,0.12)_38%,rgba(0,0,0,0.72))]" />
+      <div className="absolute inset-0 bg-[#0c3b3a]/10 mix-blend-color" />
+      <div className="bp-film-grain absolute inset-0" />
+
+      <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-6xl flex-col justify-center px-[var(--cinematic-screen-x)] pb-14 pt-32">
+        <div className="overflow-hidden rounded-2xl border border-white/16 bg-white/[0.10] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.30),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[34px] backdrop-saturate-150 sm:p-6 md:p-8">
+          <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-6 md:flex-row md:items-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
+                BluePass admin
+              </p>
+              <h1 className="bp-page-title mt-3 text-4xl leading-none text-white md:text-5xl">
+                Inquiry pipeline
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/66">
+                Watch Kai inquiries move from operator dispatch to accepted,
+                declined, or counter-offered.
+              </p>
+            </div>
+            <div className="flex flex-col items-start gap-2 md:items-end">
+              <Link
+                href="/admin/referrals"
+                className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] px-4 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#071827]"
+              >
+                Referral ledger
+              </Link>
+              <p className="text-xs text-white/44">
+                Signed in as <span className="text-white/76">{admin.email}</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-3">
+            {inquiries.length ? (
+              inquiries.map((inquiry) => {
+                const outbound = inquiry.outboundMessages[0];
+
+                return (
+                  <article
+                    key={inquiry.id}
+                    className="rounded-2xl border border-white/14 bg-white/[0.08] p-4 backdrop-blur-md"
+                  >
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="text-base font-bold text-white">
+                            {inquiry.selectedYachtName ??
+                              inquiry.destination ??
+                              "BluePass inquiry"}
+                          </h2>
+                          <span className="rounded-full border border-[#9fe8df]/20 bg-[#9fe8df]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#d9fffa]">
+                            {inquiry.status.toLowerCase()}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-white/52">
+                          {inquiry.travellerName ?? "Traveller"} ·{" "}
+                          {inquiry.dateWindow ?? "Dates pending"} ·{" "}
+                          {inquiry.guests ?? "?"} guests ·{" "}
+                          {inquiry.budget ?? "No budget"}
+                        </p>
+                        <p className="mt-1 text-xs text-white/42">
+                          Referral: {formatReferral(inquiry)}
+                        </p>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <AdminMetric
+                          label="Outbound"
+                          value={outbound?.status.toLowerCase() ?? "not sent"}
+                        />
+                        <AdminMetric
+                          label="Operator"
+                          value={outbound?.recipientPhone ?? "not set"}
+                        />
+                        <AdminMetric
+                          label="Created"
+                          value={formatDate(inquiry.createdAt)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 rounded-xl border border-white/10 bg-black/15 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+                        Latest events
+                      </p>
+                      <div className="mt-3 grid gap-2">
+                        {inquiry.events.length ? (
+                          inquiry.events.map((event) => (
+                            <p key={event.id} className="text-xs text-white/58">
+                              {event.actorType.toLowerCase()} ·{" "}
+                              {event.fromStatus?.toLowerCase() ?? "new"} →{" "}
+                              {event.toStatus.toLowerCase()} ·{" "}
+                              {formatDate(event.createdAt)}
+                            </p>
+                          ))
+                        ) : (
+                          <p className="text-xs text-white/44">
+                            No operator action yet.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 text-sm text-white/48">
+                No booking inquiries yet.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AdminMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/15 p-3">
+      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+        {label}
+      </p>
+      <p className="mt-2 truncate text-sm font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function formatReferral(inquiry: {
+  referralCode: string | null;
+  referralRole: string | null;
+  referralPartner: { role: string; handle: string | null; name: string } | null;
+}) {
+  if (inquiry.referralCode) {
+    return inquiry.referralRole
+      ? `${inquiry.referralRole.toLowerCase()} / ${inquiry.referralCode}`
+      : inquiry.referralCode;
+  }
+
+  if (inquiry.referralPartner) {
+    return `${inquiry.referralPartner.role.toLowerCase()} / ${
+      inquiry.referralPartner.handle ?? inquiry.referralPartner.name
+    }`;
+  }
+
+  return "direct";
+}
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}

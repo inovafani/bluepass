@@ -167,4 +167,21 @@ describe("extractKaiTravelIntent", () => {
       }).certificationLevel,
     ).toBe("advanced open water");
   });
+
+  it("does not treat yacht selection replies as traveller names", () => {
+    const intent = extractKaiTravelIntent(
+      "I'm interested in Calico Jack",
+      {
+        destination: "Komodo",
+        tripType: "liveaboard",
+        guests: 6,
+        dateWindow: "10th of June",
+        budget: "Around $4,000",
+      },
+      { lastAskedSlot: "travellerName" },
+    );
+
+    expect(intent.selectedYachtSlug).toBe("calico-jack");
+    expect(intent.travellerName).toBeUndefined();
+  });
 });

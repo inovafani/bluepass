@@ -13,6 +13,16 @@ const prismaMocks = vi.hoisted(() => ({
     findFirst: vi.fn(),
     update: vi.fn(),
   },
+  commissionLedgerEntry: {
+    deleteMany: vi.fn(),
+    createMany: vi.fn(),
+  },
+  creatorProfile: {
+    findFirst: vi.fn(),
+  },
+  operatorProfile: {
+    findFirst: vi.fn(),
+  },
 }));
 
 vi.mock("@/lib/db/prisma", () => ({
@@ -24,6 +34,10 @@ afterEach(() => {
   prismaMocks.bookingInquiry.create.mockReset();
   prismaMocks.bookingInquiry.findFirst.mockReset();
   prismaMocks.bookingInquiry.update.mockReset();
+  prismaMocks.commissionLedgerEntry.deleteMany.mockReset();
+  prismaMocks.commissionLedgerEntry.createMany.mockReset();
+  prismaMocks.creatorProfile.findFirst.mockReset();
+  prismaMocks.operatorProfile.findFirst.mockReset();
 });
 
 describe("BookingInquiry service", () => {
@@ -149,6 +163,89 @@ describe("BookingInquiry service", () => {
         interests: ["mantas"],
         status: "READY_TO_DISPATCH",
       }),
+    });
+  });
+
+  it("creates pending commission ledger entries for referred inquiries", async () => {
+    prismaMocks.kaiSession.findUnique.mockResolvedValue({
+      id: "kai_referred_session",
+      channel: "WEB",
+      travellerPhone: "+628123",
+      referralLinkId: "ref_link_123",
+      referralPartnerId: "ref_partner_123",
+      referralCode: "inov-afani",
+      referralRole: "CREATOR",
+      slots: {
+        intent: {
+          destination: "Komodo",
+          tripType: "liveaboard",
+          guests: 2,
+          dateWindow: "October",
+          budget: "$2,000",
+          travellerName: "Ari",
+          travellerEmail: "ari@example.com",
+          travellerPhone: "+628123",
+        },
+      },
+    });
+    prismaMocks.bookingInquiry.findFirst.mockResolvedValue(null);
+    prismaMocks.bookingInquiry.create.mockResolvedValue({
+      id: "inq_referred",
+      status: "READY_TO_DISPATCH",
+      selectedYachtSlug: "aliikai",
+      referralLinkId: "ref_link_123",
+      referralPartnerId: "ref_partner_123",
+      referralCode: "inov-afani",
+      referralRole: "CREATOR",
+      budget: "$2,000",
+    });
+    prismaMocks.creatorProfile.findFirst.mockResolvedValue({
+      accountId: "account_creator",
+    });
+
+    await createInquiryFromKaiSession({
+      sessionId: "kai_referred_session",
+      selectedYachtSlug: "aliikai",
+    });
+
+    expect(prismaMocks.commissionLedgerEntry.deleteMany).toHaveBeenCalledWith({
+      where: {
+        bookingInquiryId: "inq_referred",
+        status: "PENDING",
+        kind: {
+          in: [
+            "CREATOR_COMMISSION_ESTIMATE",
+            "BLUEPASS_PLATFORM_COMMISSION",
+            "CONSERVATION_ALLOCATION",
+            "OPERATOR_PAYOUT_PLACEHOLDER",
+          ],
+        },
+      },
+    });
+    expect(prismaMocks.commissionLedgerEntry.createMany).toHaveBeenCalledWith({
+      data: expect.arrayContaining([
+        expect.objectContaining({
+          bookingInquiryId: "inq_referred",
+          accountId: "account_creator",
+          referralPartnerId: "ref_partner_123",
+          role: "CREATOR",
+          kind: "CREATOR_COMMISSION_ESTIMATE",
+          amountCents: 20000,
+          status: "PENDING",
+        }),
+        expect.objectContaining({
+          kind: "BLUEPASS_PLATFORM_COMMISSION",
+          amountCents: 20000,
+        }),
+        expect.objectContaining({
+          kind: "CONSERVATION_ALLOCATION",
+          amountCents: 10000,
+        }),
+        expect.objectContaining({
+          kind: "OPERATOR_PAYOUT_PLACEHOLDER",
+          amountCents: 150000,
+        }),
+      ]),
     });
   });
 

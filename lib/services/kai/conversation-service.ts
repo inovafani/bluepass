@@ -348,6 +348,15 @@ export function buildDeterministicReply(
     return travelAdviceReply;
   }
 
+  const destinationOverviewReply = buildDestinationOverviewReply(
+    intent,
+    latestUserMessage,
+  );
+
+  if (destinationOverviewReply) {
+    return destinationOverviewReply;
+  }
+
   if (planner.missingSlots.includes("destination")) {
     const knownParts = [
       intent.tripType ? `${intent.tripType}` : undefined,
@@ -356,21 +365,21 @@ export function buildDeterministicReply(
     const prefix =
       knownParts.length > 0 ? `Got it: ${knownParts.join(" ")}. ` : "";
 
-    return `${prefix}Where feels best for this liveaboard - Komodo or Raja Ampat?`;
+    return `${prefix}Do you want me to focus on Komodo or Raja Ampat?`;
   }
 
   if (planner.missingSlots.includes("tripType")) {
     const guestText = intent.guests ? ` for ${intent.guests}` : "";
 
-    return `${intent.destination}${guestText} works. Are you thinking a dive-focused liveaboard, a cruising-focused liveaboard, or a mix of both?`;
+    return `${intent.destination}${guestText} works. Should I look for a dive-heavy liveaboard, a more relaxed cruising trip, or a bit of both?`;
   }
 
   if (planner.missingSlots.includes("guests")) {
-    return `${intent.destination} for ${intent.tripType} sounds good. How many people should I plan around?`;
+    return `Nice, ${intent.destination} ${intent.tripType}. How many people/guests should I plan for?`;
   }
 
   if (planner.missingSlots.includes("dateWindow")) {
-    return `${intent.destination} ${intent.tripType} for ${intent.guests} guests - got it. When are you hoping to travel?`;
+    return `Got it: ${intent.destination} ${intent.tripType} for ${intent.guests} guests. When are you hoping to travel - exact dates or a rough month is fine.`;
   }
 
   if (planner.missingSlots.includes("budget")) {
@@ -378,7 +387,7 @@ export function buildDeterministicReply(
       ? `, ${intent.certificationLevel}`
       : "";
 
-    return `${intent.destination} ${intent.tripType} for ${intent.guests} guests${certificationText} - got it. What budget range should I keep this within, per cabin/night or whole-yacht charter?`;
+    return `Perfect, ${intent.destination} ${intent.tripType} for ${intent.guests} guests${certificationText}. What budget range should I keep in mind?`;
   }
 
   if (
@@ -390,7 +399,7 @@ export function buildDeterministicReply(
       ? yachtBySlug[intent.selectedYachtSlug]
       : undefined;
     const prefix = selectedYacht
-      ? `Great, I can prepare the inquiry for ${selectedYacht.name}.`
+      ? `Nice choice. I can prepare the inquiry for ${selectedYacht.name}.`
       : "Great, I have the trip details.";
     const missingContactFields = buildMissingContactFieldText(
       planner.missingSlots,
@@ -402,18 +411,21 @@ export function buildDeterministicReply(
   if (intent.selectedYachtSlug) {
     const selectedYacht = yachtBySlug[intent.selectedYachtSlug];
     const yachtName = selectedYacht?.name ?? "that yacht";
-    const travellerName = intent.travellerName
+    const safeTravellerName = isBadTravellerName(intent.travellerName)
+      ? undefined
+      : intent.travellerName;
+    const travellerName = safeTravellerName
       ? ` for ${intent.travellerName}`
       : "";
 
-    return `Perfect${travellerName} - I have everything needed for the ${yachtName} inquiry: ${intent.destination}, ${intent.tripType}, ${intent.guests} guests, ${intent.dateWindow}, and ${intent.budget}. Tap Send inquiry on the ${yachtName} card and I'll dispatch it to the operator number on file.`;
+    return `Nice choice${travellerName}. I have the essentials for a ${yachtName} inquiry: ${intent.destination}, ${intent.guests} guests, ${intent.dateWindow}, and ${intent.budget}. Tap Send inquiry on the ${yachtName} card and I'll send it to the operator.`;
   }
 
   if (matches.length > 0) {
     return buildMatchedTripsReply(intent, matches);
   }
 
-  return `Perfect. I can start matching suitable Indonesia trips for ${intent.destination} based on your ${intent.tripType} plans for ${intent.guests} guests. I won't claim live availability yet, but I can help narrow the right fit.`;
+  return `Perfect. I can match a few ${intent.destination} options for ${intent.guests} guests. I’ll keep it to preview catalog matches for now, then you can send an inquiry when one feels right.`;
 }
 
 export function buildSuggestedReplies(
@@ -854,6 +866,15 @@ function buildMissingContactFieldText(missingSlots: KaiMissingSlot[]) {
   return `What ${joinHumanList(fields)} should I put on the inquiry?`;
 }
 
+function isBadTravellerName(value?: string) {
+  return Boolean(
+    value &&
+      /\b(?:interested in|calico jack|rascal|samara|aliikai|inquiry)\b/i.test(
+        value,
+      ),
+  );
+}
+
 function joinHumanList(values: string[]) {
   if (values.length === 1) {
     return values[0];
@@ -891,6 +912,70 @@ function buildTravelAdviceReply(
       : "If you have rough dates or budget, I can narrow the fit.";
 
   return `${season.destination} is usually best ${season.bestWindow}.${dateText} For ${season.destination}${tripTypeText}${guestText}, ${season.note} ${nextStep}`;
+}
+
+function buildDestinationOverviewReply(
+  intent: KaiTravelIntent,
+  latestUserMessage: string,
+) {
+  if (!isDestinationOverviewQuestion(latestUserMessage) || !intent.destination) {
+    return undefined;
+  }
+
+  const overview = getDestinationOverview(intent.destination);
+
+  if (!overview) {
+    return undefined;
+  }
+
+  const tripTypeText = intent.tripType
+    ? ` ${intent.tripType}`
+    : " liveaboard";
+  const nextQuestion =
+    intent.tripType && !intent.guests
+      ? "If you want, tell me roughly how many guests and I can narrow the style from there."
+      : "If you want, I can help compare dive-heavy, cruising-focused, and mixed liveaboard styles.";
+
+  return `${overview.destination}${tripTypeText}s are best for ${overview.bestFor}. ${overview.texture} ${overview.constraint} ${nextQuestion}`;
+}
+
+function isDestinationOverviewQuestion(message: string) {
+  const normalized = message.toLowerCase();
+
+  return (
+    /\b(tell me about|what is|what's|explain|info about|learn about|describe)\b/.test(
+      normalized,
+    ) &&
+    /\b(komodo|raja\s*ampat|liveaboards?|diving|cruising)\b/.test(normalized)
+  );
+}
+
+function getDestinationOverview(destination: string) {
+  if (destination === "Komodo") {
+    return {
+      destination: "Komodo",
+      bestFor:
+        "dramatic island scenery, manta sites, current-swept dives, and a compact liveaboard route from Labuan Bajo",
+      texture:
+        "It usually feels more rugged and volcanic: pink beaches, dragons on land, clear ridgelines, and dive days that can be gentle or spicy depending on site and season.",
+      constraint:
+        "BluePass treats catalog prices as signals only, so I will not call anything available until an operator confirms.",
+    };
+  }
+
+  if (destination === "Raja Ampat") {
+    return {
+      destination: "Raja Ampat",
+      bestFor:
+        "remote reefs, soft coral, calmer expedition pacing, and longer liveaboard routes through very spread-out islands",
+      texture:
+        "It feels more remote and reef-forward than Komodo, with slower crossings, huge biodiversity, and a stronger reason to plan around season.",
+      constraint:
+        "BluePass treats catalog prices as signals only, so I will not call anything available until an operator confirms.",
+    };
+  }
+
+  return undefined;
 }
 
 function searchYachtsSafely(
@@ -942,8 +1027,8 @@ function buildMatchedTripsReply(
 ) {
   const intro =
     matches.length === 1
-      ? `Based on the current BluePass preview fleet, I'd shortlist this yacht for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`
-      : `Based on the current BluePass preview fleet, I'd shortlist these yachts for ${intent.destination} ${intent.tripType} for ${intent.guests} guests:`;
+      ? `Based on the current BluePass preview fleet, for ${intent.destination} ${intent.tripType} with ${intent.guests} guests, this is the strongest match I’d start with:`
+      : `Based on the current BluePass preview fleet, for ${intent.destination} ${intent.tripType} with ${intent.guests} guests, I’d start with these matches:`;
   const rows = matches
     .map((match, index) => {
       const price = match.charterOnly
@@ -953,11 +1038,11 @@ function buildMatchedTripsReply(
         ? "private charter quote"
         : "cabin price signal";
 
-      return `${index + 1}. ${match.name} - ${priceLabel}: ${price}. ${match.matchingReasons.slice(0, 3).join(", ")}.`;
+      return `${index + 1}. ${match.name} — ${priceLabel}: ${price}; ${match.matchingReasons.slice(0, 3).join(", ")}.`;
     })
     .join("\n");
 
-  return `${intro}\n${rows}\nThese are static catalog suggestions, not live availability or final prices. If you'd like to proceed, I can prepare an inquiry rather than confirm a booking.`;
+  return `${intro}\n${rows}\nThese are preview catalog signals, not live availability or final prices. If you'd like to proceed, I can prepare an inquiry - tap Send inquiry on the card that feels right and I’ll ask the operator.`;
 }
 
 function isTravelTimingQuestion(message: string) {

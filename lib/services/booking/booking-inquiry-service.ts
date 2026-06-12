@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { yachtBySlug } from "@/lib/data/yachts";
 import { sanitizeJsonForPrisma } from "@/lib/services/kai/json-safety";
 import type { KaiTravelIntent } from "@/lib/services/kai/types";
+import { syncReferralCommissionLedger } from "@/lib/services/referrals/commission-ledger";
 
 const activeInquiryStatuses: BookingInquiryStatus[] = [
   "DRAFT",
@@ -145,6 +146,15 @@ export async function createInquiryFromKaiSession(input: CreateInquiryFromKaiSes
       },
     });
 
+    await syncReferralCommissionLedger({
+      bookingInquiryId: updated.id,
+      referralPartnerId: updated.referralPartnerId,
+      referralLinkId: updated.referralLinkId,
+      referralCode: updated.referralCode,
+      referralRole: updated.referralRole,
+      budget: updated.budget,
+    });
+
     return {
       ok: true as const,
       inquiry: updated,
@@ -176,6 +186,15 @@ export async function createInquiryFromKaiSession(input: CreateInquiryFromKaiSes
       referralRole: session.referralRole,
       status: "READY_TO_DISPATCH",
     },
+  });
+
+  await syncReferralCommissionLedger({
+    bookingInquiryId: inquiry.id,
+    referralPartnerId: inquiry.referralPartnerId,
+    referralLinkId: inquiry.referralLinkId,
+    referralCode: inquiry.referralCode,
+    referralRole: inquiry.referralRole,
+    budget: inquiry.budget,
   });
 
   return {

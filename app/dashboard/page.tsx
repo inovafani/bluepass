@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentTraveller } from "@/lib/services/auth/session";
+import { creatorCommissionLedgerKind } from "@/lib/services/referrals/commission-ledger";
 
 export const metadata = {
   title: "Dashboard | BluePass",
@@ -66,6 +67,10 @@ export default async function DashboardPage() {
     account?.creatorProfile?.referralPartnerId
       ? await getCreatorStats(account.creatorProfile.referralPartnerId)
       : undefined;
+  const travellerInquiries = await getTravellerInquiries({
+    email: account?.email ?? traveller.email,
+    phone: account?.phone ?? traveller.phone,
+  });
   const creatorLink = account?.creatorProfile?.referralPartner?.links[0];
   const creatorShareUrl = creatorLink
     ? buildReferralShareUrl(creatorLink.code, creatorLink.targetPath)
@@ -144,13 +149,15 @@ export default async function DashboardPage() {
                 actionLabel="Start with Kai"
               />
 
+              <TravellerInquiryPanel inquiries={travellerInquiries} />
+
               {hasCreator ? (
                 account?.creatorProfile?.status === "APPROVED" && creatorStats ? (
                   <CreatorDashboardPanel
                     shareUrl={creatorShareUrl}
                     referralCode={creatorLink?.code}
                     clicks={creatorStats.clicks}
-                    inquiries={creatorStats.inquiries.length}
+                    inquiries={creatorStats.inquiryCount}
                     estimatedCommissionCents={creatorStats.estimatedCommissionCents}
                     latestInquiries={creatorStats.inquiries}
                   />
@@ -239,6 +246,55 @@ function DashboardPanel({
       >
         {actionLabel}
       </Link>
+    </article>
+  );
+}
+
+function TravellerInquiryPanel({
+  inquiries,
+}: {
+  inquiries: Array<{
+    id: string;
+    selectedYachtName: string | null;
+    destination: string | null;
+    dateWindow: string | null;
+    status: string;
+  }>;
+}) {
+  return (
+    <article className="rounded-2xl border border-white/14 bg-white/[0.08] p-5 backdrop-blur-md">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fe8df]">
+        Traveller inquiries
+      </p>
+      <h2 className="mt-3 text-xl font-semibold leading-tight text-white">
+        Operator responses
+      </h2>
+      <div className="mt-4 grid gap-2">
+        {inquiries.length ? (
+          inquiries.map((inquiry) => (
+            <div
+              key={inquiry.id}
+              className="rounded-xl border border-white/10 bg-black/14 p-3"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="truncate text-sm font-bold text-white/84">
+                  {inquiry.selectedYachtName ?? inquiry.destination ?? "BluePass inquiry"}
+                </p>
+                <span className="shrink-0 text-[10px] uppercase tracking-[0.12em] text-white/38">
+                  {inquiry.status.toLowerCase()}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-white/48">
+                Travel date: {inquiry.dateWindow ?? "Dates pending"}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="rounded-xl border border-white/10 bg-black/14 p-3 text-sm text-white/46">
+            No Kai inquiries yet.
+          </p>
+        )}
+      </div>
     </article>
   );
 }
@@ -364,8 +420,11 @@ function formatStatus(status?: string | null) {
 }
 
 async function getCreatorStats(referralPartnerId: string) {
-  const [clicks, inquiries] = await Promise.all([
+  const [clicks, inquiryCount, inquiries, commissionAggregate] = await Promise.all([
     prisma.referralClick.count({
+      where: { referralPartnerId },
+    }),
+    prisma.bookingInquiry.count({
       where: { referralPartnerId },
     }),
     prisma.bookingInquiry.findMany({
@@ -382,33 +441,50 @@ async function getCreatorStats(referralPartnerId: string) {
       },
       take: 12,
     }),
+    prisma.commissionLedgerEntry.aggregate({
+      where: {
+        referralPartnerId,
+        kind: creatorCommissionLedgerKind(),
+      },
+      _sum: { amountCents: true },
+    }),
   ]);
 
   return {
     clicks,
+    inquiryCount,
     inquiries,
-    estimatedCommissionCents: inquiries.reduce(
-      (total, inquiry) => total + estimateCreatorCommissionCents(inquiry.budget),
-      0,
-    ),
+    estimatedCommissionCents: commissionAggregate._sum.amountCents ?? 0,
   };
 }
 
-function estimateCreatorCommissionCents(budget?: string | null) {
-  const usd = parseBudgetUsd(budget);
-  return Math.round(usd * 0.03 * 100);
-}
+async function getTravellerInquiries(input: {
+  email?: string | null;
+  phone?: string | null;
+}) {
+  const filters = [
+    input.email ? { travellerEmail: input.email } : undefined,
+    input.phone ? { travellerPhone: input.phone } : undefined,
+  ].filter((filter): filter is { travellerEmail: string } | { travellerPhone: string } =>
+    Boolean(filter),
+  );
 
-function parseBudgetUsd(value?: string | null) {
-  if (!value) {
-    return 0;
+  if (!filters.length) {
+    return [];
   }
 
-  const match = value
-    .replace(/,/g, "")
-    .match(/(?:\$|usd\s*)?\s*(\d{2,7})(?:\s*(?:usd|dollars?))?/i);
-
-  return match ? Number(match[1]) : 0;
+  return prisma.bookingInquiry.findMany({
+    where: { OR: filters },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      selectedYachtName: true,
+      destination: true,
+      dateWindow: true,
+      status: true,
+    },
+    take: 5,
+  });
 }
 
 function formatMoney(cents: number) {

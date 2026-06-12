@@ -453,6 +453,27 @@ describe("Kai conversation service", () => {
     expect(result.reply).toContain("When are you hoping to travel");
   });
 
+  it("answers exploratory destination questions before collecting inquiry slots", async () => {
+    const store = buildStore();
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      message: "Tell me about Komodo liveaboards",
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        destination: "Komodo",
+        tripType: "liveaboard",
+      }),
+    );
+    expect(result.reply).toMatch(/Komodo/i);
+    expect(result.reply).toMatch(/liveaboard/i);
+    expect(result.reply).not.toMatch(/^Nice, Komodo liveaboard/i);
+    expect(result.reply).not.toContain("How many people/guests");
+  });
+
   it("returns static yacht catalog matches once the inquiry is ready to match", async () => {
     const store = buildStore();
     const service = createKaiConversationService(store);

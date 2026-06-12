@@ -79,9 +79,25 @@ export default async function AdminApplicationsPage() {
                 a referral partner and share link automatically.
               </p>
             </div>
-            <p className="text-xs text-white/44">
-              Signed in as <span className="text-white/76">{admin.email}</span>
-            </p>
+            <div className="flex flex-col items-start gap-2 md:items-end">
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href="/admin/inquiries"
+                  className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] px-4 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#071827]"
+                >
+                  Inquiry pipeline
+                </a>
+                <a
+                  href="/admin/referrals"
+                  className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] px-4 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#071827]"
+                >
+                  Referral ledger
+                </a>
+              </div>
+              <p className="text-xs text-white/44">
+                Signed in as <span className="text-white/76">{admin.email}</span>
+              </p>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
