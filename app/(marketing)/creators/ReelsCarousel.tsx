@@ -237,7 +237,7 @@ function ReelCard({
       }
     >
       <div
-        className={`relative aspect-[9/16] overflow-hidden rounded-[1.35rem] border bg-[#071827] shadow-[0_28px_90px_rgba(0,0,0,0.38)] transition-colors ${
+        className={`relative aspect-[9/16] overflow-hidden rounded-[1.35rem] border bg-[#071827] transition-colors ${
           active ? "border-white/42" : "border-white/12"
         }`}
       >
