@@ -19,7 +19,13 @@ type Reel = {
   videoSrc?: string;
 };
 
-export function ReelsCarousel({ reels }: { reels: Reel[] }) {
+export function ReelsCarousel({
+  reels,
+  spacing = "default",
+}: {
+  reels: Reel[];
+  spacing?: "default" | "wide";
+}) {
   const initialIndex = Math.floor(reels.length / 2);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -93,6 +99,7 @@ export function ReelsCarousel({ reels }: { reels: Reel[] }) {
                     index={index}
                     offset={offset}
                     reelCount={reels.length}
+                    spacing={spacing}
                     reel={reel}
                     onClick={() => {
                       if (offset === 0) {
@@ -203,6 +210,7 @@ function ReelCard({
   index,
   offset,
   reelCount,
+  spacing,
   reel,
   onClick,
 }: {
@@ -210,10 +218,11 @@ function ReelCard({
   index: number;
   offset: number;
   reelCount: number;
+  spacing: "default" | "wide";
   reel: Reel;
   onClick: () => void;
 }) {
-  const position = getPosition(offset, reelCount);
+  const position = getPosition(offset, reelCount, spacing);
 
   return (
     <button
@@ -285,7 +294,7 @@ function ReelPlayer({ reel }: { reel: Reel }) {
     );
   }
 
-  // No containNavigation — the popup is a modal overlay, let Instagram behave natively.
+  // No containNavigation: the popup is a modal overlay, let Instagram behave natively.
   // cropped=true (default) oversizes the iframe and clips the Instagram header/footer
   // so only the video area is visible inside the rounded popup card.
   return (
@@ -301,39 +310,44 @@ function ReelPlayer({ reel }: { reel: Reel }) {
 function getPosition(
   offset: number,
   reelCount: number,
+  spacing: "default" | "wide",
 ): {
   className: string;
   style: CSSProperties;
 } {
+  const near = spacing === "wide" ? "21rem" : "18rem";
+  const far = spacing === "wide" ? "35rem" : "30rem";
+  const hidden = spacing === "wide" ? "35rem" : "30rem";
+
   if (reelCount <= 4 && Math.abs(offset) > 1) {
     return {
       className: "pointer-events-none z-0 opacity-0",
-      style: getTransform(offset < 0 ? "-30rem" : "30rem", 0.76),
+      style: getTransform(offset < 0 ? `-${hidden}` : hidden, 0.76),
     };
   }
 
   if (offset < -2) {
     return {
       className: "pointer-events-none z-0 opacity-0",
-      style: getTransform("-30rem", 0.76),
+      style: getTransform(`-${hidden}`, 0.76),
     };
   }
 
   if (offset > 2) {
     return {
       className: "pointer-events-none z-0 opacity-0",
-      style: getTransform("30rem", 0.76),
+      style: getTransform(hidden, 0.76),
     };
   }
 
   const positions = {
     "-2": {
       className: "z-0 opacity-[0.52] blur-[0.4px] hover:opacity-70",
-      style: getTransform("-30rem", 0.76),
+      style: getTransform(`-${far}`, 0.76),
     },
     "-1": {
       className: "z-10 opacity-[0.84] hover:opacity-95",
-      style: getTransform("-18rem", 0.86),
+      style: getTransform(`-${near}`, 0.86),
     },
     "0": {
       className: "z-30 opacity-100",
@@ -341,11 +355,11 @@ function getPosition(
     },
     "1": {
       className: "z-10 opacity-[0.84] hover:opacity-95",
-      style: getTransform("18rem", 0.86),
+      style: getTransform(near, 0.86),
     },
     "2": {
       className: "z-0 opacity-[0.52] blur-[0.4px] hover:opacity-70",
-      style: getTransform("30rem", 0.76),
+      style: getTransform(far, 0.76),
     },
   } as const;
 
