@@ -11,6 +11,9 @@ build/
 coverage/
 .nyc_output/
 
+# Local source media masters
+public/video/hero-video.mp4
+
 # Environment variables and secrets
 .env
 .env.*

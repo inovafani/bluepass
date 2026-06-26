@@ -21,6 +21,12 @@ const backgrounds = {
   book: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2400&q=80",
 };
 
+const heroBackgroundVideo = {
+  webm: "/video/hero-video-optimized.webm",
+  mp4: "/video/hero-video-optimized.mp4",
+  poster: "/video/hero-video-poster.jpg",
+};
+
 const featuredYachts = [
   {
     slug: "alexa",
@@ -99,6 +105,7 @@ export default function HomePage() {
         <HomePanel
           id="promise"
           backgroundImage={backgrounds.promise}
+          backgroundVideo={heroBackgroundVideo}
           overlay="bg-[linear-gradient(180deg,rgba(3,12,20,0.60)_0%,rgba(3,12,20,0.34)_45%,rgba(3,12,20,0.85)_100%)]"
         >
           <div className="mx-auto max-w-4xl">
@@ -392,9 +399,16 @@ const secondaryCtaClass =
 const compactPrimaryCtaClass =
   "bp-home-cta bp-focus-ring inline-flex items-center justify-center rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-[#071827] transition hover:scale-[1.02] hover:bg-white/90";
 
+type HomePanelBackgroundVideo = {
+  webm?: string;
+  mp4: string;
+  poster: string;
+};
+
 function HomePanel({
   id,
   backgroundImage,
+  backgroundVideo,
   overlay,
   children,
   className = "",
@@ -402,6 +416,7 @@ function HomePanel({
 }: {
   id: string;
   backgroundImage: string;
+  backgroundVideo?: HomePanelBackgroundVideo;
   overlay: string;
   children: ReactNode;
   className?: string;
@@ -413,11 +428,30 @@ function HomePanel({
       data-home-panel
       className={`relative flex min-h-[100svh] snap-start items-center justify-center overflow-hidden px-6 py-20 text-center ${className}`}
     >
-      <div
-        aria-hidden="true"
-        className="bp-home-bg absolute inset-0 h-full w-full scale-105 bg-cover bg-center"
-        style={{ backgroundImage: `url('${backgroundImage}')` }}
-      />
+      {backgroundVideo ? (
+        <video
+          aria-hidden="true"
+          className="bp-home-bg absolute inset-0 h-full w-full scale-105 object-cover"
+          poster={backgroundVideo.poster}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          tabIndex={-1}
+        >
+          {backgroundVideo.webm ? (
+            <source src={backgroundVideo.webm} type="video/webm" />
+          ) : null}
+          <source src={backgroundVideo.mp4} type="video/mp4" />
+        </video>
+      ) : (
+        <div
+          aria-hidden="true"
+          className="bp-home-bg absolute inset-0 h-full w-full scale-105 bg-cover bg-center"
+          style={{ backgroundImage: `url('${backgroundImage}')` }}
+        />
+      )}
       <div aria-hidden="true" className={`absolute inset-0 ${overlay}`} />
       <div
         aria-hidden="true"
