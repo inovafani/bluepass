@@ -101,6 +101,10 @@ export function KaiWebChat() {
 
     sessionIdRef.current = stored;
 
+    if (!stored.startsWith("kai_")) {
+      return;
+    }
+
     fetch(`/api/kai/web-chat/history?sessionId=${encodeURIComponent(stored)}`)
       .then((res) => {
         if (!res.ok) throw new Error("history unavailable");
@@ -226,6 +230,14 @@ export function KaiWebChat() {
         return;
       }
 
+      if (!sessionId.startsWith("kai_")) {
+        setSentInquirySlugs((prev) =>
+          prev.includes(match.slug) ? prev : [...prev, match.slug],
+        );
+        await sendMessage(`Please send inquiry for ${match.name}`);
+        return;
+      }
+
       setError(null);
       setSendingInquirySlug(match.slug);
 
@@ -296,7 +308,7 @@ export function KaiWebChat() {
         setSendingInquirySlug(null);
       }
     },
-    [sendingInquirySlug, sentInquirySlugs],
+    [sendMessage, sendingInquirySlug, sentInquirySlugs],
   );
 
   function startNewChat() {

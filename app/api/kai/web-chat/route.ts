@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentTraveller } from "@/lib/services/auth/session";
+import { handleKaiCoreWebChat, shouldUseKaiCore } from "@/lib/services/kai-core/client";
 import { kaiConversationService } from "@/lib/services/kai/conversation-service";
 import { getReferralAttributionFromCookies } from "@/lib/services/referrals/attribution";
 
@@ -18,6 +19,7 @@ const webChatRequestSchema = z.object({
     .optional(),
 });
 const sessionIdSchema = z.string().regex(/^kai_[A-Za-z0-9_-]+$/);
+const kaiCoreConversationIdSchema = z.string().regex(/^[A-Za-z0-9_-]{8,128}$/);
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -39,6 +41,17 @@ export async function POST(request: NextRequest) {
   try {
     const traveller = await getCurrentTravellerSafely();
     const referralAttribution = await getReferralAttributionSafely();
+
+    if (shouldUseKaiCore()) {
+      const result = await handleKaiCoreWebChat({
+        sessionId,
+        message: parsed.data.message,
+        referralAttribution,
+      });
+
+      return NextResponse.json(result);
+    }
+
     const result = await kaiConversationService.handleUserMessage({
       channel: "web",
       sessionId,
@@ -73,6 +86,10 @@ export async function POST(request: NextRequest) {
 function normalizeSessionId(sessionId?: string) {
   if (!sessionId) {
     return undefined;
+  }
+
+  if (shouldUseKaiCore()) {
+    return kaiCoreConversationIdSchema.safeParse(sessionId).success ? sessionId : undefined;
   }
 
   return sessionIdSchema.safeParse(sessionId).success ? sessionId : undefined;
