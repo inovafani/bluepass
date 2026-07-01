@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { forwardWhatsAppWebhookToKaiCore, handleKaiCoreWebChat } from "@/lib/services/kai-core/client";
+import {
+  forwardWhatsAppWebhookToKaiCore,
+  handleKaiCoreWebChat,
+  listKaiCoreBluePassInquiries,
+} from "@/lib/services/kai-core/client";
 
 describe("handleKaiCoreWebChat", () => {
   it("creates a Kai Core session, sends the message, and maps BluePass response to the existing chat shape", async () => {
@@ -163,6 +167,40 @@ describe("handleKaiCoreWebChat", () => {
     expect(messageBody.bluepassCatalog.length).toBeGreaterThan(30);
     expect(result.sessionId).toBe("core_conversation_1");
   });
+
+  it("retries a transient Kai Core session failure before sending the message", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ error: "pooler reset" }, { status: 500 }))
+      .mockResolvedValueOnce(
+        Response.json({
+          conversation: { id: "core_conversation_retry" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        Response.json({
+          assistantMessage: { content: "Retry recovered." },
+        }),
+      );
+
+    const result = await handleKaiCoreWebChat(
+      {
+        message: "Komodo yacht for 4 guests",
+      },
+      {
+        KAI_CORE_BASE_URL: "http://127.0.0.1:3108",
+        KAI_CORE_WIDGET_KEY: "pk_test_bluepass",
+        KAI_CORE_ORIGIN: "https://bluepass.co",
+      },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(result).toEqual({
+      sessionId: "core_conversation_retry",
+      reply: "Retry recovered.",
+    });
+  });
 });
 
 describe("forwardWhatsAppWebhookToKaiCore", () => {
@@ -206,5 +244,86 @@ describe("forwardWhatsAppWebhookToKaiCore", () => {
         body: JSON.stringify(payload),
       }),
     );
+  });
+});
+
+describe("listKaiCoreBluePassInquiries", () => {
+  it("fetches the Kai Core BluePass inquiry pipeline with the admin token", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      Response.json({
+        inquiries: [
+          {
+            id: "inq_1",
+            status: "OPERATOR_ACCEPTED",
+            travellerName: "Inov",
+            travellerEmail: "inov@example.com",
+            travellerPhone: "6285156246329",
+            destination: "Komodo",
+            dateWindow: "6 July 2026",
+            guests: 4,
+            budget: "Quote requested",
+            selectedYachtName: "Calico Jack",
+            operatorName: "Calico Jack",
+            createdAt: "2026-07-01T05:00:00.000Z",
+            events: [
+              {
+                id: "event_1",
+                type: "OPERATOR_RESPONSE_ACCEPTED",
+                fromStatus: "OPERATOR_PENDING",
+                toStatus: "OPERATOR_ACCEPTED",
+                metadata: { providerMessageId: "wamid_1" },
+                createdAt: "2026-07-01T05:01:00.000Z",
+              },
+            ],
+            dispatches: [
+              {
+                id: "dispatch_1",
+                status: "SENT",
+                operatorPhone: "6285337210180",
+                createdAt: "2026-07-01T05:00:30.000Z",
+              },
+            ],
+            tenant: { slug: "bluepass", name: "BluePass" },
+          },
+        ],
+      }),
+    );
+
+    const result = await listKaiCoreBluePassInquiries(
+      { tenantSlug: "bluepass", take: 20 },
+      {
+        KAI_CORE_ENABLED: "true",
+        KAI_CORE_BASE_URL: "https://kai-core.example.com",
+        KAI_CORE_WIDGET_KEY: "pk_live_bluepass",
+        KAI_CORE_ORIGIN: "https://bluepass.co",
+        KAI_CORE_ADMIN_TOKEN: "admin_secret",
+      },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://kai-core.example.com/api/admin/bluepass/bluepass-inquiries?take=20",
+      expect.objectContaining({
+        method: "GET",
+        headers: expect.objectContaining({
+          authorization: "Bearer admin_secret",
+          origin: "https://bluepass.co",
+        }),
+      }),
+    );
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: "inq_1",
+        source: "kai-core",
+        selectedYachtName: "Calico Jack",
+        latestDispatchStatus: "SENT",
+        events: [
+          expect.objectContaining({
+            type: "OPERATOR_RESPONSE_ACCEPTED",
+            payload: { providerMessageId: "wamid_1" },
+          }),
+        ],
+      }),
+    ]);
   });
 });

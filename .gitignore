@@ -13,6 +13,7 @@ coverage/
 
 # Local source media masters
 public/video/hero-video.mp4
+source-media/
 
 # Environment variables and secrets
 .env

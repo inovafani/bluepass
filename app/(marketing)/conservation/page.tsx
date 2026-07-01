@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
+import { MotionBackgroundVideo } from "@/app/components/marketing/MotionBackgroundVideo";
 
 export const metadata: Metadata = {
   title: "Conservation | BluePass",
@@ -9,8 +10,11 @@ export const metadata: Metadata = {
     "BluePass reserves 5% of every booking for reef restoration and ocean protection.",
 };
 
-const heroImage =
-  "https://images.unsplash.com/photo-1530053969600-caed2596d242?auto=format&fit=crop&w=2200&q=82";
+const heroImage = "/video/conservation-hero-poster.jpg";
+const heroVideoSources = [
+  { src: "/video/conservation-hero.webm", type: "video/webm" },
+  { src: "/video/conservation-hero.mp4", type: "video/mp4" },
+];
 const partnerEvidenceImage = "/conservation/partner-evidence.jpg";
 const conservationCtaImage = "/conservation/final-cta.jpg";
 
@@ -65,17 +69,17 @@ const partners = [
 const reportItems = [
   {
     title: "Where funds moved",
-    body: "Partner, region, contribution amount, and the booking month that created it.",
+    body: "Partner, region, amount, and booking month.",
     icon: "flow",
   },
   {
     title: "What changed",
-    body: "Photos, notes, receipts, and field updates as partners provide them.",
+    body: "Photos, notes, and receipts from the field.",
     icon: "verify",
   },
   {
     title: "What is next",
-    body: "The next reef, waste, education, or monitoring project BluePass is funding.",
+    body: "The next project BluePass is funding.",
     icon: "sprout",
   },
 ];
@@ -84,13 +88,17 @@ export default function ConservationPage() {
   return (
     <>
       <main className="cinematic-page min-h-screen bg-[#020b11] text-white">
-
         {/* ── Hero ───────────────────────────────────────────────────────── */}
         <section className="relative min-h-svh overflow-hidden bg-[#020b11] text-white">
           <div
             aria-hidden="true"
             className="absolute inset-0 scale-105 bg-cover bg-center saturate-[0.9]"
             style={{ backgroundImage: `url('${heroImage}')` }}
+          />
+          <MotionBackgroundVideo
+            className="absolute inset-0 h-full w-full object-cover"
+            poster={heroImage}
+            sources={heroVideoSources}
           />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.88),rgba(0,15,21,0.48)_50%,rgba(0,8,14,0.72)),linear-gradient(180deg,rgba(0,0,0,0.36),rgba(0,0,0,0.08)_38%,rgba(0,0,0,0.76))]" />
           <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
@@ -101,7 +109,10 @@ export default function ConservationPage() {
                 5% of every booking goes back to the ocean.
               </h1>
               <div className="mt-7 grid grid-cols-[2px_1fr] gap-5">
-                <span className="mt-1 h-20 w-px bg-white/70" aria-hidden="true" />
+                <span
+                  className="mt-1 h-20 w-px bg-white/70"
+                  aria-hidden="true"
+                />
                 <p className="max-w-[29rem] text-sm font-light leading-[1.75] text-white/64 md:text-[15px]">
                   Conservation cannot be a footer promise. BluePass is building
                   the reporting layer that shows where booking contributions go,
@@ -127,40 +138,55 @@ export default function ConservationPage() {
         </section>
 
         {/* ── Proof points ────────────────────────────────────────────────── */}
-        <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
-          <div className="bp-reveal mx-auto grid max-w-6xl gap-4 md:grid-cols-3">
-            {proofPoints.map((point) => (
-              <article
-                key={point.title}
-                className="bp-tech-card bp-card-quiet relative border border-white/[0.09] p-7 md:p-8"
-              >
-                {/* Gold top stripe */}
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-x-0 top-0 h-[2px] rounded-t-[14px]"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, transparent 0%, rgba(184,154,93,0.55) 30%, rgba(184,154,93,0.55) 70%, transparent 100%)",
-                  }}
-                />
-                {/* Stat value */}
-                <p className="bp-page-title text-[3.5rem] leading-none text-[#B89A5D]">
-                  {point.value}
+        <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] py-14 md:py-20">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_14%_0%,rgba(184,154,93,0.10),transparent_38%),linear-gradient(180deg,rgba(4,17,29,0.6),#020b11_72%)]"
+          />
+          <div className="relative mx-auto max-w-6xl">
+            <div className="grid gap-6 md:grid-cols-[0.82fr_1.18fr] md:items-end">
+              <div>
+                <p className="text-[11px] font-normal uppercase tracking-[0.18em] text-[#B89A5D]">
+                  The promise
                 </p>
-                {/* Thin rule */}
-                <div className="my-5 h-px bg-white/[0.07]" />
-                {/* Label + description */}
-                <p
-                  className="text-[10px] uppercase tracking-[0.22em] text-white/38"
-                 
+                <h2 className="bp-page-title mt-4 max-w-md text-[clamp(1.8rem,3vw,2.5rem)] font-normal leading-[1.02] text-white/92">
+                  Conservation you can audit, not just trust.
+                </h2>
+              </div>
+              <p className="max-w-xl text-sm font-light leading-[1.75] text-white/56 md:justify-self-end md:text-[15px]">
+                Three commitments hold the reporting layer together: a fixed
+                contribution, a public rhythm, and a named partner behind every
+                claim.
+              </p>
+            </div>
+
+            <div className="bp-reveal mt-9 grid gap-4 md:grid-cols-3">
+              {proofPoints.map((point, index) => (
+                <article
+                  key={point.title}
+                  className="group relative overflow-hidden rounded-[var(--bp-radius-md)] border border-white/[0.10] bg-white/[0.045] p-6 shadow-[0_18px_54px_rgba(0,0,0,0.24)] md:p-7"
                 >
-                  {point.title}
-                </p>
-                <p className="mt-2.5 text-sm font-light leading-[1.75] text-white/60">
-                  {point.body}
-                </p>
-              </article>
-            ))}
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] font-semibold tabular-nums tracking-[0.16em] text-[#B89A5D]">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="h-px flex-1 bg-gradient-to-r from-[#B89A5D]/40 to-transparent"
+                    />
+                  </div>
+                  <p className="bp-page-title mt-6 text-[clamp(1.75rem,3.2vw,2.35rem)] leading-none text-[#d4b56f]">
+                    {point.value}
+                  </p>
+                  <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.22em] text-white/40">
+                    {point.title}
+                  </p>
+                  <p className="mt-2.5 text-sm font-light leading-[1.7] text-white/58">
+                    {point.body}
+                  </p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -174,7 +200,7 @@ export default function ConservationPage() {
             className="absolute inset-0 bg-cover bg-center saturate-[0.6]"
             style={{ backgroundImage: `url('${partnerEvidenceImage}')` }}
           />
-          <div className="absolute inset-0 bg-[#020b11]/58" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,11,17,0.9),rgba(2,11,17,0.6)_38%,rgba(2,11,17,0.72))]" />
           <div className="bp-film-grain absolute inset-0" />
 
           <div className="bp-reveal relative mx-auto max-w-6xl">
@@ -183,11 +209,11 @@ export default function ConservationPage() {
                 <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
                   Partner evidence
                 </p>
-                <h2 className="bp-page-title mt-4 max-w-xl text-xl leading-none text-white/82 md:text-2xl">
+                <h2 className="bp-page-title mt-4 max-w-xl text-xl leading-none text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.5)] md:text-2xl">
                   The promise gets stronger when the names are visible.
                 </h2>
               </div>
-              <p className="max-w-xl text-sm font-light leading-6 text-white/54 md:text-[15px]">
+              <p className="max-w-xl text-sm font-light leading-6 text-white/72 drop-shadow-[0_1px_12px_rgba(0,0,0,0.45)] md:text-[15px]">
                 Every partner is named, every report has a date, and the work is
                 tied back to the bookings that funded it.
               </p>
@@ -231,19 +257,13 @@ export default function ConservationPage() {
                       <h3 className="bp-page-title text-[1.15rem] leading-tight text-white/92">
                         {partner.name}
                       </h3>
-                      <p
-                        className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/38"
-                       
-                      >
+                      <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/38">
                         {partner.location}
                       </p>
                       <p className="mt-2 line-clamp-2 text-[0.78rem] leading-[1.5] text-white/58">
                         {partner.body}
                       </p>
-                      <div
-                        className="mt-3 flex items-center justify-between border-t border-white/[0.08] pt-3"
-                       
-                      >
+                      <div className="mt-3 flex items-center justify-between border-t border-white/[0.08] pt-3">
                         <span className="text-[10px] uppercase tracking-[0.14em] text-white/34">
                           Next report
                         </span>
@@ -285,10 +305,7 @@ export default function ConservationPage() {
                   className="flex items-start gap-4 px-5 py-5"
                 >
                   <div className="flex shrink-0 flex-col items-center gap-2 pt-0.5">
-                    <span
-                      className="text-[10px] text-white/22"
-                     
-                    >
+                    <span className="text-[10px] text-white/22">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <div
@@ -344,7 +361,6 @@ export default function ConservationPage() {
             </div>
           </div>
         </section>
-
       </main>
       <BluePassFooter />
     </>

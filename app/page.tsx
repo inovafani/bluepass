@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ReelsCarousel } from "@/app/(marketing)/partners/ReelsCarousel";
 import { HomeSectionRail } from "@/app/components/home/HomeSectionRail";
+import { ArrowRight } from "@/app/components/icons/ArrowRight";
 import { OpenKaiButton } from "@/app/components/kai/OpenKaiButton";
 import { yachtBySlug } from "@/lib/data/yachts";
 
@@ -117,15 +118,15 @@ export default function HomePage() {
               <br />
               Leave it better.
             </h1>
-            <p className="bp-home-fade-up-3 mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/80 md:text-lg">
-              Vetted operators for surf, sail and dive - at the same price as
+            <p className="bp-home-fade-up-3 mx-auto mt-6 max-w-lg text-balance text-base leading-relaxed text-white/80 md:text-lg">
+              Vetted operators for surf, sail and dive — at the same price as
               booking direct.
             </p>
             <p className="sr-only">
               Every trip protects reefs, cleans the ocean, and lifts
               communities.
             </p>
-            <div className="bp-home-fade-up-4 mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="bp-home-rise-4 mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link href="/discover" className={primaryCtaClass}>
                 Explore trips
               </Link>
@@ -133,7 +134,7 @@ export default function HomePage() {
                 className={secondaryCtaClass}
                 query="Help me find a BluePass ocean trip"
               >
-                Ask Kai <span aria-hidden="true">-&gt;</span>
+                Ask Kai <ArrowRight />
               </OpenKaiButton>
             </div>
             <p className="mt-6 text-[13px] text-white/55">
@@ -308,10 +309,10 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href="/conservation"
-                  className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-semibold text-emerald-200 hover:text-white"
+                  className="group mt-5 inline-flex items-center gap-1.5 text-[14px] font-semibold text-emerald-200 hover:text-white"
                 >
-                  See exactly where it goes{" "}
-                  <span aria-hidden="true">-&gt;</span>
+                  See exactly where it goes
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
             </div>
@@ -357,7 +358,7 @@ export default function HomePage() {
                 className={secondaryCtaClass}
                 query="I want to book an ocean trip with BluePass"
               >
-                Ask Kai <span aria-hidden="true">-&gt;</span>
+                Ask Kai <ArrowRight />
               </OpenKaiButton>
             </div>
             <a
@@ -391,10 +392,10 @@ export default function HomePage() {
 }
 
 const primaryCtaClass =
-  "bp-home-cta bp-focus-ring inline-flex w-full items-center justify-center rounded-full bg-white px-8 py-4 text-base font-semibold text-[#071827] shadow-xl shadow-black/30 transition hover:scale-[1.02] hover:bg-white/90 active:scale-100 sm:w-auto";
+  "bp-home-cta bp-focus-ring inline-flex w-full items-center justify-center rounded-full bg-white px-6 py-3 text-[15px] font-semibold text-[#071827] shadow-xl shadow-black/30 transition hover:scale-[1.02] hover:bg-white/90 active:scale-100 sm:w-auto";
 
 const secondaryCtaClass =
-  "bp-home-cta bp-focus-ring inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-4 text-base font-medium text-white backdrop-blur transition hover:bg-white/15 active:scale-100 sm:w-auto";
+  "bp-home-cta bp-focus-ring inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-[15px] font-medium text-white backdrop-blur transition hover:bg-white/15 active:scale-100 sm:w-auto";
 
 const compactPrimaryCtaClass =
   "bp-home-cta bp-focus-ring inline-flex items-center justify-center rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-[#071827] transition hover:scale-[1.02] hover:bg-white/90";

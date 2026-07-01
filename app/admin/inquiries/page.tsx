@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { formatInquiryEventSummary } from "./event-format";
+import { loadKaiCoreAdminInquiries } from "./kai-core-admin";
 import { prisma } from "@/lib/db/prisma";
 import { requireCurrentAdmin } from "@/lib/services/auth/admin";
 
@@ -14,37 +16,41 @@ export default async function AdminInquiriesPage() {
     redirect("/login?next=/admin/inquiries");
   }
 
-  const inquiries = await prisma.bookingInquiry.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      referralPartner: {
-        select: { role: true, handle: true, name: true },
-      },
-      outboundMessages: {
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          recipientPhone: true,
-          templateName: true,
-          status: true,
-          sentAt: true,
+  const [inquiries, kaiCorePipeline] = await Promise.all([
+    prisma.bookingInquiry.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        referralPartner: {
+          select: { role: true, handle: true, name: true },
         },
-        take: 1,
-      },
-      events: {
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          fromStatus: true,
-          toStatus: true,
-          actorType: true,
-          createdAt: true,
+        outboundMessages: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            recipientPhone: true,
+            templateName: true,
+            status: true,
+            sentAt: true,
+          },
+          take: 1,
         },
-        take: 3,
+        events: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            fromStatus: true,
+            toStatus: true,
+            actorType: true,
+            payload: true,
+            createdAt: true,
+          },
+          take: 3,
+        },
       },
-    },
-    take: 40,
-  });
+      take: 40,
+    }),
+    loadKaiCoreAdminInquiries(),
+  ]);
 
   return (
     <section className="cinematic-page home-hero relative min-h-svh overflow-hidden bg-[#020b11] text-white">
@@ -103,6 +109,98 @@ export default async function AdminInquiriesPage() {
           </div>
 
           <div className="mt-6 grid gap-3">
+            {kaiCorePipeline.error ? (
+              <div className="rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-100">
+                {kaiCorePipeline.error} Local BluePass inquiries are still shown below.
+              </div>
+            ) : null}
+
+            {kaiCorePipeline.inquiries.length ? (
+              <div className="grid gap-3">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
+                      Kai Core
+                    </p>
+                    <h2 className="mt-1 text-xl font-black text-white">
+                      Live operator pipeline
+                    </h2>
+                  </div>
+                  <p className="text-xs text-white/44">
+                    {kaiCorePipeline.inquiries.length} latest core inquiries
+                  </p>
+                </div>
+                {kaiCorePipeline.inquiries.map((inquiry) => (
+                  <article
+                    key={`kai-core-${inquiry.id}`}
+                    className="rounded-2xl border border-[#9fe8df]/18 bg-[#022a2b]/55 p-4 backdrop-blur-md"
+                  >
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="text-base font-bold text-white">
+                            {inquiry.selectedYachtName ??
+                              inquiry.destination ??
+                              "BluePass inquiry"}
+                          </h2>
+                          <span className="rounded-full border border-[#9fe8df]/20 bg-[#9fe8df]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#d9fffa]">
+                            {inquiry.status.toLowerCase()}
+                          </span>
+                          <span className="rounded-full border border-white/14 bg-white/[0.08] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/68">
+                            core
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-white/52">
+                          {inquiry.travellerName ?? "Traveller"} -{" "}
+                          {inquiry.dateWindow ?? "Dates pending"} -{" "}
+                          {inquiry.guests ?? "?"} guests -{" "}
+                          {inquiry.budget ?? "No budget"}
+                        </p>
+                        <p className="mt-1 text-xs text-white/42">
+                          {[inquiry.travellerEmail, inquiry.travellerPhone]
+                            .filter(Boolean)
+                            .join(" - ") || "No traveller contact"}
+                        </p>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <AdminMetric
+                          label="Outbound"
+                          value={inquiry.latestDispatchStatus?.toLowerCase() ?? "not sent"}
+                        />
+                        <AdminMetric
+                          label="Operator"
+                          value={inquiry.latestOperatorPhone ?? inquiry.operatorName ?? "not set"}
+                        />
+                        <AdminMetric
+                          label="Created"
+                          value={formatDate(inquiry.createdAt)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 rounded-xl border border-white/10 bg-black/15 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+                        Latest core events
+                      </p>
+                      <div className="mt-3 grid gap-2">
+                        {inquiry.events.length ? (
+                          inquiry.events.slice(0, 3).map((event) => (
+                            <p key={event.id} className="text-xs text-white/58">
+                              {formatInquiryEventSummary(event)}
+                            </p>
+                          ))
+                        ) : (
+                          <p className="text-xs text-white/44">
+                            No operator action yet.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+
             {inquiries.length ? (
               inquiries.map((inquiry) => {
                 const outbound = inquiry.outboundMessages[0];
@@ -125,9 +223,9 @@ export default async function AdminInquiriesPage() {
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-white/52">
-                          {inquiry.travellerName ?? "Traveller"} ·{" "}
-                          {inquiry.dateWindow ?? "Dates pending"} ·{" "}
-                          {inquiry.guests ?? "?"} guests ·{" "}
+                          {inquiry.travellerName ?? "Traveller"} -{" "}
+                          {inquiry.dateWindow ?? "Dates pending"} -{" "}
+                          {inquiry.guests ?? "?"} guests -{" "}
                           {inquiry.budget ?? "No budget"}
                         </p>
                         <p className="mt-1 text-xs text-white/42">
@@ -158,10 +256,7 @@ export default async function AdminInquiriesPage() {
                         {inquiry.events.length ? (
                           inquiry.events.map((event) => (
                             <p key={event.id} className="text-xs text-white/58">
-                              {event.actorType.toLowerCase()} ·{" "}
-                              {event.fromStatus?.toLowerCase() ?? "new"} →{" "}
-                              {event.toStatus.toLowerCase()} ·{" "}
-                              {formatDate(event.createdAt)}
+                              {formatInquiryEventSummary(event)}
                             </p>
                           ))
                         ) : (
@@ -217,11 +312,11 @@ function formatReferral(inquiry: {
   return "direct";
 }
 
-function formatDate(date: Date) {
+function formatDate(date: Date | string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(date);
+  }).format(new Date(date));
 }

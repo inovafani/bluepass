@@ -386,7 +386,7 @@ export function KaiWebChat() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-[90] flex flex-col items-end gap-3 md:bottom-6 md:right-6">
+    <div className="fixed bottom-4 right-[var(--cinematic-screen-x)] z-[90] flex flex-col items-end gap-3 md:bottom-6">
       {/* ── Chat panel ────────────────────────────────────────── */}
       {isOpen && (
         <div

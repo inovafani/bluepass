@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
+import { ArrowRight } from "@/app/components/icons/ArrowRight";
 import { claimableOperatorByYachtSlug } from "@/lib/data/operator-claims";
 import { yachts, yachtBySlug } from "@/lib/data/yachts";
 import type { Yacht } from "@/lib/data/yachts";
@@ -371,9 +372,9 @@ export function UnclaimedOperatorInlineClaim({
         </p>
         <Link
           href={claimHref}
-          className="bp-focus-ring inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#B89A5D] px-5 text-xs font-black text-[#071827] transition-colors hover:bg-white"
+          className="bp-focus-ring inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[#B89A5D] px-5 text-xs font-black text-[#071827] transition-colors hover:bg-white"
         >
-          Claim {operatorName} <span aria-hidden="true" className="ml-2">-&gt;</span>
+          Claim {operatorName} <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
     </div>

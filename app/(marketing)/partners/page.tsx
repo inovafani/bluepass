@@ -136,22 +136,26 @@ export default function CreatorsPage() {
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_12%_0%,rgba(0,111,142,0.20),transparent_36%),radial-gradient(ellipse_at_86%_20%,rgba(184,154,93,0.12),transparent_34%),linear-gradient(180deg,rgba(4,17,29,0.94),#020b11_76%)]"
           />
           <div className="relative mx-auto max-w-6xl">
-            <div className="grid gap-7 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
+            <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
               <div>
                 <p className="text-[11px] font-normal uppercase tracking-[0.18em] text-[#B89A5D]">
                   Why partner with BluePass
                 </p>
-                <h2 className="bp-page-title mt-4 max-w-xl text-[clamp(1.9rem,3.2vw,2.9rem)] leading-[0.98] text-white/92">
-                  One trusted recommendation. A cleaner booking path.
+                <h2 className="bp-page-title mt-4 max-w-[42rem] text-[clamp(1.9rem,3vw,2.75rem)] leading-[1.02] text-white/92">
+                  One trusted recommendation.
+                  <span className="block">A cleaner booking path.</span>
                 </h2>
               </div>
-              <div className="grid max-w-2xl grid-cols-3 border-y border-white/[0.10] py-4 lg:justify-self-end">
+              <div className="grid w-full max-w-xl gap-3 sm:grid-cols-3 lg:justify-self-end">
                 {partnerSignals.map((signal) => (
-                  <div key={signal.label}>
+                  <div
+                    key={signal.label}
+                    className="rounded-[var(--bp-radius-sm)] border border-white/[0.10] bg-white/[0.035] px-4 py-4"
+                  >
                     <p className="bp-page-title text-2xl leading-none text-white/90">
                       {signal.value}
                     </p>
-                    <p className="mt-1 max-w-[7rem] text-[9px] font-light uppercase tracking-[0.12em] text-white/38">
+                    <p className="mt-2 text-[9px] font-light uppercase leading-[1.45] tracking-[0.12em] text-white/42">
                       {signal.label}
                     </p>
                   </div>

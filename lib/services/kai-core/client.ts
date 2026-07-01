@@ -8,6 +8,7 @@ export type KaiCoreClientEnv = Record<string, string | undefined> & {
   KAI_CORE_BASE_URL?: string;
   KAI_CORE_WIDGET_KEY?: string;
   KAI_CORE_ORIGIN?: string;
+  KAI_CORE_ADMIN_TOKEN?: string;
 };
 
 export type KaiCoreWebChatInput = {
@@ -50,6 +51,66 @@ type KaiCoreContactRequest = {
   status: "CONTACT_DETAILS_REQUIRED";
 };
 
+type KaiCoreBluePassInquiryResponse = {
+  id: string;
+  status: string;
+  travellerName?: string | null;
+  travellerEmail?: string | null;
+  travellerPhone?: string | null;
+  destination?: string | null;
+  dateWindow?: string | null;
+  guests?: number | null;
+  budget?: string | null;
+  selectedYachtName?: string | null;
+  operatorName?: string | null;
+  createdAt: string;
+  events?: KaiCoreBluePassInquiryEventResponse[];
+  dispatches?: KaiCoreBluePassInquiryDispatchResponse[];
+  tenant?: { slug: string; name: string };
+};
+
+type KaiCoreBluePassInquiryEventResponse = {
+  id: string;
+  type: string;
+  fromStatus?: string | null;
+  toStatus?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+};
+
+type KaiCoreBluePassInquiryDispatchResponse = {
+  id: string;
+  status: string;
+  operatorPhone?: string | null;
+  createdAt: string;
+};
+
+export type KaiCoreBluePassInquiry = {
+  source: "kai-core";
+  id: string;
+  status: string;
+  travellerName: string | null;
+  travellerEmail: string | null;
+  travellerPhone: string | null;
+  destination: string | null;
+  dateWindow: string | null;
+  guests: number | null;
+  budget: string | null;
+  selectedYachtName: string | null;
+  operatorName: string | null;
+  createdAt: string;
+  latestDispatchStatus: string | null;
+  latestOperatorPhone: string | null;
+  events: Array<{
+    id: string;
+    type: string;
+    fromStatus: string | null;
+    toStatus: string | null;
+    payload: Record<string, unknown> | null;
+    createdAt: string;
+  }>;
+};
+
 export async function handleKaiCoreWebChat(
   input: KaiCoreWebChatInput,
   env: KaiCoreClientEnv = process.env,
@@ -79,7 +140,7 @@ export async function handleKaiCoreWebChat(
       : {}),
   };
 
-  const response = await fetchImpl(`${config.baseUrl}/api/widget/messages`, {
+  const response = await fetchKaiCoreWithRetry(fetchImpl, `${config.baseUrl}/api/widget/messages`, {
     method: "POST",
     headers: buildKaiCoreHeaders(config),
     body: JSON.stringify(payload),
@@ -115,7 +176,7 @@ export async function forwardWhatsAppWebhookToKaiCore(
   }
 
   const config = resolveKaiCoreConfig(env);
-  const response = await fetchImpl(`${config.baseUrl}/api/whatsapp/webhook`, {
+  const response = await fetchKaiCoreWithRetry(fetchImpl, `${config.baseUrl}/api/whatsapp/webhook`, {
     method: "POST",
     headers: buildKaiCoreHeaders(config),
     body: JSON.stringify(payload),
@@ -124,11 +185,45 @@ export async function forwardWhatsAppWebhookToKaiCore(
   return response.ok;
 }
 
+export async function listKaiCoreBluePassInquiries(
+  input: { tenantSlug: string; take?: number },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCoreBluePassInquiry[]> {
+  const config = resolveKaiCoreConfig(env);
+  const adminToken = env.KAI_CORE_ADMIN_TOKEN?.trim();
+
+  if (!adminToken) {
+    throw new Error("Kai Core admin token is not configured.");
+  }
+
+  const params = new URLSearchParams({ take: String(input.take ?? 40) });
+  const response = await fetchKaiCoreWithRetry(
+    fetchImpl,
+    `${config.baseUrl}/api/admin/${encodeURIComponent(input.tenantSlug)}/bluepass-inquiries?${params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        ...buildKaiCoreHeaders(config),
+        authorization: `Bearer ${adminToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Kai Core BluePass inquiries request failed.");
+  }
+
+  const data = (await response.json()) as { inquiries?: KaiCoreBluePassInquiryResponse[] };
+  return (data.inquiries ?? []).map(toKaiCoreBluePassInquiry);
+}
+
 async function createKaiCoreSession(input: {
   config: ReturnType<typeof resolveKaiCoreConfig>;
   fetchImpl: FetchLike;
 }) {
-  const response = await input.fetchImpl(`${input.config.baseUrl}/api/widget/session`, {
+  const response = await fetchKaiCoreWithRetry(input.fetchImpl, `${input.config.baseUrl}/api/widget/session`, {
     method: "POST",
     headers: buildKaiCoreHeaders(input.config),
     body: JSON.stringify({ key: input.config.widgetKey }),
@@ -163,6 +258,36 @@ function buildKaiCoreHeaders(config: ReturnType<typeof resolveKaiCoreConfig>) {
   };
 }
 
+async function fetchKaiCoreWithRetry(fetchImpl: FetchLike, url: string, init: RequestInit) {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetchImpl(url, init);
+      if (response.ok || response.status < 500) {
+        return response;
+      }
+      lastError = new Error(`Kai Core returned ${response.status}.`);
+    } catch (error) {
+      lastError = error;
+    }
+
+    if (attempt === 0) {
+      await delay(250);
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+
+  throw new Error("Kai Core request failed.");
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function toBluePassChatMatch(match: KaiCoreBluePassMatch) {
   return {
     slug: match.slug,
@@ -179,6 +304,36 @@ function toBluePassChatMatch(match: KaiCoreBluePassMatch) {
     departuresPreview: [],
     score: match.score ?? 0,
     productUrl: match.productUrl ?? `/yachts/${match.slug}`,
+  };
+}
+
+function toKaiCoreBluePassInquiry(inquiry: KaiCoreBluePassInquiryResponse): KaiCoreBluePassInquiry {
+  const latestDispatch = inquiry.dispatches?.[0] ?? null;
+
+  return {
+    source: "kai-core",
+    id: inquiry.id,
+    status: inquiry.status,
+    travellerName: inquiry.travellerName ?? null,
+    travellerEmail: inquiry.travellerEmail ?? null,
+    travellerPhone: inquiry.travellerPhone ?? null,
+    destination: inquiry.destination ?? null,
+    dateWindow: inquiry.dateWindow ?? null,
+    guests: inquiry.guests ?? null,
+    budget: inquiry.budget ?? null,
+    selectedYachtName: inquiry.selectedYachtName ?? null,
+    operatorName: inquiry.operatorName ?? null,
+    createdAt: inquiry.createdAt,
+    latestDispatchStatus: latestDispatch?.status ?? null,
+    latestOperatorPhone: latestDispatch?.operatorPhone ?? null,
+    events: (inquiry.events ?? []).map((event) => ({
+      id: event.id,
+      type: event.type,
+      fromStatus: event.fromStatus ?? null,
+      toStatus: event.toStatus ?? null,
+      payload: event.metadata ?? null,
+      createdAt: event.createdAt,
+    })),
   };
 }
 
