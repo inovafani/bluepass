@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
 
 /*
   /signup is an account-bound role application. Public visitor data entry lives
-  elsewhere; this keeps creator/operator review, referral links, and dashboards
+  elsewhere; this keeps partner/operator review, referral links, and dashboards
   attached to the verified BluePass account that submitted the application.
 */
 

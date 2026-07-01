@@ -40,6 +40,7 @@ interface YachtMatchCard {
   matchingReasons: string[];
   departuresPreview: string[];
   score: number;
+  productUrl?: string | null;
 }
 
 type MatchCard = TripMatchCard | YachtMatchCard;
@@ -47,6 +48,12 @@ type MatchCard = TripMatchCard | YachtMatchCard;
 interface SuggestedReply {
   label: string;
   message: string;
+}
+
+interface ContactRequest {
+  conversationId: string;
+  fields: ["name", "email", "phone"];
+  status: "CONTACT_DETAILS_REQUIRED";
 }
 
 const GREETING: Message = {
@@ -82,6 +89,15 @@ export function KaiWebChat() {
   );
   const [sentInquirySlugs, setSentInquirySlugs] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [contactRequest, setContactRequest] = useState<ContactRequest | null>(
+    null,
+  );
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
+  const [contactFormError, setContactFormError] = useState<string | null>(null);
 
   // sessionId drives no rendering — ref avoids synchronous setState in effects
   const sessionIdRef = useRef<string | null>(null);
@@ -100,6 +116,10 @@ export function KaiWebChat() {
     if (!stored) return;
 
     sessionIdRef.current = stored;
+
+    if (!stored.startsWith("kai_")) {
+      return;
+    }
 
     fetch(`/api/kai/web-chat/history?sessionId=${encodeURIComponent(stored)}`)
       .then((res) => {
@@ -164,6 +184,7 @@ export function KaiWebChat() {
 
       setInput("");
       setError(null);
+      setContactFormError(null);
       setMessages((prev) => [...prev, { role: "user", content: text }]);
       setIsSending(true);
 
@@ -187,6 +208,7 @@ export function KaiWebChat() {
           reply: string;
           matches?: MatchCard[];
           suggestedReplies?: SuggestedReply[];
+          contactRequest?: ContactRequest | null;
         } = await res.json();
 
         if (data.sessionId !== sessionIdRef.current) {
@@ -203,6 +225,10 @@ export function KaiWebChat() {
             suggestedReplies: data.suggestedReplies,
           },
         ]);
+        setContactRequest(data.contactRequest ?? null);
+        if (!data.contactRequest) {
+          setContactForm({ name: "", email: "", phone: "" });
+        }
       } catch {
         setError("Couldn't reach Kai right now. Please try again.");
       } finally {
@@ -223,6 +249,14 @@ export function KaiWebChat() {
         sendingInquirySlug ||
         sentInquirySlugs.includes(match.slug)
       ) {
+        return;
+      }
+
+      if (!sessionId.startsWith("kai_")) {
+        setSentInquirySlugs((prev) =>
+          prev.includes(match.slug) ? prev : [...prev, match.slug],
+        );
+        await sendMessage(`Please send inquiry for ${match.name}`);
         return;
       }
 
@@ -296,7 +330,7 @@ export function KaiWebChat() {
         setSendingInquirySlug(null);
       }
     },
-    [sendingInquirySlug, sentInquirySlugs],
+    [sendMessage, sendingInquirySlug, sentInquirySlugs],
   );
 
   function startNewChat() {
@@ -305,7 +339,37 @@ export function KaiWebChat() {
     setMessages([GREETING]);
     setInput("");
     setError(null);
+    setContactRequest(null);
+    setContactForm({ name: "", email: "", phone: "" });
+    setContactFormError(null);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
+  }
+
+  function submitContactForm(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const name = contactForm.name.trim();
+    const email = contactForm.email.trim();
+    const phone = contactForm.phone.trim();
+
+    if (name.length < 2) {
+      setContactFormError("Please enter your name.");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setContactFormError("Please enter a valid email.");
+      return;
+    }
+
+    if (phone.replace(/\D/g, "").length < 6) {
+      setContactFormError("Please enter a valid WhatsApp number.");
+      return;
+    }
+
+    void sendMessage(
+      `My name is ${name}, email is ${email}, and WhatsApp number is ${phone}`,
+    );
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -414,7 +478,9 @@ export function KaiWebChat() {
                         : "rounded-bl-md bg-[#0e3250] text-white"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    <p className="whitespace-pre-wrap">
+                      <MessageContent content={msg.content} />
+                    </p>
                     {msg.role === "assistant" &&
                       msg.matches &&
                       msg.matches.length > 0 && (
@@ -485,6 +551,78 @@ export function KaiWebChat() {
                 <p className="px-2 text-center text-[11px] text-red-400/80">
                   {error}
                 </p>
+              )}
+
+              {contactRequest && (
+                <form
+                  onSubmit={submitContactForm}
+                  className="ml-7 grid gap-2 rounded-xl border border-white/12 bg-[#071a29] p-3 text-white shadow-sm"
+                >
+                  <p className="text-[12px] font-semibold leading-tight">
+                    Contact details
+                  </p>
+                  <div className="grid gap-2">
+                    <label className="grid gap-1 text-[11px] font-semibold text-white/70">
+                      Name
+                      <input
+                        value={contactForm.name}
+                        onChange={(e) =>
+                          setContactForm((current) => ({
+                            ...current,
+                            name: e.target.value,
+                          }))
+                        }
+                        disabled={isSending}
+                        autoComplete="name"
+                        className="h-9 rounded-lg border border-white/15 bg-[#0a1f32] px-3 text-[12px] text-white outline-none transition-colors placeholder:text-white/35 focus:border-white/35 disabled:opacity-50"
+                      />
+                    </label>
+                    <label className="grid gap-1 text-[11px] font-semibold text-white/70">
+                      Email
+                      <input
+                        value={contactForm.email}
+                        onChange={(e) =>
+                          setContactForm((current) => ({
+                            ...current,
+                            email: e.target.value,
+                          }))
+                        }
+                        disabled={isSending}
+                        autoComplete="email"
+                        inputMode="email"
+                        className="h-9 rounded-lg border border-white/15 bg-[#0a1f32] px-3 text-[12px] text-white outline-none transition-colors placeholder:text-white/35 focus:border-white/35 disabled:opacity-50"
+                      />
+                    </label>
+                    <label className="grid gap-1 text-[11px] font-semibold text-white/70">
+                      WhatsApp
+                      <input
+                        value={contactForm.phone}
+                        onChange={(e) =>
+                          setContactForm((current) => ({
+                            ...current,
+                            phone: e.target.value,
+                          }))
+                        }
+                        disabled={isSending}
+                        autoComplete="tel"
+                        inputMode="tel"
+                        className="h-9 rounded-lg border border-white/15 bg-[#0a1f32] px-3 text-[12px] text-white outline-none transition-colors placeholder:text-white/35 focus:border-white/35 disabled:opacity-50"
+                      />
+                    </label>
+                  </div>
+                  {contactFormError && (
+                    <p className="rounded-lg border border-red-300/20 bg-red-400/10 px-2 py-1.5 text-[11px] leading-snug text-red-100">
+                      {contactFormError}
+                    </p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isSending}
+                    className="bp-focus-ring mt-1 inline-flex h-9 items-center justify-center rounded-lg bg-[#075e54] px-3 text-[12px] font-semibold text-white transition-colors hover:bg-[#0b6f63] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Send contact details
+                  </button>
+                </form>
               )}
 
               <div ref={messagesEndRef} />
@@ -691,6 +829,30 @@ function KaiMatchCard({
   );
 }
 
+function MessageContent({ content }: { content: string }) {
+  const parts = content.split(/(https?:\/\/[^\s)]+)/g);
+
+  return (
+    <>
+      {parts.map((part, index) =>
+        /^https?:\/\//.test(part) ? (
+          <a
+            key={`${part}-${index}`}
+            href={part.replace(/[.,]$/, "")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-cyan-200 underline underline-offset-2 hover:text-cyan-100"
+          >
+            {part}
+          </a>
+        ) : (
+          <span key={`${part}-${index}`}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 function KaiYachtMatchCard({
   match,
   onSendInquiry,
@@ -764,7 +926,9 @@ function KaiYachtMatchCard({
             : "Send inquiry"}
       </button>
       <a
-        href={`/yachts/${match.slug}`}
+        href={match.productUrl ?? `/yachts/${match.slug}`}
+        target={match.productUrl?.startsWith("http") ? "_blank" : undefined}
+        rel={match.productUrl?.startsWith("http") ? "noopener noreferrer" : undefined}
         className="bp-focus-ring mt-2 inline-flex w-full items-center justify-center rounded-md border border-white/12 bg-white/8 px-3 py-2 text-[12px] font-semibold text-white/80 transition-colors hover:bg-white/12"
       >
         View yacht

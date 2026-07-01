@@ -128,7 +128,7 @@ export default async function AdminReferralsPage() {
                           value={String(partner._count.bookingInquiries)}
                         />
                         <AdminMetric
-                          label="Creator est."
+                          label="Partner est."
                           value={formatMoney(ledger.creatorCommissionCents)}
                         />
                         <AdminMetric label="Payout" value={ledger.statusSummary} />

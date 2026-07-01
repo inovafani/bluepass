@@ -130,6 +130,7 @@ export function createKaiConversationService(
           lastAskedSlot: inferredLastAskedSlot,
         },
       );
+      intent = sanitizeRecoveredIntent(intent);
       intent = defaultTripTypeToLiveaboardWhenReady(intent);
       const planner = planKaiConversation({
         intent,
@@ -301,6 +302,34 @@ function mergeTravellerProfileIntoIntent(
   };
 }
 
+function sanitizeRecoveredIntent(intent: KaiTravelIntent): KaiTravelIntent {
+  if (!isConfirmationOnlyName(intent.travellerName)) {
+    return intent;
+  }
+
+  return {
+    ...intent,
+    travellerName: undefined,
+    missingSlots: uniqueKaiMissingSlots([
+      ...(intent.missingSlots ?? []),
+      "travellerName",
+    ]),
+  };
+}
+
+function isConfirmationOnlyName(value?: string) {
+  return Boolean(
+    value &&
+      /^(?:yes|yeah|yep|sure|ok|okay|please|confirm|confirmed|go ahead)$/i.test(
+        value.trim(),
+      ),
+  );
+}
+
+function uniqueKaiMissingSlots(values: string[]) {
+  return Array.from(new Set(values)) as KaiMissingSlot[];
+}
+
 function buildExternalUserId(
   explicitExternalUserId?: string,
   travellerProfile?: KaiConversationInput["travellerProfile"],
@@ -411,14 +440,8 @@ export function buildDeterministicReply(
   if (intent.selectedYachtSlug) {
     const selectedYacht = yachtBySlug[intent.selectedYachtSlug];
     const yachtName = selectedYacht?.name ?? "that yacht";
-    const safeTravellerName = isBadTravellerName(intent.travellerName)
-      ? undefined
-      : intent.travellerName;
-    const travellerName = safeTravellerName
-      ? ` for ${intent.travellerName}`
-      : "";
 
-    return `Nice choice${travellerName}. I have the essentials for a ${yachtName} inquiry: ${intent.destination}, ${intent.guests} guests, ${intent.dateWindow}, and ${intent.budget}. Tap Send inquiry on the ${yachtName} card and I'll send it to the operator.`;
+    return `Great, I have the essentials for a ${yachtName} inquiry: ${intent.destination}, ${intent.guests} guests, ${intent.dateWindow}, and ${intent.budget}. Tap Send inquiry on the ${yachtName} card and I'll send it to the operator.`;
   }
 
   if (matches.length > 0) {
@@ -864,15 +887,6 @@ function buildMissingContactFieldText(missingSlots: KaiMissingSlot[]) {
   }
 
   return `What ${joinHumanList(fields)} should I put on the inquiry?`;
-}
-
-function isBadTravellerName(value?: string) {
-  return Boolean(
-    value &&
-      /\b(?:interested in|calico jack|rascal|samara|aliikai|inquiry)\b/i.test(
-        value,
-      ),
-  );
 }
 
 function joinHumanList(values: string[]) {

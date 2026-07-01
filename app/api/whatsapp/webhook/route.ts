@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { forwardWhatsAppWebhookToKaiCore, shouldUseKaiCore } from "@/lib/services/kai-core/client";
 import { sendWhatsAppText, verifyMetaSignature } from "@/lib/services/whatsapp/client";
 import { handleWhatsAppWebhook } from "@/lib/services/whatsapp/webhook-handler";
 
@@ -56,6 +57,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    if (shouldUseKaiCore()) {
+      await forwardWhatsAppWebhookToKaiCore(payload).catch((error) => {
+        console.warn("whatsapp.webhook.kai_core_forward_failed", {
+          message: error instanceof Error ? error.message : "Unable to forward webhook to Kai Core",
+        });
+      });
+    }
+
     await handleWhatsAppWebhook(payload, {
       onOperatorFollowUp: async (message, context) => {
         if (!context.to) {

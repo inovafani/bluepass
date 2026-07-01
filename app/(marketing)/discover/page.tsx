@@ -66,7 +66,7 @@ export default function DiscoverPage() {
             </h2>
             <p className="mt-2 max-w-xl text-sm font-light text-white/50">
               The conservation partners that receive 5% of every booking, plus
-              the creators we trust to tell the story.
+              the partners we trust to tell the story.
             </p>
 
             <div className="mx-auto mt-8 grid max-w-5xl gap-3 sm:grid-cols-2 xl:grid-cols-3">

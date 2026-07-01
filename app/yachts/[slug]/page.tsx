@@ -3,7 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
+import { claimableOperatorByYachtSlug } from "@/lib/data/operator-claims";
 import { yachts, yachtBySlug } from "@/lib/data/yachts";
+import type { Yacht } from "@/lib/data/yachts";
 import { GalleryLightbox } from "./GalleryLightbox";
 
 export async function generateStaticParams() {
@@ -32,6 +34,7 @@ export default async function YachtPage({
   const { slug } = await params;
   const yacht = yachtBySlug[slug];
   if (!yacht) notFound();
+  const claimDisplay = buildYachtClaimDisplay(slug, yacht);
 
   return (
     <>
@@ -59,22 +62,34 @@ export default async function YachtPage({
               Discover
             </Link>
 
-            <p
-              className="text-[10px] uppercase tracking-[0.26em] text-white/55"
-             
-            >
-              BluePass Operator · {yacht.tier} Tier
-            </p>
+            {claimDisplay ? (
+              <p className="text-[10px] uppercase tracking-[0.26em] text-[#f1d58a]">
+                {claimDisplay.eyebrow}
+              </p>
+            ) : (
+              <p
+                className="text-[10px] uppercase tracking-[0.26em] text-white/55"
+               
+              >
+                BluePass Operator · {yacht.tier} Tier
+              </p>
+            )}
             <div className="mt-2 flex items-center gap-3">
               <h1 className="bp-page-title text-[clamp(2.5rem,5.5vw,4rem)] leading-[0.96] text-white">
                 {yacht.name}
               </h1>
-              <VerifiedBadge />
+              {claimDisplay ? <UnclaimedBadge /> : <VerifiedBadge />}
             </div>
             <p className="mt-3 text-[15px] font-light text-white/60">
               {yacht.length !== "—" ? `${yacht.length} · ` : ""}
               {yacht.cabins} cabins · up to {yacht.maxGuests} guests · {yacht.region}
             </p>
+            {claimDisplay && (
+              <UnclaimedOperatorInlineClaim
+                operatorName={claimDisplay.operatorName}
+                claimHref={claimDisplay.claimHref}
+              />
+            )}
           </div>
         </section>
 
@@ -322,6 +337,49 @@ export default async function YachtPage({
   );
 }
 
+export function buildYachtClaimDisplay(slug: string, yacht?: Yacht) {
+  if (!yacht) {
+    return undefined;
+  }
+
+  const operator = claimableOperatorByYachtSlug[slug];
+
+  if (!operator) {
+    return undefined;
+  }
+
+  return {
+    operatorName: operator.name,
+    claimHref: `/operator/claim/start/${operator.slug}`,
+    eyebrow: `BluePass - Unclaimed Listing - ${yacht.region}`,
+  };
+}
+
+export function UnclaimedOperatorInlineClaim({
+  operatorName,
+  claimHref,
+}: {
+  operatorName: string;
+  claimHref: string;
+}) {
+  return (
+    <div className="relative left-1/2 mt-5 w-screen -translate-x-1/2 border-y border-[#B89A5D]/22 bg-[#071827]/68 backdrop-blur-md">
+      <div className="flex flex-col items-start gap-3 px-[var(--cinematic-screen-x)] py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-3xl text-[12px] font-medium leading-5 text-white/72">
+          Unclaimed - this page was built by BluePass from public info. Is this
+          your business?
+        </p>
+        <Link
+          href={claimHref}
+          className="bp-focus-ring inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#B89A5D] px-5 text-xs font-black text-[#071827] transition-colors hover:bg-white"
+        >
+          Claim {operatorName} <span aria-hidden="true" className="ml-2">-&gt;</span>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p
@@ -351,6 +409,17 @@ function VerifiedBadge() {
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M20 6 9 17l-5-5" />
       </svg>
+    </span>
+  );
+}
+
+function UnclaimedBadge() {
+  return (
+    <span
+      className="inline-flex h-6 shrink-0 items-center rounded-full border border-[#f1d58a]/40 bg-[#b89a5d]/18 px-2.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#f1d58a]"
+      title="Unclaimed BluePass listing"
+    >
+      Unclaimed
     </span>
   );
 }

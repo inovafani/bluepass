@@ -20,7 +20,7 @@ const creators = [
     name: "Cam Vaughne",
     handle: "@camvaughne",
     location: "Bali, Indonesia",
-    role: "Photo and film creator documenting remote Indonesia, sailing, and ocean conservation.",
+    role: "Photo and film partner documenting remote Indonesia, sailing, and ocean conservation.",
     href: "https://www.instagram.com/camvaughne/",
     image: "/creators/camvaughne.jpg",
   },
@@ -47,7 +47,7 @@ const operatorComparisons = [
     before: "Cold",
     beforeNote: "anonymous visitors from an ad they half-scrolled",
     after: "Warm",
-    afterNote: "travellers already trusting the creator who sent them",
+    afterNote: "travellers already trusting the partner who sent them",
   },
   {
     label: "vs. admin overhead",
@@ -61,7 +61,7 @@ const operatorComparisons = [
 const meshFlow = [
   {
     num: "01",
-    actor: "Creator",
+    actor: "Partner",
     action: "Shares a trip their ocean audience already trusts.",
     accent: "#B89A5D",
   },
@@ -96,7 +96,7 @@ export default async function SignupPage() {
     <>
       {/* ── STORY SECTIONS ──────────────────────────────── */}
       <div className="cinematic-page bg-[#020b11] text-white">
-        {/* ── 1. FEATURED CREATORS ─────────────────────── */}
+        {/* ── 1. FEATURED PARTNERS ─────────────────────── */}
         <section className="relative overflow-hidden pb-20 pt-24 md:pb-28 md:pt-32">
           {/* Underwater background */}
           <div
@@ -124,14 +124,14 @@ export default async function SignupPage() {
             {/* Header */}
             <div>
               <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                Featured creators
+                Featured partners
               </p>
               <h2 className="bp-page-title mt-4 text-[clamp(2.5rem,4.5vw,3.75rem)] leading-none text-balance text-white">
                 Every trip starts with someone who&apos;s been there.
               </h2>
               <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
                 <p className="max-w-xl text-sm font-light leading-[1.85] text-pretty text-white/56 md:text-[15px]">
-                  BluePass only partners with verified ocean creators — dive
+                  BluePass only partners with verified ocean partners — dive
                   instructors, photographers, sailors, and conservation
                   educators who took the trip before they ever recommended it.
                   When they share a booking link, their audience already trusts
@@ -141,7 +141,7 @@ export default async function SignupPage() {
                   href="#join"
                   className="bp-focus-ring shrink-0 inline-flex h-11 items-center gap-2 bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
                 >
-                  Join as a creator
+                  Join as a partner
                   <svg
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
@@ -161,7 +161,7 @@ export default async function SignupPage() {
               </div>
             </div>
 
-            {/* Creator cards — editorial masonry layout */}
+            {/* Partner cards — editorial masonry layout */}
             <div className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-2 xl:grid-cols-3">
               {/* First card — taller, featured */}
               {creators.slice(0, 1).map((creator) => (
@@ -175,7 +175,7 @@ export default async function SignupPage() {
                   <div className="relative aspect-[2/3] overflow-hidden">
                     <Image
                       src={creator.image}
-                      alt={`${creator.name} – BluePass creator`}
+                      alt={`${creator.name} - BluePass partner`}
                       fill
                       sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
                       className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.06]"
@@ -242,7 +242,7 @@ export default async function SignupPage() {
                   <div className="relative aspect-[2/3] overflow-hidden">
                     <Image
                       src={creator.image}
-                      alt={`${creator.name} – BluePass creator`}
+                      alt={`${creator.name} - BluePass partner`}
                       fill
                       sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
                       className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.06]"
@@ -286,14 +286,14 @@ export default async function SignupPage() {
             {/* Join CTA strip below cards */}
             <div className="mt-8 flex flex-col items-center gap-3 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm font-light text-white/44">
-                Verified ocean creators only. Free to join — commission on
+                Verified ocean partners only. Free to join — commission on
                 bookings.
               </p>
               <a
                 href="#join"
                 className="bp-focus-ring inline-flex h-10 shrink-0 items-center gap-2 border border-white/28 bg-white/[0.07] px-5 text-[11px] font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/[0.14]"
               >
-                Apply to create →
+                Apply as partner →
               </a>
             </div>
           </div>
@@ -540,7 +540,7 @@ export default async function SignupPage() {
                     referral mesh.
                   </h2>
                   <p className="mt-7 max-w-md text-sm font-light leading-[1.85] text-white/72 drop-shadow-[0_1px_8px_rgba(0,0,0,0.7)] md:text-[15px]">
-                    Every booking tightens the trust loop. Better creators
+                    Every booking tightens the trust loop. Better partners
                     attract better operators. Better operators bring warmer
                     travellers. The mesh deepens with every trip — and the reef
                     grows with it.
@@ -628,7 +628,7 @@ export default async function SignupPage() {
             </h2>
             <div className="mx-auto mt-7 h-px w-28 bg-gradient-to-r from-transparent via-white/24 to-transparent" />
             <p className="mx-auto mt-7 max-w-sm text-sm font-light leading-[1.8] text-white/38">
-              Join as an operator, a creator, or both — and help us build the
+              Join as an operator, a partner, or both — and help us build the
               trip economy the ocean deserves.
             </p>
             <ScrollHint />

@@ -22,6 +22,8 @@ vi.mock("@/lib/services/kai/llm-provider", () => ({
 }));
 
 afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
   storeMocks.upsertSession.mockReset();
   storeMocks.addMessage.mockReset();
   storeMocks.getSessionContext.mockReset();
@@ -79,6 +81,50 @@ describe("POST /api/kai/web-chat", () => {
         expect.objectContaining({ label: "Tell me about Raja Ampat" }),
       ]),
     );
+  });
+
+  it("routes web chat through Kai Core when the feature flag is enabled", async () => {
+    vi.stubEnv("KAI_CORE_ENABLED", "true");
+    vi.stubEnv("KAI_CORE_BASE_URL", "http://127.0.0.1:3107");
+    vi.stubEnv("KAI_CORE_WIDGET_KEY", "pk_test_bluepass");
+    vi.stubEnv("KAI_CORE_ORIGIN", "https://bluepass.co");
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json({
+          conversation: { id: "core_conversation_1" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        Response.json({
+          assistantMessage: { content: "Kai Core reply" },
+          bluepassMatches: [
+            {
+              slug: "alila-purnama",
+              name: "Alila Purnama",
+              region: "Komodo",
+              reasons: ["matches Komodo"],
+            },
+          ],
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(buildPostRequest({ message: "Komodo yacht for 8 guests" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      sessionId: "core_conversation_1",
+      reply: "Kai Core reply",
+      matches: [
+        {
+          slug: "alila-purnama",
+          matchingReasons: ["matches Komodo"],
+        },
+      ],
+    });
+    expect(storeMocks.upsertSession).not.toHaveBeenCalled();
   });
 
   it("handles first then second web chat POST with the same sessionId", async () => {

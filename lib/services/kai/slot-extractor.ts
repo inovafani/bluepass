@@ -468,16 +468,16 @@ function findTravellerName(
   normalized: string,
   lastAskedSlot?: KaiMissingSlot,
 ) {
-  if (looksLikeYachtSelection(normalized)) {
-    return undefined;
-  }
-
   const explicitMatch = original.match(
     /\b(?:my name is|name is|i am|i'm|this is)\s+([A-Za-z][A-Za-z' -]{1,60})(?=,|\.|$|\s+(?:and|email|phone|whatsapp)\b)/i,
   );
 
   if (explicitMatch) {
     return cleanTravellerName(explicitMatch[1]);
+  }
+
+  if (looksLikeYachtSelection(normalized)) {
+    return undefined;
   }
 
   if (lastAskedSlot === "travellerName") {
@@ -487,6 +487,7 @@ function findTravellerName(
 
     if (
       /^[A-Za-z][A-Za-z' -]{1,60}$/.test(candidate) &&
+      !isConfirmationOnly(candidate) &&
       !containsAny(normalized, tripTypes) &&
       !looksLikeYachtSelection(normalize(candidate))
     ) {
@@ -499,6 +500,12 @@ function findTravellerName(
 
 function cleanTravellerName(value: string) {
   return value.replace(/\s+/g, " ").trim();
+}
+
+function isConfirmationOnly(value: string) {
+  return /^(?:yes|yeah|yep|sure|ok|okay|please|confirm|confirmed|go ahead)$/i.test(
+    value.trim(),
+  );
 }
 
 function looksLikeYachtSelection(normalized: string) {

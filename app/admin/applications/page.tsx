@@ -7,6 +7,10 @@ import {
   buildReferralShareUrl,
   declineReferralApplication,
 } from "@/lib/services/referrals/application-approval";
+import {
+  approveOperatorClaim,
+  declineOperatorClaim,
+} from "@/lib/services/operators/operator-claim-service";
 
 export const metadata = {
   title: "Applications | BluePass Admin",
@@ -19,7 +23,7 @@ export default async function AdminApplicationsPage() {
     redirect("/login?next=/admin/applications");
   }
 
-  const [creatorProfiles, operatorProfiles] = await Promise.all([
+  const [creatorProfiles, operatorProfiles, operatorClaims] = await Promise.all([
     prisma.creatorProfile.findMany({
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
       include: {
@@ -33,6 +37,10 @@ export default async function AdminApplicationsPage() {
         account: true,
         referralPartner: { include: { links: true } },
       },
+    }),
+    prisma.operatorClaim.findMany({
+      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      include: { account: true },
     }),
   ]);
 
@@ -75,7 +83,7 @@ export default async function AdminApplicationsPage() {
                 Applications
               </h1>
               <p className="mt-4 max-w-xl text-sm leading-6 text-white/66">
-                Approve creator and operator applications. Approved profiles get
+                Approve partner and operator applications. Approved profiles get
                 a referral partner and share link automatically.
               </p>
             </div>
@@ -100,15 +108,15 @@ export default async function AdminApplicationsPage() {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <ApplicationColumn title="Creators">
+          <div className="mt-6 grid gap-6 xl:grid-cols-3">
+            <ApplicationColumn title="Partners">
               {creatorProfiles.length ? (
                 creatorProfiles.map((profile) => (
                   <ApplicationCard
                     key={profile.id}
                     id={profile.id}
                     kind="creator"
-                    title={profile.account.displayName ?? profile.handle ?? "Creator"}
+                    title={profile.account.displayName ?? profile.handle ?? "Partner"}
                     subtitle={profile.account.email}
                     phone={profile.account.phone}
                     status={profile.status}
@@ -124,7 +132,31 @@ export default async function AdminApplicationsPage() {
                   />
                 ))
               ) : (
-                <EmptyState label="No creator applications yet." />
+                <EmptyState label="No partner applications yet." />
+              )}
+            </ApplicationColumn>
+
+            <ApplicationColumn title="Operator claims">
+              {operatorClaims.length ? (
+                operatorClaims.map((claim) => (
+                  <OperatorClaimCard
+                    key={claim.id}
+                    id={claim.id}
+                    operatorName={claim.operatorName}
+                    yachtSlugs={claim.yachtSlugs}
+                    claimantName={claim.claimantName}
+                    claimantEmail={claim.claimantEmail}
+                    claimantPhone={claim.claimantPhone}
+                    claimantRole={claim.claimantRole}
+                    websiteUrl={claim.websiteUrl}
+                    proofUrl={claim.proofUrl}
+                    notes={claim.notes}
+                    status={claim.status}
+                    accountEmail={claim.account.email}
+                  />
+                ))
+              ) : (
+                <EmptyState label="No operator claims yet." />
               )}
             </ApplicationColumn>
 
@@ -287,6 +319,135 @@ function ApplicationCard({
   );
 }
 
+function OperatorClaimCard({
+  id,
+  operatorName,
+  yachtSlugs,
+  claimantName,
+  claimantEmail,
+  claimantPhone,
+  claimantRole,
+  websiteUrl,
+  proofUrl,
+  notes,
+  status,
+  accountEmail,
+}: {
+  id: string;
+  operatorName: string;
+  yachtSlugs: string[];
+  claimantName: string;
+  claimantEmail: string;
+  claimantPhone?: string | null;
+  claimantRole?: string | null;
+  websiteUrl?: string | null;
+  proofUrl?: string | null;
+  notes?: string | null;
+  status: string;
+  accountEmail: string;
+}) {
+  const approved = status === "APPROVED";
+  const declined = status === "DECLINED";
+  const whatsappUrl = buildWhatsAppUrl(claimantPhone);
+
+  return (
+    <article className="rounded-2xl border border-[#B89A5D]/22 bg-[#B89A5D]/10 p-4 backdrop-blur-md">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="truncate text-base font-bold text-white">{operatorName}</p>
+          <p className="mt-1 text-xs text-white/54">
+            {yachtSlugs.map((slug) => `/yachts/${slug}`).join(" / ")}
+          </p>
+        </div>
+        <span className="rounded-full border border-[#B89A5D]/30 bg-[#B89A5D]/12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#f1d58a]">
+          {formatStatus(status)}
+        </span>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-white/10 bg-black/15 p-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+          Claimant
+        </p>
+        <p className="mt-1 text-sm font-semibold text-white">{claimantName}</p>
+        <p className="mt-1 break-all text-xs text-white/54">{claimantEmail}</p>
+        <p className="mt-1 break-all text-xs text-white/38">
+          Account: {accountEmail}
+        </p>
+        {claimantRole && (
+          <p className="mt-1 text-xs text-white/44">Role: {claimantRole}</p>
+        )}
+        {claimantPhone &&
+          (whatsappUrl ? (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 block text-xs text-[#9fe8df] hover:text-white"
+            >
+              {claimantPhone}
+            </a>
+          ) : (
+            <p className="mt-1 text-xs text-white/44">{claimantPhone}</p>
+          ))}
+      </div>
+
+      {(websiteUrl || proofUrl || notes) && (
+        <div className="mt-3 rounded-xl border border-white/10 bg-black/15 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+            Proof
+          </p>
+          <div className="mt-2 grid gap-1">
+            {websiteUrl && (
+              <a
+                href={websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="break-all text-xs text-[#9fe8df] hover:text-white"
+              >
+                Website: {websiteUrl}
+              </a>
+            )}
+            {proofUrl && (
+              <a
+                href={proofUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="break-all text-xs text-[#9fe8df] hover:text-white"
+              >
+                Proof: {proofUrl}
+              </a>
+            )}
+            {notes && <p className="text-xs leading-5 text-white/48">{notes}</p>}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 flex gap-2">
+        <form action={approveClaim}>
+          <input type="hidden" name="id" value={id} />
+          <button
+            type="submit"
+            disabled={approved}
+            className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#071827] transition-colors hover:bg-white/88 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {approved ? "Approved" : "Approve claim"}
+          </button>
+        </form>
+        <form action={declineClaim}>
+          <input type="hidden" name="id" value={id} />
+          <button
+            type="submit"
+            disabled={approved || declined}
+            className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/16 bg-white/[0.06] px-4 text-xs font-bold text-white transition-colors hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Decline
+          </button>
+        </form>
+      </div>
+    </article>
+  );
+}
+
 function EmptyState({ label }: { label: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 text-sm text-white/48">
@@ -323,6 +484,35 @@ async function declineApplication(formData: FormData) {
 
   revalidatePath("/admin/applications");
   revalidatePath("/dashboard");
+}
+
+async function approveClaim(formData: FormData) {
+  "use server";
+
+  const admin = await requireCurrentAdmin();
+  if (!admin) redirect("/login?next=/admin/applications");
+
+  await approveOperatorClaim({
+    claimId: String(formData.get("id") ?? ""),
+    reviewerEmail: admin.email,
+  });
+
+  revalidatePath("/admin/applications");
+  revalidatePath("/dashboard");
+}
+
+async function declineClaim(formData: FormData) {
+  "use server";
+
+  const admin = await requireCurrentAdmin();
+  if (!admin) redirect("/login?next=/admin/applications");
+
+  await declineOperatorClaim({
+    claimId: String(formData.get("id") ?? ""),
+    reviewerEmail: admin.email,
+  });
+
+  revalidatePath("/admin/applications");
 }
 
 function formatStatus(status: string) {

@@ -16,7 +16,7 @@ const backgrounds = {
     "https://images.unsplash.com/photo-1530053969600-caed2596d242?auto=format&fit=crop&w=2400&q=80",
   conservation:
     "https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=2400&q=80",
-  creators:
+  partners:
     "https://images.unsplash.com/photo-1586500036706-41963de24d8b?auto=format&fit=crop&w=2400&q=80",
   book: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2400&q=80",
 };
@@ -91,7 +91,7 @@ const railItems = [
   { id: "why-bluepass", label: "Why BluePass" },
   { id: "explore", label: "Explore" },
   { id: "conservation", label: "Conservation" },
-  { id: "creators", label: "Creators" },
+  { id: "creators", label: "Partners" },
   { id: "book", label: "Book" },
 ];
 
@@ -174,7 +174,7 @@ export default function HomePage() {
               <ValueCard
                 icon="anchor"
                 title="Fairer for operators"
-                body="Operators keep 100% of their rate. Conservation and creators are paid from our fee - never their margin."
+                body="Operators keep 100% of their rate. Conservation and partners are paid from our fee - never their margin."
               />
             </div>
           </div>
@@ -320,7 +320,7 @@ export default function HomePage() {
 
         <HomePanel
           id="creators"
-          backgroundImage={backgrounds.creators}
+          backgroundImage={backgrounds.partners}
           overlay="bg-[linear-gradient(180deg,rgba(3,14,24,0.74)_0%,rgba(6,26,40,0.86)_100%)]"
         >
           <div className="bp-reveal mx-auto w-full max-w-6xl">
@@ -375,7 +375,7 @@ export default function HomePage() {
               Conservation
             </Link>
             <Link className="hover:text-white/80" href="/creators">
-              Creators
+              Partners
             </Link>
             <Link className="hover:text-white/80" href="/for-operators">
               For operators

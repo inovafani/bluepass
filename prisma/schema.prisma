@@ -78,6 +78,12 @@ enum ApplicationStatus {
   LIVE
 }
 
+enum OperatorClaimStatus {
+  PENDING_REVIEW
+  APPROVED
+  DECLINED
+}
+
 enum KaiChannel {
   WEB      @map("web")
   WHATSAPP @map("whatsapp")
@@ -245,6 +251,7 @@ model BluePassAccount {
   emailVerificationTokens BluePassAccountEmailVerificationToken[]
   creatorProfile  CreatorProfile?
   operatorProfile OperatorProfile?
+  operatorClaims   OperatorClaim[]
   commissionEntries CommissionLedgerEntry[]
 
   @@index([email])
@@ -306,6 +313,9 @@ model OperatorProfile {
   companyName String?
   whatsappE164 String?
   websiteUrl  String?
+  claimedOperatorSlug String?
+  claimedYachtSlugs   String[]          @default([])
+  claimedAt           DateTime?
   notes       String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
@@ -314,7 +324,33 @@ model OperatorProfile {
 
   @@index([status])
   @@index([companyName])
+  @@index([claimedOperatorSlug])
   @@index([referralPartnerId])
+}
+
+model OperatorClaim {
+  id              String              @id @default(cuid())
+  operatorSlug    String
+  operatorName    String
+  yachtSlugs      String[]            @default([])
+  accountId       String
+  status          OperatorClaimStatus @default(PENDING_REVIEW)
+  claimantName    String
+  claimantEmail   String
+  claimantPhone   String?
+  claimantRole    String?
+  websiteUrl      String?
+  proofUrl        String?
+  notes           String?
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  account         BluePassAccount     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([operatorSlug])
+  @@index([accountId])
+  @@index([status])
 }
 
 model CommissionLedgerEntry {
