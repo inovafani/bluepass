@@ -196,7 +196,7 @@ export default async function DashboardPage() {
                     label={`Partner ${formatStatus(account?.creatorProfile?.status)}`}
                     title="Application in review"
                     body="Your partner application is saved. Once approved, this panel will show referral links, clicks, inquiries, and estimated commission."
-                    actionHref="/creators"
+                    actionHref="/partners"
                     actionLabel="View partner story"
                   />
                 )

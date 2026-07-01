@@ -10,7 +10,7 @@ const navItems = [
   { href: "/", label: "Home" },
   { href: "/discover", label: "Discover", aliases: ["/for-operators", "/operators", "/trips", "/preview"] },
   { href: "/conservation", label: "Conservation" },
-  { href: "/creators", label: "Partners" },
+  { href: "/partners", label: "Partners" },
 ];
 
 function isActivePath(

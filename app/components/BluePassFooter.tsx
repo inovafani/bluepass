@@ -41,7 +41,7 @@ export function BluePassFooter() {
           </p>
           <Link href="/about">About</Link>
           <Link href="/conservation">Conservation</Link>
-          <Link href="/creators">Partners</Link>
+          <Link href="/partners">Partners</Link>
         </div>
         <div className="grid gap-2">
           <p className="text-xs font-normal tracking-[0.18em] text-[#B89A5D]">
