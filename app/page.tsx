@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ReelsCarousel } from "@/app/(marketing)/creators/ReelsCarousel";
+import { ReelsCarousel } from "@/app/(marketing)/partners/ReelsCarousel";
 import { HomeSectionRail } from "@/app/components/home/HomeSectionRail";
 import { OpenKaiButton } from "@/app/components/kai/OpenKaiButton";
 import { yachtBySlug } from "@/lib/data/yachts";
@@ -91,7 +91,7 @@ const railItems = [
   { id: "why-bluepass", label: "Why BluePass" },
   { id: "explore", label: "Explore" },
   { id: "conservation", label: "Conservation" },
-  { id: "creators", label: "Partners" },
+  { id: "partners", label: "Partners" },
   { id: "book", label: "Book" },
 ];
 
@@ -319,7 +319,7 @@ export default function HomePage() {
         </HomePanel>
 
         <HomePanel
-          id="creators"
+          id="partners"
           backgroundImage={backgrounds.partners}
           overlay="bg-[linear-gradient(180deg,rgba(3,14,24,0.74)_0%,rgba(6,26,40,0.86)_100%)]"
         >
@@ -374,7 +374,7 @@ export default function HomePage() {
             <Link className="hover:text-white/80" href="/conservation">
               Conservation
             </Link>
-            <Link className="hover:text-white/80" href="/creators">
+            <Link className="hover:text-white/80" href="/partners">
               Partners
             </Link>
             <Link className="hover:text-white/80" href="/for-operators">
