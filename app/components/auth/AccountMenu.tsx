@@ -145,7 +145,7 @@ export function AccountMenu({
                 Dashboard
               </Link>
               <Link href="/signup#join" className="site-account-item" onClick={() => setOpen(false)}>
-                Apply as creator/operator
+                Apply as partner/operator
               </Link>
               <button type="button" onClick={logout} className="site-account-item">
                 Log out
@@ -155,7 +155,7 @@ export function AccountMenu({
             <>
               <div className="site-account-summary">
                 <span className="site-account-kicker">BluePass account</span>
-                <span className="site-account-name">Sign in once for traveller, creator, and operator access.</span>
+                <span className="site-account-name">Sign in once for traveller, partner, and operator access.</span>
               </div>
               <Link href="/login" className="site-account-item" onClick={() => setOpen(false)}>
                 Sign in
@@ -192,6 +192,7 @@ function RoleBadges({ traveller }: { traveller: Traveller }) {
 }
 
 function formatRole(role: string) {
+  if (role === "CREATOR") return "Partner";
   return role.charAt(0) + role.slice(1).toLowerCase();
 }
 

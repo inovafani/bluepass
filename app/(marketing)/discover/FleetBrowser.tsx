@@ -2,35 +2,38 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { claimableOperatorByYachtSlug } from "@/lib/data/operator-claims";
 import { yachts } from "@/lib/data/yachts";
+import type { Yacht } from "@/lib/data/yachts";
 
 type Region = "All" | "Komodo" | "Raja Ampat";
 type Tier = "All" | "Explorer" | "Premium" | "Legend";
 type Booking = "Any" | "Cabin-bookable only";
+type DiscoverBadgeKind = "region" | "tier" | "unclaimed";
+
+export type DiscoverFilters = {
+  region: Region;
+  tier: Tier;
+  booking: Booking;
+  search: string;
+};
 
 export function FleetBrowser() {
   const [region, setRegion] = useState<Region>("All");
   const [tier, setTier] = useState<Tier>("All");
   const [booking, setBooking] = useState<Booking>("Any");
+  const [search, setSearch] = useState("");
 
-  const filtered = useMemo(() => {
-    return yachts.filter((y) => {
-      if (region !== "All" && y.region !== region) return false;
-      if (tier !== "All" && y.tier !== tier) return false;
-      if (booking === "Cabin-bookable only" && !y.cabinBookable) return false;
-      return true;
-    });
-  }, [region, tier, booking]);
+  const filtered = useMemo(
+    () => filterDiscoverYachts({ region, tier, booking, search }),
+    [region, tier, booking, search],
+  );
 
   return (
     <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
       <div className="mx-auto max-w-6xl">
-
-        {/* Header */}
-        <p
-          className="text-[10px] uppercase tracking-[0.22em] text-[#B89A5D]"
-        >
+        <p className="text-[10px] uppercase tracking-[0.22em] text-[#B89A5D]">
           Browse the fleet
         </p>
         <h2 className="bp-page-title mt-3 text-[2.5rem] leading-none text-white md:text-[3rem]">
@@ -38,11 +41,10 @@ export function FleetBrowser() {
         </h2>
         <p className="mt-3 max-w-2xl text-sm font-light leading-6 text-white/55">
           Every vetted Indonesian liveaboard partner on BluePass. Filter by
-          region, tier, or cabin-booking availability — or ask Kai for a match
+          region, tier, or cabin-booking availability - or ask Kai for a match
           based on your dates and dive style.
         </p>
 
-        {/* Filters */}
         <div className="mt-8 space-y-3">
           <FilterRow
             label="REGION"
@@ -56,20 +58,25 @@ export function FleetBrowser() {
             active={tier}
             onChange={setTier}
           />
-          <FilterRow
-            label="BOOKING"
-            options={["Any", "Cabin-bookable only"] as Booking[]}
-            active={booking}
-            onChange={setBooking}
-          />
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <FilterRow
+              label="BOOKING"
+              options={["Any", "Cabin-bookable only"] as Booking[]}
+              active={booking}
+              onChange={setBooking}
+            />
+            <SearchControl value={search} onChange={setSearch} />
+          </div>
         </div>
 
-        {/* Grid */}
         <div className="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((yacht) => (
-            <Link key={yacht.slug} href={`/yachts/${yacht.slug}`} className="group block">
+            <Link
+              key={yacht.slug}
+              href={`/yachts/${yacht.slug}`}
+              className="group block"
+            >
               <article className="overflow-hidden border border-white/[0.08] bg-[#03111d]/40 transition-colors hover:border-white/18">
-                {/* Image */}
                 <div className="relative aspect-[3/2] overflow-hidden">
                   <Image
                     src={yacht.images.card}
@@ -88,24 +95,25 @@ export function FleetBrowser() {
                         "linear-gradient(to top, rgba(3,17,29,0.72) 0%, rgba(3,17,29,0.22) 44%, transparent 72%)",
                     }}
                   />
-                  {/* Badges */}
                   <div className="absolute left-2.5 top-2.5 z-10 flex flex-wrap gap-1.5">
-                    <Badge>{yacht.locationBadge}</Badge>
-                    {yacht.tier && <TierBadge tier={yacht.tier} />}
-                    {yacht.cabinBookable && <GreenBadge>Cabin OK</GreenBadge>}
+                    {getDiscoverYachtBadges(yacht).map((badge) => (
+                      <DiscoverBadge
+                        key={`${badge.kind}-${badge.label}`}
+                        kind={badge.kind}
+                      >
+                        {badge.label}
+                      </DiscoverBadge>
+                    ))}
                   </div>
                 </div>
 
-                {/* Info */}
                 <div className="p-4">
                   <h3 className="bp-page-title text-[1.1rem] leading-tight text-white">
                     {yacht.name}
                   </h3>
-                  <p
-                    className="mt-1 text-[11px] text-white/46"
-                  >
-                    {yacht.length !== "—" ? `${yacht.length} · ` : ""}
-                    {yacht.maxGuests} guests · {yacht.cabins} cabins
+                  <p className="mt-1 text-[11px] text-white/46">
+                    {yacht.length !== "\u2014" ? `${yacht.length} / ` : ""}
+                    {yacht.maxGuests} guests / {yacht.cabins} cabins
                   </p>
 
                   <div className="mt-2.5 border-t border-white/[0.07] pt-2.5">
@@ -118,14 +126,13 @@ export function FleetBrowser() {
                         <p className="text-[0.8125rem] font-medium text-white">
                           from {yacht.pricePerCabin}{" "}
                           <span className="font-light text-white/50">
-                            / cabin · night
+                            / cabin / night
                           </span>
                         </p>
                         {yacht.charterPrice && (
-                          <p
-                            className="mt-0.5 text-[11px] text-white/36"
-                          >
-                            or charter {yacht.charterPrice} / night · whole yacht
+                          <p className="mt-0.5 text-[11px] text-white/36">
+                            or charter {yacht.charterPrice} / night / whole
+                            yacht
                           </p>
                         )}
                       </>
@@ -147,7 +154,75 @@ export function FleetBrowser() {
   );
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
+export function filterDiscoverYachts(filters: DiscoverFilters) {
+  const searchTerms = normalizeSearch(filters.search)
+    .split(" ")
+    .filter(Boolean);
+
+  return yachts.filter((yacht) => {
+    if (filters.region !== "All" && yacht.region !== filters.region) return false;
+    if (filters.tier !== "All" && yacht.tier !== filters.tier) return false;
+    if (filters.booking === "Cabin-bookable only" && !yacht.cabinBookable) {
+      return false;
+    }
+    if (!searchTerms.length) return true;
+
+    const searchable = buildYachtSearchText(yacht);
+    return searchTerms.every((term) => searchable.includes(term));
+  });
+}
+
+export function buildYachtSearchText(yacht: Yacht) {
+  const operator = claimableOperatorByYachtSlug[yacht.slug];
+  const parts = [
+    yacht.slug,
+    yacht.name,
+    yacht.firstName,
+    yacht.locationBadge,
+    yacht.region,
+    yacht.tier,
+    yacht.length,
+    String(yacht.maxGuests),
+    String(yacht.cabins),
+    yacht.build,
+    yacht.pricePerCabin,
+    yacht.charterPrice,
+    yacht.tagline,
+    yacht.about,
+    yacht.conservation,
+    operator?.name,
+    operator?.slug,
+    operator?.sourceLabel,
+    ...yacht.departures.flatMap((departure) => [
+      departure.dates,
+      departure.duration,
+      departure.berths,
+    ]),
+    ...yacht.itinerary.flatMap((day) => [day.title, day.description]),
+  ];
+
+  return normalizeSearch(parts.filter(Boolean).join(" "));
+}
+
+export function getDiscoverYachtBadges(yacht: Yacht) {
+  const badges: Array<{ label: string; kind: DiscoverBadgeKind }> = [
+    { label: yacht.locationBadge, kind: "region" },
+  ];
+
+  if (yacht.tier) {
+    badges.push({ label: yacht.tier, kind: "tier" });
+  }
+
+  if (claimableOperatorByYachtSlug[yacht.slug]) {
+    badges.push({ label: "UNCLAIMED", kind: "unclaimed" });
+  }
+
+  return badges;
+}
+
+function normalizeSearch(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
 
 function FilterRow<T extends string>({
   label,
@@ -162,9 +237,7 @@ function FilterRow<T extends string>({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span
-        className="w-[3.75rem] shrink-0 text-[10px] tracking-[0.20em] text-white/36"
-      >
+      <span className="w-[3.75rem] shrink-0 text-[10px] tracking-[0.20em] text-white/36">
         {label}
       </span>
       <div className="flex flex-wrap gap-1.5">
@@ -187,43 +260,45 @@ function FilterRow<T extends string>({
   );
 }
 
-function Badge({ children }: { children: React.ReactNode }) {
+function SearchControl({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
   return (
-    <span
-      className="border border-white/16 bg-black/52 px-2 py-[3px] text-[9px] tracking-[0.16em] text-white/80"
-      style={{
-        borderRadius: "4px",
-        backdropFilter: "blur(8px)",
-      }}
-    >
-      {children}
-    </span>
+    <label className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+      <span className="w-[3.75rem] shrink-0 text-[10px] tracking-[0.20em] text-white/36 lg:w-auto">
+        SEARCH
+      </span>
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Name, region, operator..."
+        className="h-8 min-w-0 flex-1 rounded-full border border-white/14 bg-white/[0.04] px-3 text-[11px] font-medium text-white outline-none transition-colors placeholder:text-white/28 focus:border-[#B89A5D]/70 focus:bg-white/[0.07] lg:w-72 lg:flex-none"
+      />
+    </label>
   );
 }
 
-function TierBadge({ tier }: { tier: string }) {
-  const colors: Record<string, string> = {
-    Explorer: "border-[#5cc8be]/30 bg-[#0d3d38]/80 text-[#5cc8be]",
-    Premium: "border-[#B89A5D]/30 bg-[#3a2800]/80 text-[#f1d58a]",
-    Legend: "border-white/24 bg-white/10 text-white",
+function DiscoverBadge({
+  kind,
+  children,
+}: {
+  kind: DiscoverBadgeKind;
+  children: React.ReactNode;
+}) {
+  const colors: Record<DiscoverBadgeKind, string> = {
+    region: "border-white/16 bg-black/52 text-white/80",
+    tier: "border-white/16 bg-black/52 text-white/80",
+    unclaimed: "border-[#B89A5D]/42 bg-[#B89A5D]/90 text-[#071827]",
   };
-  return (
-    <span
-      className={`border px-2 py-[3px] text-[9px] tracking-[0.16em] ${colors[tier] ?? "border-white/16 bg-black/52 text-white/80"}`}
-      style={{
-        borderRadius: "4px",
-        backdropFilter: "blur(8px)",
-      }}
-    >
-      {tier}
-    </span>
-  );
-}
 
-function GreenBadge({ children }: { children: React.ReactNode }) {
   return (
     <span
-      className="border border-emerald-500/30 bg-emerald-500/14 px-2 py-[3px] text-[9px] tracking-[0.14em] text-emerald-300"
+      className={`border px-2 py-[3px] text-[9px] font-bold tracking-[0.16em] ${colors[kind]}`}
       style={{
         borderRadius: "4px",
         backdropFilter: "blur(8px)",

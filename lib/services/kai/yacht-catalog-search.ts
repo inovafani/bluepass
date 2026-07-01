@@ -37,8 +37,26 @@ function scoreYachtForIntent(yacht: Yacht, intent: KaiTravelIntent): YachtMatch 
   const region = resolveRegion(intent.destination);
   const reasons: string[] = [];
   let score = 0;
+  const isSelectedYacht = intent.selectedYachtSlug === yacht.slug;
+
+  if (isSelectedYacht) {
+    score += 100;
+    reasons.push("selected by traveller");
+  }
 
   if (!region || yacht.region !== region || !intent.guests || intent.guests > yacht.maxGuests) {
+    if (isSelectedYacht) {
+      if (region && yacht.region !== region) {
+        reasons.push(`listed for ${yacht.region}, not ${region}`);
+      }
+
+      if (intent.guests && intent.guests > yacht.maxGuests) {
+        reasons.push(`max ${yacht.maxGuests} guests - operator must confirm fit`);
+      }
+
+      return buildYachtMatch(yacht, unique(reasons), Math.max(0, score));
+    }
+
     return buildYachtMatch(yacht, [], 0);
   }
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { claimableOperatorBySlug } from "@/lib/data/operator-claims";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentTraveller } from "@/lib/services/auth/session";
 import { creatorCommissionLedgerKind } from "@/lib/services/referrals/commission-ledger";
@@ -10,7 +11,7 @@ export const metadata = {
 
 const roleCopy: Record<string, string> = {
   TRAVELLER: "Kai profile",
-  CREATOR: "Creator mesh",
+  CREATOR: "Partner mesh",
   OPERATOR: "Operator desk",
   ADMIN: "Admin",
 };
@@ -55,6 +56,23 @@ export default async function DashboardPage() {
           status: true,
           companyName: true,
           whatsappE164: true,
+          websiteUrl: true,
+          claimedOperatorSlug: true,
+          claimedYachtSlugs: true,
+          claimedAt: true,
+          referralPartner: {
+            select: {
+              links: {
+                select: {
+                  code: true,
+                  targetPath: true,
+                  active: true,
+                },
+                orderBy: { createdAt: "asc" },
+                take: 1,
+              },
+            },
+          },
         },
       },
     },
@@ -75,6 +93,18 @@ export default async function DashboardPage() {
   const creatorShareUrl = creatorLink
     ? buildReferralShareUrl(creatorLink.code, creatorLink.targetPath)
     : undefined;
+  const operatorLink = account?.operatorProfile?.referralPartner?.links[0];
+  const operatorShareUrl = operatorLink
+    ? buildReferralShareUrl(operatorLink.code, operatorLink.targetPath)
+    : undefined;
+  const claimedOperator =
+    account?.operatorProfile?.claimedOperatorSlug
+      ? claimableOperatorBySlug[account.operatorProfile.claimedOperatorSlug]
+      : undefined;
+  const claimedYachtSlugs =
+    account?.operatorProfile?.claimedYachtSlugs.length
+      ? account.operatorProfile.claimedYachtSlugs
+      : claimedOperator?.yachtSlugs ?? [];
 
   return (
     <section className="cinematic-page home-hero relative min-h-svh overflow-hidden bg-[#020b11] text-white">
@@ -116,7 +146,7 @@ export default async function DashboardPage() {
                   {account?.displayName ?? traveller.name ?? "Your dashboard"}
                 </h1>
                 <p className="mt-4 max-w-md text-sm leading-6 text-white/66">
-                  One account for Kai, creator referrals, and operator booking
+                  One account for Kai, partner referrals, and operator booking
                   operations.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2">
@@ -163,31 +193,45 @@ export default async function DashboardPage() {
                   />
                 ) : (
                   <DashboardPanel
-                    label={`Creator ${formatStatus(account?.creatorProfile?.status)}`}
+                    label={`Partner ${formatStatus(account?.creatorProfile?.status)}`}
                     title="Application in review"
-                    body="Your creator application is saved. Once approved, this panel will show referral links, clicks, inquiries, and estimated commission."
+                    body="Your partner application is saved. Once approved, this panel will show referral links, clicks, inquiries, and estimated commission."
                     actionHref="/creators"
-                    actionLabel="View creator story"
+                    actionLabel="View partner story"
                   />
                 )
               ) : (
                 <DashboardPanel
-                  label="Creator"
+                  label="Partner"
                   title="Apply to share trips"
-                  body="Creators will get trackable links, attribution, and commission reporting when their audience books through Kai."
+                  body="Partners will get trackable links, attribution, and commission reporting when their audience books through Kai."
                   actionHref="/signup#join"
-                  actionLabel="Apply as creator"
+                  actionLabel="Apply as partner"
                 />
               )}
 
               {hasOperator ? (
-                <DashboardPanel
-                  label={`Operator ${formatStatus(account?.operatorProfile?.status)}`}
-                  title="Inquiry command center"
-                  body="Incoming Kai inquiries, WhatsApp accept/decline/counter actions, PMS holds, payments, and operator net payout reporting will land here."
-                  actionHref="/operators"
-                  actionLabel="View operators"
-                />
+                account?.operatorProfile?.status === "APPROVED" &&
+                claimedOperator ? (
+                  <ClaimedOperatorDashboardPanel
+                    companyName={
+                      account.operatorProfile.companyName ?? claimedOperator.name
+                    }
+                    websiteUrl={account.operatorProfile.websiteUrl}
+                    claimedYachtSlugs={claimedYachtSlugs}
+                    representativeYachtSlug={claimedOperator.representativeYachtSlug}
+                    referralCode={operatorLink?.code}
+                    shareUrl={operatorShareUrl}
+                  />
+                ) : (
+                  <DashboardPanel
+                    label={`Operator ${formatStatus(account?.operatorProfile?.status)}`}
+                    title="Application in review"
+                    body="Your operator workspace is saved. Once approved, this panel will show claimed vessels, PMS setup, referral links, and incoming Kai inquiries."
+                    actionHref="/operators"
+                    actionLabel="View operators"
+                  />
+                )
               ) : (
                 <DashboardPanel
                   label="Operator"
@@ -202,6 +246,93 @@ export default async function DashboardPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+function ClaimedOperatorDashboardPanel({
+  companyName,
+  websiteUrl,
+  claimedYachtSlugs,
+  representativeYachtSlug,
+  referralCode,
+  shareUrl,
+}: {
+  companyName: string;
+  websiteUrl?: string | null;
+  claimedYachtSlugs: string[];
+  representativeYachtSlug: string;
+  referralCode?: string;
+  shareUrl?: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-[#B89A5D]/22 bg-[#B89A5D]/10 p-5 backdrop-blur-md">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#f1d58a]">
+        Claimed operator
+      </p>
+      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-xl font-semibold leading-tight text-white">
+            {companyName}
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-white/60">
+            {claimedYachtSlugs.length} claimed vessel
+            {claimedYachtSlugs.length === 1 ? "" : "s"} are now connected to
+            this account.
+          </p>
+        </div>
+        {referralCode && (
+          <span className="rounded-full border border-[#B89A5D]/24 bg-[#B89A5D]/12 px-3 py-1.5 font-mono text-[11px] font-bold text-[#ffe7a3]">
+            {referralCode}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {claimedYachtSlugs.map((slug) => (
+          <Link
+            key={slug}
+            href={`/yachts/${slug}`}
+            className="bp-focus-ring inline-flex h-8 items-center rounded-full border border-white/12 bg-black/14 px-3 text-[11px] font-bold text-white/72 transition-colors hover:bg-white hover:text-[#071827]"
+          >
+            /yachts/{slug}
+          </Link>
+        ))}
+      </div>
+
+      {shareUrl && (
+        <a
+          href={shareUrl}
+          className="mt-4 block break-all rounded-xl border border-white/12 bg-black/20 p-3 text-xs font-semibold text-[#9fe8df] transition-colors hover:text-white"
+        >
+          {shareUrl}
+        </a>
+      )}
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Link
+          href={`/yachts/${representativeYachtSlug}`}
+          className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#071827] transition-colors hover:bg-white/88"
+        >
+          View claimed page
+        </Link>
+        <Link
+          href="/for-operators/connect"
+          className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/16 bg-white/[0.06] px-4 text-xs font-bold text-white transition-colors hover:bg-white/12"
+        >
+          Connect PMS
+        </Link>
+        {websiteUrl && (
+          <a
+            href={websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/16 bg-white/[0.06] px-4 text-xs font-bold text-white transition-colors hover:bg-white/12"
+          >
+            Website
+          </a>
+        )}
+      </div>
+    </article>
   );
 }
 
@@ -327,7 +458,7 @@ function CreatorDashboardPanel({
   return (
     <article className="rounded-2xl border border-white/14 bg-white/[0.08] p-5 backdrop-blur-md">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fe8df]">
-        Creator mesh
+        Partner mesh
       </p>
       <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>

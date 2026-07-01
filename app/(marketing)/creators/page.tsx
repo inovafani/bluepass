@@ -2,53 +2,57 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
+import {
+  featuredReels,
+  partnerAudiences,
+  partnerBenefitCards,
+  partnerHero,
+  partnerRegions,
+  partnerSteps,
+  partnerToolkit,
+} from "@/lib/data/creators-page-content";
 import { ReelsCarousel } from "./ReelsCarousel";
 
 export const metadata: Metadata = {
-  title: "Creators | BluePass",
+  title: "Partner Program | BluePass",
   description:
-    "BluePass helps trusted ocean creators share Indonesia trips and earn clean attribution.",
+    "BluePass helps dive shops, travel agencies, advisors, trip leaders, and ocean partners earn on Indonesia bookings while funding reef conservation.",
 };
 
 const heroImage = "/creators/hero.jpg";
-const creatorPageImage = "/creators/creator-page.jpg";
 
-const steps = [
+const partnerSignals = [
+  { value: "5%", label: "founding partner commission" },
+  { value: "No", label: "client markup" },
+  { value: "1", label: "Indonesia operator catalogue" },
+];
+
+const partnerStoryMoments = [
   {
-    verb: "Curate",
-    title: "Choose trips you would send to a friend.",
+    label: "01",
+    title: "A client asks where to dive.",
+    body: "You send one BluePass link.",
   },
   {
-    verb: "Share",
-    title: "Send your audience to a page that feels like you.",
+    label: "02",
+    title: "They see vetted Indonesia operators.",
+    body: "No markup. No messy handoff.",
   },
   {
-    verb: "Earn",
-    title: "Get paid when followers book.",
+    label: "03",
+    title: "The booking funds the reef.",
+    body: "You earn. They get proof.",
   },
 ];
 
-const creatorBenefits = [
-  {
-    title: "Your ocean page",
-    body: "A polished trip page for your favorite operators, routes, and stories.",
-    icon: "page",
-  },
-  {
-    title: "Clean attribution",
-    body: "Followers book from your link. No messy tracking pitch needed.",
-    icon: "link",
-  },
-  {
-    title: "Creator earnings",
-    body: "Commission comes from BluePass, with reef funding still included.",
-    icon: "earn",
-  },
-  {
-    title: "Operator access",
-    body: "Warm intros to crews when the trip fits your audience.",
-    icon: "access",
-  },
+const partnerFlowLabels = ["Claim", "Share", "Book", "Prove"];
+const partnerStepIcons = ["link", "page", "earn", "reef"];
+
+const toolkitShortCopy = [
+  "Vetted trips",
+  "Attribution",
+  "Reef proof",
+  "Human backup",
 ];
 
 const creators = [
@@ -64,7 +68,7 @@ const creators = [
     name: "Cam Vaughne",
     handle: "@camvaughne",
     location: "Bali, Indonesia",
-    role: "Photo and film creator documenting remote Indonesia, sailing, and ocean conservation.",
+    role: "Photo and film partner documenting remote Indonesia, sailing, and ocean conservation.",
     href: "https://www.instagram.com/camvaughne/",
     image: "/creators/camvaughne.jpg",
   },
@@ -78,69 +82,6 @@ const creators = [
   },
 ];
 
-const personas = [
-  {
-    label: "Dive instructors",
-    desc: "Teaching conservation from the reef up",
-    icon: "wave",
-  },
-  {
-    label: "Ocean photographers",
-    desc: "Documenting what needs protecting",
-    icon: "camera",
-  },
-  {
-    label: "Travel writers",
-    desc: "Stories that move people to go",
-    icon: "pen",
-  },
-  {
-    label: "Sailors with audiences",
-    desc: "Crews who inspire other crews",
-    icon: "compass",
-  },
-  {
-    label: "Conservation educators",
-    desc: "Building awareness through access",
-    icon: "leaf",
-  },
-];
-
-const featuredReels = [
-  {
-    creator: "Story of Sage",
-    handle: "@storyofsage",
-    title: "Island light, reef days, quiet blue moments",
-    views: "Most viewed",
-    reelHref: "https://www.instagram.com/reel/DE0a2Z7xSQL/",
-    videoSrc: "",
-  },
-  {
-    creator: "Josiah William Gordon",
-    handle: "@josiahwg",
-    title: "Cinematic coastlines through a fine-art lens",
-    views: "Most viewed",
-    reelHref: "https://www.instagram.com/reel/CPBJDTmjKS_/",
-    videoSrc: "",
-  },
-  {
-    creator: "Cam Vaughne",
-    handle: "@camvaughne",
-    title: "Remote Indonesia by sail, film, and sea",
-    views: "Most viewed",
-    reelHref: "https://www.instagram.com/reel/Ck8BkRDhLhy/",
-    videoSrc: "",
-  },
-  {
-    creator: "Cam Vaughne",
-    handle: "@camvaughne",
-    title: "Remote Indonesia by sail, film, and sea",
-    views: "Most viewed",
-    reelHref: "https://www.instagram.com/reel/DBvwGTlPQsA/",
-    videoSrc: "",
-  },
-];
-
 export default function CreatorsPage() {
   return (
     <>
@@ -148,255 +89,262 @@ export default function CreatorsPage() {
         <section className="relative min-h-svh overflow-hidden bg-[#020b11] text-white">
           <div
             aria-hidden="true"
-            className="absolute inset-0 scale-105 bg-cover bg-center saturate-[0.86]"
+            className="absolute inset-0 scale-105 bg-cover bg-center saturate-[0.82]"
             style={{ backgroundImage: `url('${heroImage}')` }}
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.86),rgba(0,15,21,0.46)_48%,rgba(0,8,14,0.7)),linear-gradient(180deg,rgba(0,0,0,0.38),rgba(0,0,0,0.08)_38%,rgba(0,0,0,0.74))]" />
-          <div className="absolute inset-0 bg-[#0c3b3a]/18 mix-blend-color" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,7,12,0.88),rgba(0,12,18,0.62)_45%,rgba(0,7,12,0.32)_74%,rgba(0,7,12,0.70)),linear-gradient(180deg,rgba(0,0,0,0.42),rgba(0,0,0,0.08)_38%,rgba(0,0,0,0.82))]" />
+          <div className="absolute inset-0 bg-[#102820]/22 mix-blend-color" />
           <div className="bp-film-grain absolute inset-0" />
 
           <div className="cinematic-hero-stage">
             <section className="max-w-[640px] border border-white/16 bg-[#03111d]/58 p-6 shadow-[0_28px_100px_rgba(0,0,0,0.44)] backdrop-blur-2xl md:p-10">
-              <h1 className="bp-page-title text-[clamp(2.25rem,5vw,4rem)] leading-[0.96] text-white">
-                Curate.
-                <br />
-                Share.
-                <br />
-                Earn.
+              <h1 className="bp-page-title text-[clamp(2rem,4vw,3.35rem)] leading-[0.98] text-white">
+                Send your divers to Indonesia&apos;s best operators.
               </h1>
               <div className="mt-7 grid grid-cols-[2px_1fr] gap-5">
                 <span
-                  className="mt-1 h-20 w-px bg-white/70"
+                  className="mt-1 h-full w-px self-stretch bg-white/70"
                   aria-hidden="true"
                 />
-                <p className="max-w-[29rem] text-sm font-light leading-[1.75] text-white/64 md:text-[15px]">
-                  Turn the ocean trips you already love into a beautiful booking
-                  path. Your audience discovers better trips, operators meet
-                  warmer leads, and every booking still funds the reef.
+                <p className="max-w-[30rem] text-sm font-light leading-[1.75] text-white/68 md:text-[15px]">
+                  They pay the operator&apos;s own rate. You earn on every
+                  booking. Every trip funds reef conservation in the exact place
+                  they dive.
                 </p>
               </div>
-              <div className="mt-9 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/signup"
-                  className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center rounded-full bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
+                  className="bp-focus-ring inline-flex h-11 min-w-[190px] items-center justify-center rounded-full bg-white px-6 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
                 >
-                  Apply to create
+                  {partnerHero.primaryLabel}
                 </Link>
                 <a
-                  href="#featured-creators"
+                  href="https://wa.me/628213143343"
                   className="bp-focus-ring inline-flex h-11 min-w-[166px] items-center justify-center rounded-full border border-white/54 bg-transparent px-6 text-[11px] font-medium text-white transition-colors hover:bg-white/10"
                 >
-                  See creators
+                  {partnerHero.secondaryLabel}
                 </a>
               </div>
             </section>
           </div>
         </section>
 
-        <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] py-16 md:py-24">
-          {/* Ambient depth — gold from top-right, teal from bottom-left */}
+        <section className="relative overflow-hidden border-t border-white/10 bg-[#020b11] px-[var(--cinematic-screen-x)] py-14 text-white md:py-20">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_78%_0%,rgba(184,154,93,0.07),transparent_48%),radial-gradient(ellipse_at_16%_100%,rgba(0,100,130,0.07),transparent_46%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_12%_0%,rgba(0,111,142,0.20),transparent_36%),radial-gradient(ellipse_at_86%_20%,rgba(184,154,93,0.12),transparent_34%),linear-gradient(180deg,rgba(4,17,29,0.94),#020b11_76%)]"
           />
           <div className="relative mx-auto max-w-6xl">
-            <div className="grid gap-5 md:gap-8 lg:grid-cols-2 lg:items-stretch">
-              {/* Left — image panel fills the grid row height */}
-              <div className="relative min-h-[360px] overflow-hidden rounded-[var(--bp-radius-md)] shadow-[0_28px_90px_rgba(0,0,0,0.36)] lg:min-h-0">
-                <div
-                  className="absolute inset-0 scale-105 bg-cover bg-[center_70%] transition-transform duration-700 hover:scale-[1.08]"
-                  style={{ backgroundImage: `url('${creatorPageImage}')` }}
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.06),rgba(0,0,0,0.02)_45%,rgba(0,0,0,0.74))]"
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-[#0c3b3a]/10 mix-blend-color"
-                />
-                <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-                  <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                    BluePass creator page
-                  </p>
-                  <p className="bp-page-title mt-3 max-w-md text-2xl leading-none text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.8)] md:text-3xl">
-                    One link for the trips you believe in.
-                  </p>
-                </div>
-              </div>
-
-              {/* Right — header + editorial step list + CTA */}
-              <div className="bp-reveal bp-reveal-delay-1 flex flex-col justify-between gap-10 lg:py-2">
-                {/* Header */}
-                <div>
-                  <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                    Creator program
-                  </p>
-                  <h2 className="bp-page-title mt-4 text-[clamp(1.9rem,3.5vw,3rem)] leading-[0.94] text-white/88">
-                    Your taste becomes
-                    <br className="hidden sm:block" /> the trip plan.
-                  </h2>
-                  <p className="mt-5 max-w-xs text-sm font-light leading-[1.85] text-white/48">
-                    Keep the romance of storytelling.
-                    <br />
-                    Add a booking path behind it.
-                  </p>
-                </div>
-
-                {/* Editorial step list — no boxes, just clean divider rows */}
-                <div className="divide-y divide-white/[0.07]">
-                  {steps.map((step, index) => (
-                    <div
-                      key={step.verb}
-                      className="group flex items-start gap-5 py-6"
-                    >
-                      {/* Large ambient step number — decorative, not a badge */}
-                      <span
-                        aria-hidden="true"
-                        className="min-w-[2.5rem] pt-0.5 text-[2.8rem] font-thin leading-none text-white/[0.10] transition-colors duration-300 group-hover:text-white/80"
-                      >
-                        0{index + 1}
-                      </span>
-                      <div className="flex-1 pt-1">
-                        <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#B89A5D]">
-                          {step.verb}
-                        </p>
-                        <p className="mt-2 text-[15px] font-light leading-[1.7] text-white/68">
-                          {step.title}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Closing CTA */}
-                <div className="flex flex-wrap items-center gap-4 border-t border-white/[0.08] pt-7">
-                  <Link
-                    href="/signup"
-                    className="bp-focus-ring inline-flex h-10 items-center justify-center gap-2 bg-white px-5 text-[11px] font-medium text-[#071827] transition-colors hover:bg-white/90"
-                  >
-                    Apply to create
-                    <ArrowIcon />
-                  </Link>
-                  <p className="text-[11px] font-light text-white/32">
-                    Free to join. Commission on bookings only.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="relative overflow-hidden border-y border-white/10 bg-[#04111d] px-[var(--cinematic-screen-x)] py-20 md:py-28">
-          {/* Faint hero image as texture — very low opacity, just adds grain/depth */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-cover bg-[center_30%] opacity-[0.06] saturate-0"
-            style={{ backgroundImage: `url('${heroImage}')` }}
-          />
-          {/* Ambient teal glow top-right */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_10%,rgba(0,111,142,0.09),transparent_52%)]"
-          />
-          <OceanCurrentOrnament />
-
-          <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-            {/* Left — headline + anchor */}
-            <div className="lg:sticky lg:top-28">
-              <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                What you get
-              </p>
-              <h2 className="bp-page-title mt-4 max-w-md text-[clamp(2rem,3.5vw,3.25rem)] leading-[0.95] text-white/88">
-                Creator tools without the ugly sales funnel.
-              </h2>
-              <div className="mt-6 flex items-start gap-3">
-                <span
-                  aria-hidden="true"
-                  className="mt-1 h-10 w-px shrink-0 bg-gradient-to-b from-[#B89A5D]/60 to-transparent"
-                />
-                <p className="text-sm font-light leading-[1.8] text-white/44">
-                  Everything a storyteller needs. Nothing that makes your
-                  audience feel sold to.
+            <div className="grid gap-7 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
+              <div>
+                <p className="text-[11px] font-normal uppercase tracking-[0.18em] text-[#B89A5D]">
+                  Why partner with BluePass
                 </p>
+                <h2 className="bp-page-title mt-4 max-w-xl text-[clamp(1.9rem,3.2vw,2.9rem)] leading-[0.98] text-white/92">
+                  One trusted recommendation. A cleaner booking path.
+                </h2>
+              </div>
+              <div className="grid max-w-2xl grid-cols-3 border-y border-white/[0.10] py-4 lg:justify-self-end">
+                {partnerSignals.map((signal) => (
+                  <div key={signal.label}>
+                    <p className="bp-page-title text-2xl leading-none text-white/90">
+                      {signal.value}
+                    </p>
+                    <p className="mt-1 max-w-[7rem] text-[9px] font-light uppercase tracking-[0.12em] text-white/38">
+                      {signal.label}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Right — benefit cards */}
-            <div className="bp-reveal grid gap-4 md:grid-cols-2">
-              {creatorBenefits.map((benefit) => (
-                <article
-                  key={benefit.title}
-                  className="group min-h-[200px] border border-white/12 bg-white/[0.03] p-6 transition-all duration-200 hover:border-white/24 hover:bg-white/[0.055] hover:shadow-[0_12px_40px_rgba(0,0,0,0.22)]"
+            <div className="mt-9 grid gap-4 lg:grid-cols-3">
+              {partnerStoryMoments.map((moment) => (
+                <div
+                  key={moment.label}
+                  className="group rounded-[var(--bp-radius-md)] border border-white/[0.10] bg-white/[0.045] p-6 shadow-[0_18px_54px_rgba(0,0,0,0.24)]"
                 >
-                  {/* Icon — framed in a gold-tinted box */}
-                  <div className="flex h-11 w-11 items-center justify-center rounded-[var(--bp-radius-sm)] border border-[#B89A5D]/28 bg-[#B89A5D]/10 transition-colors group-hover:border-[#B89A5D]/44 group-hover:bg-[#B89A5D]/16">
-                    <BenefitIcon type={benefit.icon} />
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-[11px] font-semibold tracking-[0.16em] text-[#B89A5D]">
+                      {moment.label}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="h-px flex-1 bg-gradient-to-r from-[#B89A5D]/36 to-transparent"
+                    />
                   </div>
-                  <p className="bp-page-title mt-6 text-xl leading-none text-white/88">
+                  <h3 className="bp-page-title mt-7 max-w-sm text-[clamp(1.35rem,2vw,1.75rem)] leading-[1.02] text-white/92">
+                    {moment.title}
+                  </h3>
+                  <p className="mt-4 text-sm font-light leading-[1.65] text-white/52">
+                    {moment.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              {partnerBenefitCards.map((benefit) => (
+                <div
+                  key={benefit.title}
+                  className="flex items-center gap-3 rounded-[var(--bp-radius-md)] border border-white/[0.08] bg-white/[0.03] px-4 py-3"
+                >
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--bp-radius-sm)] border border-[#B89A5D]/26 bg-[#B89A5D]/10">
+                    <BenefitIcon
+                      type={benefit.icon}
+                      className="text-[#d4b56f]"
+                    />
+                  </span>
+                  <p className="text-sm font-semibold leading-snug text-white/78">
                     {benefit.title}
                   </p>
-                  <p className="mt-3 text-sm font-light leading-[1.75] text-white/54">
-                    {benefit.body}
-                  </p>
-                </article>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] py-14 md:py-20">
+        <section className="relative overflow-hidden border-t border-white/[0.08] bg-[#020b11] px-[var(--cinematic-screen-x)] py-14 text-white md:py-20">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_28%_60%,rgba(0,100,130,0.07),transparent_50%),radial-gradient(ellipse_at_82%_20%,rgba(184,154,93,0.05),transparent_44%)]"
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,111,142,0.08),transparent_34%,rgba(184,154,93,0.05))]"
           />
-          <div className="relative mx-auto max-w-6xl overflow-hidden border-y border-white/10 py-14 md:py-20">
-            <OceanCurrentOrnament />
-            <div className="bp-reveal relative">
-              {/* Heading row */}
-              <div className="mb-10 grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
-                <div>
-                  <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-                    Who it is for
+          <div className="relative mx-auto max-w-6xl">
+            <div className="grid gap-6 md:grid-cols-[0.7fr_1fr] md:items-end">
+              <div>
+                <p className="text-[11px] font-normal uppercase tracking-[0.18em] text-[#B89A5D]">
+                  How it works
+                </p>
+                <h2 className="bp-page-title mt-4 max-w-md text-[clamp(1.8rem,3vw,2.65rem)] font-normal leading-[0.98] text-white/90">
+                  Four quiet moves.
+                </h2>
+              </div>
+              <div className="flex flex-wrap gap-2 md:justify-self-end">
+                {["Clean booking path", "Tracked attribution", "Reef proof"].map(
+                  (label) => (
+                    <span
+                      key={label}
+                      className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3.5 py-2 text-[12px] font-medium text-white/58"
+                    >
+                      {label}
+                    </span>
+                  ),
+                )}
+              </div>
+            </div>
+
+            <div className="mt-9 grid gap-3 md:grid-cols-4">
+              {partnerSteps.map((step, index) => (
+                <div
+                  key={step.title}
+                  className="relative min-h-44 rounded-[var(--bp-radius-md)] border border-white/[0.10] bg-white/[0.045] p-5 shadow-[0_12px_36px_rgba(0,0,0,0.18)]"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="grid h-10 w-10 place-items-center rounded-[var(--bp-radius-sm)] border border-[#B89A5D]/30 bg-[#B89A5D]/10">
+                      <BenefitIcon
+                        type={partnerStepIcons[index]}
+                        className="text-[#d4b56f]"
+                      />
+                    </span>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#B89A5D]">
+                      {partnerFlowLabels[index]}
+                    </span>
+                  </div>
+                  <h3 className="mt-8 text-[17px] font-semibold leading-tight text-white/86">
+                    {step.title}
+                  </h3>
+                  <p className="mt-3 text-[13px] font-light leading-[1.55] text-white/48">
+                    {step.body}
                   </p>
-                  <h2 className="bp-page-title mt-4 text-[clamp(1.9rem,3.8vw,3.25rem)] leading-[0.95] text-white/88">
-                    Real ocean people with real trust.
-                  </h2>
                 </div>
-                <p className="max-w-[22rem] text-[11px] font-light leading-[1.75] text-white/32 md:text-right">
-                  We do not take influencers we cannot verify took the trip.
+              ))}
+            </div>
+
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
+              <span className="mr-1 text-sm font-light text-white/38">
+                Operators across
+              </span>
+              {partnerRegions.map((region) => (
+                <span
+                  key={region}
+                  className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3.5 py-1.5 text-[12px] font-medium text-[#a8e5e8]"
+                >
+                  {region}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden border-t border-white/[0.08] bg-[#04111d] px-[var(--cinematic-screen-x)] py-14 text-white md:py-20">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_0%,rgba(184,154,93,0.08),transparent_34%),radial-gradient(ellipse_at_20%_82%,rgba(0,111,142,0.13),transparent_42%)]"
+          />
+          <div className="relative mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.74fr_1.26fr] lg:items-start">
+            <div className="relative">
+              <p className="text-[11px] font-normal uppercase tracking-[0.18em] text-[#B89A5D]">
+                What you get
+              </p>
+              <h2 className="bp-page-title mt-4 max-w-xl text-[clamp(1.8rem,3vw,2.5rem)] font-normal leading-tight text-white/90">
+                Everything useful. Nothing new to operate.
+              </h2>
+              <div className="mt-7 flex flex-wrap gap-2">
+                {partnerAudiences.map((audience) => (
+                  <span
+                    key={audience}
+                    className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3.5 py-2 text-sm font-light text-white/58"
+                  >
+                    {audience}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative rounded-[var(--bp-radius-md)] border border-white/[0.12] bg-[#020b11]/62 shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] px-5 py-4 md:px-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/50">
+                  Partner toolkit
+                </p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#b08c3c]">
+                  Founding 5%
                 </p>
               </div>
+              <div className="border-b border-white/[0.08] px-5 py-4 md:px-6">
+                <div className="flex items-center justify-between gap-4 rounded-[var(--bp-radius-sm)] border border-white/[0.10] bg-white/[0.035] px-4 py-3">
+                  <span className="truncate text-sm font-medium text-white/82">
+                    bluepass.co/p/your-company
+                  </span>
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#a8e5e8]">
+                    tracked
+                  </span>
+                </div>
+              </div>
 
-              {/* Persona cards grid — 3 + 2 layout */}
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {personas.map((persona, i) => (
-                  <article
-                    key={persona.label}
-                    className={`bp-tech-card bp-card-quiet overflow-hidden border border-white/[0.09] ${
-                      i >= 3 ? "lg:col-span-1 sm:col-span-1" : ""
-                    }`}
+              <div className="grid gap-3 p-4 sm:grid-cols-2 md:p-5">
+                {partnerToolkit.map((item, index) => (
+                  <div
+                    key={item.title}
+                    className="rounded-[var(--bp-radius-sm)] border border-white/[0.10] bg-white/[0.035] p-4"
                   >
-                    {/* Header strip with grid texture */}
-                    <div className="relative flex items-center gap-3 border-b border-white/[0.07] bg-[#030d18] px-4 py-3.5">
-                      <div className="cinematic-app-grid absolute inset-0 opacity-40" />
-                      <div
-                        className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center border border-white/[0.10] bg-[#020b11]"
-                        style={{ borderRadius: "8px" }}
-                      >
-                        <PersonaIcon type={persona.icon} />
+                    <div className="flex items-start gap-3">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--bp-radius-sm)] border border-[#B89A5D]/32 bg-[#B89A5D]/10">
+                        <BenefitIcon
+                          type={index === 1 ? "link" : "page"}
+                          className="text-[#d4b56f]"
+                        />
+                      </span>
+                      <div>
+                        <h3 className="text-[15px] font-semibold leading-snug text-white/84">
+                          {item.title}
+                        </h3>
+                        <p className="mt-2 text-sm font-light leading-[1.6] text-white/50">
+                          {toolkitShortCopy[index]}
+                        </p>
                       </div>
-                      <p className="relative z-10 text-[13px] font-medium text-white/82">
-                        {persona.label}
-                      </p>
                     </div>
-                    {/* Description */}
-                    <div className="px-4 py-3.5">
-                      <p className="text-[11px] font-light leading-[1.65] text-white/42">
-                        {persona.desc}
-                      </p>
-                    </div>
-                  </article>
+                  </div>
                 ))}
               </div>
             </div>
@@ -409,7 +357,7 @@ export default function CreatorsPage() {
         >
           <div className="mx-auto max-w-6xl">
             <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
-              Featured creators
+              Featured partners
             </p>
             <h2 className="bp-page-title mt-4 max-w-3xl text-xl leading-none text-white/82 md:text-2xl">
               The kind of taste BluePass is built for.
@@ -466,21 +414,22 @@ export default function CreatorsPage() {
         </section>
 
         <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] py-14 md:py-20">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(184,154,93,0.16),transparent_28%),linear-gradient(180deg,rgba(4,17,29,0),rgba(7,24,39,0.42)_48%,rgba(2,11,17,0))]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_12%,rgba(184,154,93,0.18),transparent_28%),radial-gradient(ellipse_at_70%_30%,rgba(80,111,94,0.13),transparent_46%),linear-gradient(180deg,rgba(4,17,29,0),rgba(7,24,39,0.50)_48%,rgba(2,11,17,0))]" />
           <div className="relative mx-auto max-w-6xl">
-            <div className="bp-reveal grid gap-5 md:grid-cols-[0.72fr_1.28fr] md:items-end">
+            <div className="bp-reveal grid gap-5 border-b border-white/10 pb-8 md:grid-cols-[0.86fr_1.14fr] md:items-end">
               <div>
                 <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
                   Most viewed reels
                 </p>
-                <h2 className="bp-page-title mt-4 max-w-xl text-2xl leading-none text-white/86 md:text-3xl">
-                  A carousel for the clips that move people.
+                <h2 className="bp-page-title mt-4 max-w-xl text-2xl leading-none text-white/90 md:text-3xl">
+                  Proof that trust has a visual language.
                 </h2>
               </div>
-              <p className="max-w-2xl text-sm font-light leading-6 text-white/56 md:text-[15px]">
-                Feature handpicked Instagram reels from each creator in a
-                swipe-friendly strip built to feel like a premium editorial
-                shelf.
+              <p className="max-w-2xl text-sm font-light leading-6 text-white/68 md:text-[15px]">
+                These are not ad units. They are the kind of ocean stories that
+                make a client ask, &quot;Can we do that trip?&quot; The carousel now
+                uses local poster images first, so the shelf stays visually
+                intact even when Instagram does not return a thumbnail.
               </p>
             </div>
 
@@ -491,15 +440,23 @@ export default function CreatorsPage() {
         <section className="px-[var(--cinematic-screen-x)] py-16 text-center md:py-24">
           <div className="mx-auto max-w-4xl">
             <h2 className="bp-page-title text-2xl leading-none text-white md:text-3xl">
-              Want your ocean stories to move bookings and fund reefs?
+              Claim your founding-partner link.
             </h2>
+            <p className="mx-auto mt-5 max-w-xl text-sm font-light leading-[1.8] text-white/48">
+              Lock 5% for the founding cohort, get your tracked link and
+              operator catalogue, and put a reef-impact story in front of your
+              clients.
+            </p>
             <Link
               href="/signup"
               className="bp-focus-ring mt-8 inline-flex h-12 items-center justify-center gap-2 bg-white px-6 text-sm font-medium text-[#071827] transition-colors hover:bg-white/90"
             >
-              Apply to be a creator
+              Claim my 5% founding link
               <ArrowIcon />
             </Link>
+            <p className="mt-5 text-[11px] font-light text-white/30">
+              Book + protect the ocean. Never a markup. 5% to the reef.
+            </p>
           </div>
         </section>
       </main>
@@ -508,7 +465,13 @@ export default function CreatorsPage() {
   );
 }
 
-function BenefitIcon({ type }: { type: string }) {
+function BenefitIcon({
+  type,
+  className = "text-[#B89A5D]",
+}: {
+  type: string;
+  className?: string;
+}) {
   const paths = {
     page: (
       <>
@@ -529,6 +492,22 @@ function BenefitIcon({ type }: { type: string }) {
         <circle cx="12" cy="12" r="8" />
         <path d="M12 8v8" />
         <path d="M9.5 10.5c.5-1 1.4-1.5 2.5-1.5 1.4 0 2.5.8 2.5 2s-1.1 2-2.5 2-2.5.8-2.5 2 1.1 2 2.5 2c1.1 0 2-.5 2.5-1.5" />
+      </>
+    ),
+    trust: (
+      <>
+        <path d="M20 13c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V5l8-3 8 3Z" />
+        <path d="m9 12 2 2 4-5" />
+      </>
+    ),
+    reef: (
+      <>
+        <path d="M12 22V12" />
+        <path d="M8 22v-6" />
+        <path d="M16 22v-7" />
+        <path d="M4 22v-4" />
+        <path d="M20 22v-5" />
+        <path d="M12 12c-3.8 0-6-1.9-6-4.5S8.2 3 12 3s6 1.9 6 4.5S15.8 12 12 12Z" />
       </>
     ),
     access: (
@@ -552,147 +531,10 @@ function BenefitIcon({ type }: { type: string }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-5 w-5 text-[#B89A5D]"
+      className={`h-5 w-5 ${className}`}
       aria-hidden="true"
     >
       {paths[type as keyof typeof paths] ?? paths.page}
-    </svg>
-  );
-}
-
-function PersonaIcon({ type }: { type: string }) {
-  const cls = "h-4 w-4 text-[#B89A5D]";
-  if (type === "wave")
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={cls}
-        aria-hidden="true"
-      >
-        <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-        <path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-        <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-      </svg>
-    );
-  if (type === "camera")
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={cls}
-        aria-hidden="true"
-      >
-        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-        <circle cx="12" cy="13" r="3" />
-      </svg>
-    );
-  if (type === "pen")
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={cls}
-        aria-hidden="true"
-      >
-        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-        <path d="m15 5 4 4" />
-      </svg>
-    );
-  if (type === "compass")
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={cls}
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-      </svg>
-    );
-  if (type === "leaf")
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={cls}
-        aria-hidden="true"
-      >
-        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-      </svg>
-    );
-  return null;
-}
-
-function OceanCurrentOrnament() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="pointer-events-none absolute -right-12 top-1/2 hidden h-48 w-[58%] -translate-y-1/2 text-white/10 md:block"
-      viewBox="0 0 720 220"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M8 72C96 22 174 28 242 70C326 122 414 116 510 62C578 24 650 24 712 54"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M12 122C110 78 194 84 266 126C344 172 438 166 526 116C600 74 660 78 710 106"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity="0.72"
-      />
-      <path
-        d="M38 166C120 136 190 142 256 174C330 210 416 208 500 168C580 130 648 130 704 152"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity="0.45"
-      />
-      <circle cx="586" cy="78" r="4" fill="#B89A5D" opacity="0.62" />
-      <circle cx="626" cy="94" r="2.5" fill="#B89A5D" opacity="0.42" />
-      <circle cx="536" cy="146" r="3" fill="#B89A5D" opacity="0.48" />
     </svg>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { handleKaiCoreWebChat } from "@/lib/services/kai-core/client";
+import { forwardWhatsAppWebhookToKaiCore, handleKaiCoreWebChat } from "@/lib/services/kai-core/client";
 
 describe("handleKaiCoreWebChat", () => {
   it("creates a Kai Core session, sends the message, and maps BluePass response to the existing chat shape", async () => {
@@ -26,12 +26,18 @@ describe("handleKaiCoreWebChat", () => {
               maxGuests: 10,
               cabins: 5,
               priceSignal: "from USD 3,000 per cabin",
-              charterPriceSignal: "from USD 15,000 private charter",
-              reasons: ["matches Komodo", "fits up to 10 guests"],
-              score: 70,
-            },
-          ],
-        }),
+          charterPriceSignal: "from USD 15,000 private charter",
+          reasons: ["matches Komodo", "fits up to 10 guests"],
+          score: 70,
+          productUrl: "https://bluepass.co/yachts/alila-purnama",
+        },
+      ],
+      contactRequest: {
+        conversationId: "core_conversation_1",
+        fields: ["name", "email", "phone"],
+        status: "CONTACT_DETAILS_REQUIRED",
+      },
+    }),
       );
 
     const result = await handleKaiCoreWebChat(
@@ -68,18 +74,30 @@ describe("handleKaiCoreWebChat", () => {
       "http://127.0.0.1:3107/api/widget/messages",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({
-          key: "pk_test_bluepass",
-          conversationId: "core_conversation_1",
-          content: "Komodo yacht for 8 guests",
-          referral: {
-            referralCode: "creator42",
-            referralLinkId: "link_1",
-            referralPartnerId: "partner_1",
-            referralRole: "CREATOR",
-          },
-        }),
       }),
+    );
+    const messageRequest = fetchMock.mock.calls[1]?.[1] as RequestInit;
+    const messageBody = JSON.parse(String(messageRequest.body));
+    expect(messageBody).toMatchObject({
+      key: "pk_test_bluepass",
+      conversationId: "core_conversation_1",
+      content: "Komodo yacht for 8 guests",
+      referral: {
+        referralCode: "creator42",
+        referralLinkId: "link_1",
+        referralPartnerId: "partner_1",
+        referralRole: "CREATOR",
+      },
+    });
+    expect(messageBody.bluepassCatalog).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          slug: "calico-jack",
+          name: "Calico Jack",
+          region: "Komodo",
+          productUrl: "https://bluepass.co/yachts/calico-jack",
+        }),
+      ]),
     );
     expect(result).toEqual({
       sessionId: "core_conversation_1",
@@ -99,8 +117,14 @@ describe("handleKaiCoreWebChat", () => {
           matchingReasons: ["matches Komodo", "fits up to 10 guests"],
           departuresPreview: [],
           score: 70,
+          productUrl: "https://bluepass.co/yachts/alila-purnama",
         },
       ],
+      contactRequest: {
+        conversationId: "core_conversation_1",
+        fields: ["name", "email", "phone"],
+        status: "CONTACT_DETAILS_REQUIRED",
+      },
     });
   });
 
@@ -127,14 +151,60 @@ describe("handleKaiCoreWebChat", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
       "http://127.0.0.1:3107/api/widget/messages",
+      expect.objectContaining({ method: "POST" }),
+    );
+    const messageRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const messageBody = JSON.parse(String(messageRequest.body));
+    expect(messageBody).toMatchObject({
+      key: "pk_test_bluepass",
+      conversationId: "core_conversation_1",
+      content: "next month",
+    });
+    expect(messageBody.bluepassCatalog.length).toBeGreaterThan(30);
+    expect(result.sessionId).toBe("core_conversation_1");
+  });
+});
+
+describe("forwardWhatsAppWebhookToKaiCore", () => {
+  it("forwards Meta webhook payloads to Kai Core when enabled", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(Response.json({ ok: true }));
+    const payload = {
+      entry: [
+        {
+          changes: [
+            {
+              value: {
+                messages: [
+                  {
+                    type: "button",
+                    button: { text: "Accept" },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const forwarded = await forwardWhatsAppWebhookToKaiCore(
+      payload,
+      {
+        KAI_CORE_ENABLED: "true",
+        KAI_CORE_BASE_URL: "http://127.0.0.1:3107",
+        KAI_CORE_WIDGET_KEY: "pk_test_bluepass",
+        KAI_CORE_ORIGIN: "https://bluepass.co",
+      },
+      fetchMock,
+    );
+
+    expect(forwarded).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:3107/api/whatsapp/webhook",
       expect.objectContaining({
-        body: JSON.stringify({
-          key: "pk_test_bluepass",
-          conversationId: "core_conversation_1",
-          content: "next month",
-        }),
+        method: "POST",
+        body: JSON.stringify(payload),
       }),
     );
-    expect(result.sessionId).toBe("core_conversation_1");
   });
 });

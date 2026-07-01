@@ -679,6 +679,64 @@ describe("Kai conversation service", () => {
     expect(result.reply).not.toContain("Samara");
   });
 
+  it("pins an explicitly requested yacht even when generic ranking would prefer others", async () => {
+    const store = buildStore();
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_explicit_alila_ready",
+      message:
+        "Please send inquiry for Alila Purnama in Komodo next month for 8 guests around USD 10000. My name is Maya Chen, email maya@example.com, phone +61 400 111 222",
+    });
+
+    expect(result.intent).toEqual(
+      expect.objectContaining({
+        selectedYachtSlug: "alila-purnama",
+        travellerName: "Maya Chen",
+      }),
+    );
+    expect(result.matches).toHaveLength(1);
+    expect(result.matches?.[0]).toEqual(
+      expect.objectContaining({
+        slug: "alila-purnama",
+        name: "Alila Purnama",
+      }),
+    );
+    expect(result.reply).toContain("Alila Purnama");
+    expect(result.reply).not.toContain("Anne Bonny");
+  });
+
+  it("does not treat a yes confirmation as the traveller name", async () => {
+    const store = buildStore();
+    vi.mocked(store.getSessionContext!).mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "liveaboard",
+        guests: 8,
+        dateWindow: "next month",
+        budget: "USD 10000",
+        selectedYachtSlug: "alila-purnama",
+      },
+      lastAskedSlot: "travellerName",
+    });
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_yes_not_name",
+      message: "yes",
+    });
+
+    expect(result.intent).not.toEqual(
+      expect.objectContaining({
+        travellerName: "yes",
+      }),
+    );
+    expect(result.reply).not.toContain("for yes");
+    expect(result.reply).toContain("What name, email, and WhatsApp number");
+  });
+
   it("does not ask for traveller name again after extracting it with the budget", async () => {
     const store = buildStore();
     vi.mocked(store.getSessionContext).mockResolvedValue({
@@ -741,6 +799,83 @@ describe("Kai conversation service", () => {
     expect(result.reply).toContain("Tap Send inquiry");
     expect(result.reply).toContain("Calico Jack");
     expect(result.reply).not.toContain("shortlist");
+  });
+
+  it("keeps an explicit yacht request focused after a confirmation reply", async () => {
+    const store = buildInMemoryStore();
+    const service = createKaiConversationService(store);
+    const sessionId = "kai_explicit_yacht_confirmation";
+
+    const first = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message:
+        "Please send inquiry for Alila Purnama in Komodo next month for 8 guests around USD 10000. My name is Maya Chen, email maya@example.com, phone +61 400 111 222",
+    });
+    const confirmed = await service.handleUserMessage({
+      channel: "web",
+      sessionId,
+      message: "yes",
+    });
+
+    expect(first.intent).toEqual(
+      expect.objectContaining({
+        selectedYachtSlug: "alila-purnama",
+        travellerName: "Maya Chen",
+      }),
+    );
+    expect(confirmed.intent).toEqual(
+      expect.objectContaining({
+        selectedYachtSlug: "alila-purnama",
+        travellerName: "Maya Chen",
+      }),
+    );
+    expect(confirmed.matches).toHaveLength(1);
+    expect(confirmed.matches?.[0]).toEqual(
+      expect.objectContaining({
+        slug: "alila-purnama",
+        name: "Alila Purnama",
+      }),
+    );
+    expect(confirmed.reply).toContain("Alila Purnama");
+    expect(confirmed.reply).not.toContain("for yes");
+    expect(confirmed.reply).not.toContain("Anne Bonny");
+    expect(confirmed.reply).not.toContain("Calico Jack");
+  });
+
+  it("does not address confirmation words as traveller names in selected-yacht guidance", async () => {
+    const store = buildStore();
+    vi.mocked(store.getSessionContext!).mockResolvedValue({
+      intent: {
+        destination: "Komodo",
+        tripType: "liveaboard",
+        guests: 8,
+        dateWindow: "next month",
+        budget: "USD 10000",
+        travellerName: "yes",
+        travellerEmail: "maya@example.com",
+        travellerPhone: "+61 400 111 222",
+        selectedYachtSlug: "alila-purnama",
+      },
+      lastAskedSlot: "travellerName",
+    });
+    const service = createKaiConversationService(store);
+
+    const result = await service.handleUserMessage({
+      channel: "web",
+      sessionId: "kai_bad_confirmation_name",
+      message: "yes",
+    });
+
+    expect(result.intent).not.toEqual(
+      expect.objectContaining({
+        travellerName: "yes",
+      }),
+    );
+    expect(result.matches).toEqual([]);
+    expect(result.reply).toContain("Alila Purnama");
+    expect(result.reply).toContain("What name");
+    expect(result.reply).not.toContain("for yes");
   });
 
   it("overrides a generic LLM reply when static yacht matches exist", async () => {

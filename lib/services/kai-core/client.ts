@@ -1,4 +1,5 @@
 import type { ReferralAttribution } from "@/lib/services/referrals/attribution";
+import { yachts } from "@/lib/data/yachts";
 
 type FetchLike = typeof fetch;
 
@@ -26,6 +27,7 @@ type KaiCoreMessageResponse = {
     content?: string;
   };
   bluepassMatches?: KaiCoreBluePassMatch[];
+  contactRequest?: KaiCoreContactRequest | null;
 };
 
 type KaiCoreBluePassMatch = {
@@ -39,6 +41,13 @@ type KaiCoreBluePassMatch = {
   charterPriceSignal?: string | null;
   reasons?: string[];
   score?: number;
+  productUrl?: string | null;
+};
+
+type KaiCoreContactRequest = {
+  conversationId: string;
+  fields: ["name", "email", "phone"];
+  status: "CONTACT_DETAILS_REQUIRED";
 };
 
 export async function handleKaiCoreWebChat(
@@ -57,6 +66,7 @@ export async function handleKaiCoreWebChat(
     key: config.widgetKey,
     conversationId,
     content: input.message,
+    bluepassCatalog: buildBluePassCatalogSnapshot(),
     ...(input.referralAttribution
       ? {
           referral: {
@@ -84,6 +94,7 @@ export async function handleKaiCoreWebChat(
   return {
     sessionId: conversationId,
     reply: data.assistantMessage?.content ?? "Kai Core did not return a reply.",
+    ...(data.contactRequest ? { contactRequest: data.contactRequest } : {}),
     ...(data.bluepassMatches && data.bluepassMatches.length > 0
       ? { matches: data.bluepassMatches.map(toBluePassChatMatch) }
       : {}),
@@ -92,6 +103,25 @@ export async function handleKaiCoreWebChat(
 
 export function shouldUseKaiCore(env: KaiCoreClientEnv = process.env) {
   return env.KAI_CORE_ENABLED === "true";
+}
+
+export async function forwardWhatsAppWebhookToKaiCore(
+  payload: unknown,
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+) {
+  if (!shouldUseKaiCore(env)) {
+    return false;
+  }
+
+  const config = resolveKaiCoreConfig(env);
+  const response = await fetchImpl(`${config.baseUrl}/api/whatsapp/webhook`, {
+    method: "POST",
+    headers: buildKaiCoreHeaders(config),
+    body: JSON.stringify(payload),
+  });
+
+  return response.ok;
 }
 
 async function createKaiCoreSession(input: {
@@ -148,5 +178,53 @@ function toBluePassChatMatch(match: KaiCoreBluePassMatch) {
     matchingReasons: match.reasons ?? [],
     departuresPreview: [],
     score: match.score ?? 0,
+    productUrl: match.productUrl ?? `/yachts/${match.slug}`,
   };
+}
+
+function buildBluePassCatalogSnapshot() {
+  return yachts.map((yacht) => ({
+    slug: yacht.slug,
+    name: yacht.name,
+    region: yacht.region,
+    tier: yacht.tier,
+    maxGuests: yacht.maxGuests,
+    cabins: yacht.cabins,
+    priceSignal: formatPriceSignal(yacht.pricePerCabin, "per cabin"),
+    charterPriceSignal: yacht.charterPrice ? formatPriceSignal(yacht.charterPrice, "private charter") : null,
+    operatorId: `operator_${yacht.slug.replace(/-/g, "_")}`,
+    operatorName: yacht.name,
+    cabinBookable: yacht.cabinBookable,
+    about: yacht.about,
+    productUrl: buildBluePassProductUrl(yacht.slug),
+    departuresPreview: yacht.departures.slice(0, 3).map((departure) => departure.dates),
+    interests: buildCatalogInterests(yacht),
+  }));
+}
+
+function buildBluePassProductUrl(slug: string) {
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://bluepass.co").replace(/\/$/, "");
+
+  return `${baseUrl}/yachts/${slug}`;
+}
+
+function formatPriceSignal(value: string, label: string) {
+  if (!value || /quote/i.test(value)) {
+    return "Quote on request";
+  }
+
+  return `from ${value} ${label}`;
+}
+
+function buildCatalogInterests(yacht: (typeof yachts)[number]) {
+  const text = [yacht.name, yacht.build, yacht.about, yacht.tier, yacht.region].join(" ").toLowerCase();
+  const interests = [
+    /dive|diving|scuba|liveaboard/.test(text) ? "dive" : null,
+    /private|charter/.test(text) || yacht.charterOnly || Boolean(yacht.charterPrice) ? "private" : null,
+    /phinisi|sailing|yacht/.test(text) ? "phinisi" : null,
+    yacht.cabinBookable ? "cabin" : null,
+    /luxury|legend|premium/.test(text) ? "luxury" : null,
+  ].filter(Boolean) as string[];
+
+  return Array.from(new Set(interests));
 }

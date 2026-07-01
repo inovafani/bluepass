@@ -6,7 +6,7 @@ import { useState } from "react";
 
 const roles = [
   { value: "OPERATOR", label: "Operator", roles: ["OPERATOR"] },
-  { value: "CREATOR", label: "Creator", roles: ["CREATOR"] },
+  { value: "CREATOR", label: "Partner", roles: ["CREATOR"] },
   { value: "BOTH", label: "Both", roles: ["OPERATOR", "CREATOR"] },
 ] as const;
 
@@ -96,7 +96,7 @@ export function SignupForm({
             Create account first
           </h1>
           <p className="mt-5 text-sm leading-6 text-white/72 drop-shadow-[0_1px_12px_rgba(0,0,0,0.35)]">
-            Creator and operator applications are tied to a verified BluePass
+            Partner and operator applications are tied to a verified BluePass
             account, so referral links and dashboards stay attached to the right
             person.
           </p>
@@ -135,7 +135,7 @@ export function SignupForm({
         </h1>
         <p className="mt-5 text-sm leading-6 text-white/72 drop-shadow-[0_1px_12px_rgba(0,0,0,0.35)]">
           Apply from your verified BluePass account. We will use this to review
-          creator/operator access.
+          partner/operator access.
         </p>
 
         <div className="mt-8 space-y-4">
@@ -215,7 +215,7 @@ export function SignupForm({
         {selectedRoles.includes("CREATOR") && (
           <div className="mt-6 space-y-4">
             <p className="text-sm font-medium text-white/78 drop-shadow-[0_1px_10px_rgba(0,0,0,0.32)]">
-              Creator links{" "}
+              Partner links{" "}
               <span className="font-normal text-white/46">(optional)</span>
             </p>
             <label className="block">

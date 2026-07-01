@@ -279,7 +279,7 @@ curl -X POST http://localhost:3000/api/whatsapp/send \
 Phase 1 is the production foundation. It includes:
 
 - Next.js App Router with TypeScript and Tailwind.
-- Minimal public pages for BluePass, operators, conservation, creators, about, and the future app workspace.
+- Minimal public pages for BluePass, operators, conservation, partners, about, and the future app workspace.
 - Booking economics constants and `splitBooking()`.
 - Booking state machine with unit tests.
 - Prisma schema for operators, trips, travellers, bookings, booking events, Kai sessions, conservation transfers, and encrypted operator integrations.

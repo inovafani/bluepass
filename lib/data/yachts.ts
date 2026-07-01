@@ -582,6 +582,180 @@ images: {
     },
   },
 
+  // MERMAID I
+  {
+    slug: "mermaid-i", name: "Mermaid I", firstName: "Mermaid I",
+    locationBadge: "KOMODO", region: "Komodo",
+    tier: "Premium", cabinBookable: true,
+    maxGuests: 15, length: "28 m", cabins: 8, build: "Twin-engine steel motor yacht",
+    pricePerCabin: "Quote on request", charterPrice: null, charterOnly: false,
+    tagline: "Award-winning Indonesian dive liveaboard with a comfort-first steel hull.",
+    about: "Mermaid I is a 28-metre twin-engine steel liveaboard built around serious diving comfort. She carries up to 15 guests in eight cabins and runs Mermaid Liveaboards' signature Indonesia circuits, including Bali-Komodo-Bali, Raja Ampat, Ambon, Banda Sea, Alor, Lembeh, Halmahera, the Forgotten Islands, and Ring of Fire routes.",
+    departures: [
+      { dates: "Jul 12 - Jul 21", duration: "10 days / 9 nights", berths: "15 berths" },
+      { dates: "Sep 20 - Oct 1", duration: "12 days / 11 nights", berths: "15 berths" },
+      { dates: "Nov 28 - Dec 9", duration: "12 days / 11 nights", berths: "15 berths" },
+    ],
+    itinerary: KOMODO_7,
+    conservation: `Mermaid I ${KOMODO_CONSERVATION}`,
+images: {
+      card: "/yachts/mermaid-i/card.webp",
+      hero: "/yachts/mermaid-i/hero.webp",
+      gallery: [
+        { src: "/yachts/mermaid-i/gallery-1.webp", alt: "Mermaid I liveaboard at sea" },
+        { src: "/yachts/mermaid-i/gallery-2.webp", alt: "Mermaid I sun deck" },
+        { src: "/yachts/mermaid-i/gallery-3.webp", alt: "Mermaid I saloon" },
+        { src: "/yachts/mermaid-i/gallery-4.webp", alt: "Mermaid I deluxe cabin" },
+        { src: "/yachts/mermaid-i/gallery-5.webp", alt: "Mermaid I party deck" },
+      ],
+    },
+  },
+
+  // MERMAID II
+  {
+    slug: "mermaid-ii", name: "Mermaid II", firstName: "Mermaid II",
+    locationBadge: "RAJA AMPAT", region: "Raja Ampat",
+    tier: "Premium", cabinBookable: true,
+    maxGuests: 20, length: "33 m", cabins: 9, build: "Twin-engine steel motor yacht",
+    pricePerCabin: "Quote on request", charterPrice: null, charterOnly: false,
+    tagline: "Comfortable steel dive boat for Mermaid's Komodo and Raja Ampat seasons.",
+    about: "M/V Mermaid II is a 33-metre twin-engine steel liveaboard and one of Mermaid's most flexible Indonesia dive vessels. She accommodates up to 20 guests across eight main-deck deluxe cabins plus a lower-deck budget cabin, with panoramic sea-view windows in the deluxe cabins and a practical dive-boat layout for Komodo, Raja Ampat, Banda Sea, Alor, Lembeh, Halmahera, and extended transition routes.",
+    departures: [
+      { dates: "Jul 4 - Jul 11", duration: "8 days / 7 nights", berths: "20 berths" },
+      { dates: "Dec 3 - Dec 11", duration: "9 days / 8 nights", berths: "20 berths" },
+      { dates: "Jan 8 - Jan 16", duration: "9 days / 8 nights", berths: "20 berths" },
+    ],
+    itinerary: RAJA_AMPAT_7,
+    conservation: `Mermaid II ${RAJA_CONSERVATION}`,
+images: {
+      card: "/yachts/mermaid-ii/card.webp",
+      hero: "/yachts/mermaid-ii/hero.webp",
+      gallery: [
+        { src: "/yachts/mermaid-ii/gallery-1.webp", alt: "Mermaid II liveaboard underway" },
+        { src: "/yachts/mermaid-ii/gallery-2.webp", alt: "Mermaid II sun deck" },
+        { src: "/yachts/mermaid-ii/gallery-3.webp", alt: "Mermaid II saloon" },
+        { src: "/yachts/mermaid-ii/gallery-4.webp", alt: "Mermaid II restaurant" },
+        { src: "/yachts/mermaid-ii/gallery-5.webp", alt: "Mermaid II deluxe double cabin" },
+      ],
+    },
+  },
+
+  // BAJAK
+  {
+    slug: "bajak", name: "Bajak", firstName: "Bajak",
+    locationBadge: "KOMODO", region: "Komodo",
+    tier: "Explorer", cabinBookable: true,
+    maxGuests: 14, length: "28 m", cabins: 4, build: "Reclaimed ironwood and teak phinisi",
+    pricePerCabin: "Quote on request", charterPrice: null, charterOnly: false,
+    tagline: "A spacious Komodo phinisi with a pirate soul and relaxed dive-deck rhythm.",
+    about: "Bajak is a 28-metre Komodo liveaboard built from reclaimed ironwood and teak. She hosts up to 14 guests across four cabins and operates exclusively inside Komodo National Park, pairing generous lounging areas, a peaceful dive deck, and solar-powered quiet time with flexible liveaboard and private-charter trips.",
+    departures: [
+      { dates: "Request live dates", duration: "4 days / 3 nights", berths: "14 berths" },
+      { dates: "Request live dates", duration: "5 days / 4 nights", berths: "14 berths" },
+      { dates: "Private charter on request", duration: "Custom Komodo route", berths: "14 berths" },
+    ],
+    itinerary: KOMODO_7,
+    conservation: `Bajak ${KOMODO_CONSERVATION}`,
+images: {
+      card: "/yachts/bajak/card.webp",
+      hero: "/yachts/bajak/hero.webp",
+      gallery: [
+        { src: "/yachts/bajak/gallery-1.webp", alt: "Bajak liveaboard in Komodo National Park" },
+        { src: "/yachts/bajak/gallery-2.webp", alt: "Bajak vessel profile" },
+        { src: "/yachts/bajak/gallery-3.webp", alt: "Bajak dive briefing area" },
+        { src: "/yachts/bajak/gallery-4.webp", alt: "Bajak shared cabin" },
+        { src: "/yachts/bajak/gallery-5.webp", alt: "Bajak dive deck and water access" },
+      ],
+    },
+  },
+
+  // CAPOENG
+  {
+    slug: "capoeng", name: "Capoeng", firstName: "Capoeng",
+    locationBadge: "KOMODO", region: "Komodo",
+    tier: "Explorer", cabinBookable: true,
+    maxGuests: 8, length: "18 m", cabins: 4, build: "Traditional Indonesian liveaboard",
+    pricePerCabin: "Quote on request", charterPrice: null, charterOnly: false,
+    tagline: "A compact small-group Komodo liveaboard built for eat, dive, sleep, repeat days.",
+    about: "Capoeng is Scuba Republic's compact Komodo liveaboard for divers who want a friendly, authentic boat with modern comfort. She carries eight guests in four cabins, runs three-day Komodo routes with signature sites such as Shotgun, Crystal Rock, Castle Rock, Wae Nilu, and Rinca, and keeps the atmosphere casual between dives.",
+    departures: [
+      { dates: "Request live dates", duration: "3 days / 2 nights", berths: "8 berths" },
+      { dates: "Request live dates", duration: "Private short Komodo charter", berths: "8 berths" },
+      { dates: "Seasonal departures", duration: "Komodo dive circuit", berths: "8 berths" },
+    ],
+    itinerary: KOMODO_7,
+    conservation: `Capoeng ${KOMODO_CONSERVATION}`,
+images: {
+      card: "/yachts/capoeng/card.webp",
+      hero: "/yachts/capoeng/hero.webp",
+      gallery: [
+        { src: "/yachts/capoeng/gallery-1.webp", alt: "Capoeng liveaboard in Komodo" },
+        { src: "/yachts/capoeng/gallery-2.webp", alt: "Capoeng on a Komodo liveaboard route" },
+        { src: "/yachts/capoeng/gallery-3.webp", alt: "Capoeng dive deck" },
+        { src: "/yachts/capoeng/gallery-4.webp", alt: "Capoeng in Komodo National Park" },
+        { src: "/yachts/capoeng/gallery-5.webp", alt: "Capoeng cabin" },
+      ],
+    },
+  },
+
+  // JAYA
+  {
+    slug: "jaya", name: "Jaya", firstName: "Jaya",
+    locationBadge: "RAJA AMPAT", region: "Raja Ampat",
+    tier: "Explorer", cabinBookable: true,
+    maxGuests: 14, length: "23 m", cabins: 7, build: "Built 1999, refreshed expedition phinisi",
+    pricePerCabin: "Quote on request", charterPrice: null, charterOnly: false,
+    tagline: "Scuba Republic's expedition vessel for Raja Ampat and long-range Indonesian routes.",
+    about: "Jaya is Scuba Republic's expedition liveaboard, a 23-metre phinisi-style vessel that moves seasonally through Raja Ampat and longer routes such as Alor, Ambon, Maumere, and Banda. She carries 14 guests in seven cabins, with a shaded upper deck, dedicated dive deck, AC cabins, shared and en-suite bathroom layouts, and free WiFi aboard.",
+    departures: [
+      { dates: "Request live dates", duration: "Raja Ampat season", berths: "14 berths" },
+      { dates: "Request live dates", duration: "Long-range expedition", berths: "14 berths" },
+      { dates: "Private charter on request", duration: "Custom expedition route", berths: "14 berths" },
+    ],
+    itinerary: RAJA_AMPAT_7,
+    conservation: `Jaya ${RAJA_CONSERVATION}`,
+images: {
+      card: "/yachts/jaya/card.webp",
+      hero: "/yachts/jaya/hero.webp",
+      gallery: [
+        { src: "/yachts/jaya/gallery-1.webp", alt: "Jaya interior lounge and dining area" },
+        { src: "/yachts/jaya/gallery-2.webp", alt: "Jaya guest cabin" },
+        { src: "/yachts/jaya/gallery-3.webp", alt: "Jaya shaded upper deck" },
+        { src: "/yachts/jaya/gallery-4.webp", alt: "Jaya liveaboard deck" },
+        { src: "/yachts/jaya/gallery-5.webp", alt: "Jaya double cabin" },
+      ],
+    },
+  },
+
+  // EPICA
+  {
+    slug: "epica", name: "Epica", firstName: "Epica",
+    locationBadge: "RAJA AMPAT", region: "Raja Ampat",
+    tier: "Explorer", cabinBookable: true,
+    maxGuests: 12, length: "24 m", cabins: 6, build: "Refitted traditional fishing boat",
+    pricePerCabin: "Quote on request", charterPrice: null, charterOnly: false,
+    tagline: "A budget-friendly Raja Ampat dive liveaboard with AC cabins and real expedition access.",
+    about: "Epica is a 24-metre Raja Ampat liveaboard operated by Scuba Republic for guests who want access to world-class dive sites at a lighter budget. The traditional fishing boat has been refitted for diving, carries 12 guests in six AC cabins with bunk beds, and keeps shared spaces simple, social, and close to the water.",
+    departures: [
+      { dates: "Request live dates", duration: "Raja Ampat season", berths: "12 berths" },
+      { dates: "Request live dates", duration: "Short Raja Ampat dive trip", berths: "12 berths" },
+      { dates: "Private charter on request", duration: "Custom Raja Ampat route", berths: "12 berths" },
+    ],
+    itinerary: RAJA_AMPAT_7,
+    conservation: `Epica ${RAJA_CONSERVATION}`,
+images: {
+      card: "/yachts/epica/card.webp",
+      hero: "/yachts/epica/hero.webp",
+      gallery: [
+        { src: "/yachts/epica/gallery-1.webp", alt: "Epica dinghy and dive tender" },
+        { src: "/yachts/epica/gallery-2.webp", alt: "Epica guests in Raja Ampat" },
+        { src: "/yachts/epica/gallery-3.webp", alt: "Epica dining area" },
+        { src: "/yachts/epica/gallery-4.webp", alt: "Epica liveaboard side profile" },
+        { src: "/yachts/epica/gallery-5.webp", alt: "Epica dive deck" },
+      ],
+    },
+  },
+
   // â”€â”€â”€ 17 Â· MISCHIEF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     slug: "mischief", name: "Mischief", firstName: "Mischief",

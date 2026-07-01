@@ -241,15 +241,8 @@ function ReelCard({
           active ? "border-white/42" : "border-white/12"
         }`}
       >
-        {active && reel.reelHref ? (
-          <>
-            <InstagramMediaFrame
-              reel={reel}
-              className="h-full w-full"
-              autoplay
-            />
-            <span className="absolute inset-0 z-20 cursor-pointer" />
-          </>
+        {Math.abs(offset) <= 1 && reel.reelHref ? (
+          <InstagramMediaFrame reel={reel} className="h-full w-full" />
         ) : (
           <ReelThumbnail
             index={index}
@@ -257,6 +250,7 @@ function ReelCard({
             visible={Math.abs(offset) <= 2}
           />
         )}
+        {active ? <span className="absolute inset-0 z-20 cursor-pointer" /> : null}
 
         <div className="pointer-events-none absolute left-4 top-4 z-30 flex items-center gap-2 rounded-full bg-black/30 px-3 py-2 text-[11px] font-light text-white/86 backdrop-blur-xl">
           <InstagramIcon />
@@ -285,7 +279,7 @@ function ReelPlayer({ reel }: { reel: Reel }) {
     return (
       <video
         src={reel.videoSrc}
-        poster={reel.thumbnail || getInstagramMediaUrl(reel.reelHref)}
+        poster={reel.thumbnail}
         className="h-full w-full object-cover"
         controls
         autoPlay
@@ -448,18 +442,6 @@ function getInstagramEmbedUrl(href: string, autoplay = false) {
   }
 }
 
-function getInstagramMediaUrl(href: string) {
-  if (!href) {
-    return "";
-  }
-
-  try {
-    return `/api/instagram/reel-thumbnail?url=${encodeURIComponent(href)}`;
-  } catch {
-    return "";
-  }
-}
-
 function ReelThumbnail({
   index,
   reel,
@@ -473,7 +455,7 @@ function ReelThumbnail({
     return <ReelPoster index={index} reel={reel} />;
   }
 
-  const thumbnailSrc = reel.thumbnail || getInstagramMediaUrl(reel.reelHref);
+  const thumbnailSrc = reel.thumbnail ?? "";
 
   return (
     <>
