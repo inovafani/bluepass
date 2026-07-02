@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  approveKaiCoreBluePassQuote,
   forwardWhatsAppWebhookToKaiCore,
+  getKaiCoreBluePassQuote,
   handleKaiCoreWebChat,
   listKaiCoreBluePassInquiries,
 } from "@/lib/services/kai-core/client";
@@ -325,5 +327,103 @@ describe("listKaiCoreBluePassInquiries", () => {
         ],
       }),
     ]);
+  });
+});
+
+describe("Kai Core BluePass quotes", () => {
+  it("fetches a verified quote from Kai Core", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      Response.json({
+        quote: {
+          id: "inq_1",
+          inquiryId: "inq_1",
+          status: "READY_FOR_TRAVELLER",
+          selectedYachtName: "Calico Jack",
+          operatorName: "Calico Jack",
+          destination: "Komodo",
+          dateWindow: "6 July",
+          guests: 2,
+          currency: "USD",
+          grossPriceCents: 390000,
+          conservationContributionCents: 19500,
+          inclusions: "full board meals",
+          exclusions: "flights",
+          terms: "30% deposit",
+          source: "operator_counter",
+          quoteUrl: "https://bluepass.co/quotes/inq_1",
+          createdAt: "2026-07-02T00:00:00.000Z",
+          updatedAt: "2026-07-02T00:00:00.000Z",
+        },
+      }),
+    );
+
+    const quote = await getKaiCoreBluePassQuote(
+      { quoteId: "inq_1" },
+      {
+        KAI_CORE_BASE_URL: "https://kai-core.example.com",
+        KAI_CORE_ORIGIN: "https://bluepass.co",
+      },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://kai-core.example.com/api/bluepass/quotes/inq_1",
+      expect.objectContaining({
+        method: "GET",
+        headers: expect.objectContaining({
+          origin: "https://bluepass.co",
+        }),
+      }),
+    );
+    expect(quote).toMatchObject({
+      id: "inq_1",
+      status: "READY_FOR_TRAVELLER",
+      grossPriceCents: 390000,
+    });
+  });
+
+  it("approves a verified quote through Kai Core", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      Response.json({
+        quote: {
+          id: "inq_1",
+          inquiryId: "inq_1",
+          status: "TRAVELLER_APPROVED",
+          selectedYachtName: "Calico Jack",
+          operatorName: "Calico Jack",
+          destination: "Komodo",
+          dateWindow: "6 July",
+          guests: 2,
+          currency: "USD",
+          grossPriceCents: 390000,
+          conservationContributionCents: 19500,
+          inclusions: "full board meals",
+          exclusions: "flights",
+          terms: "30% deposit",
+          source: "operator_counter",
+          quoteUrl: "https://bluepass.co/quotes/inq_1",
+          createdAt: "2026-07-02T00:00:00.000Z",
+          updatedAt: "2026-07-02T00:01:00.000Z",
+        },
+      }),
+    );
+
+    const quote = await approveKaiCoreBluePassQuote(
+      { quoteId: "inq_1" },
+      {
+        KAI_CORE_BASE_URL: "https://kai-core.example.com",
+        KAI_CORE_ORIGIN: "https://bluepass.co",
+      },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://kai-core.example.com/api/bluepass/quotes/inq_1",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ action: "approve" }),
+      }),
+    );
+    expect(quote.status).toBe("TRAVELLER_APPROVED");
   });
 });

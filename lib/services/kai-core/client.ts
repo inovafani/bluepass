@@ -85,6 +85,27 @@ type KaiCoreBluePassInquiryDispatchResponse = {
   createdAt: string;
 };
 
+type KaiCoreBluePassQuoteResponse = {
+  id: string;
+  inquiryId: string;
+  status: "NEEDS_FINAL_PRICE" | "READY_FOR_TRAVELLER" | "TRAVELLER_APPROVED";
+  selectedYachtName: string | null;
+  operatorName: string | null;
+  destination: string | null;
+  dateWindow: string | null;
+  guests: number | null;
+  currency: string;
+  grossPriceCents: number | null;
+  conservationContributionCents: number | null;
+  inclusions: string | null;
+  exclusions: string | null;
+  terms: string | null;
+  source: "operator_accept" | "operator_counter";
+  quoteUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type KaiCoreBluePassInquiry = {
   source: "kai-core";
   id: string;
@@ -110,6 +131,8 @@ export type KaiCoreBluePassInquiry = {
     createdAt: string;
   }>;
 };
+
+export type KaiCoreBluePassQuote = KaiCoreBluePassQuoteResponse;
 
 export async function handleKaiCoreWebChat(
   input: KaiCoreWebChatInput,
@@ -217,6 +240,63 @@ export async function listKaiCoreBluePassInquiries(
 
   const data = (await response.json()) as { inquiries?: KaiCoreBluePassInquiryResponse[] };
   return (data.inquiries ?? []).map(toKaiCoreBluePassInquiry);
+}
+
+export async function getKaiCoreBluePassQuote(
+  input: { quoteId: string },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCoreBluePassQuote | null> {
+  const config = resolveKaiCoreConfig(env);
+  const response = await fetchKaiCoreWithRetry(
+    fetchImpl,
+    `${config.baseUrl}/api/bluepass/quotes/${encodeURIComponent(input.quoteId)}`,
+    {
+      method: "GET",
+      headers: buildKaiCoreHeaders(config),
+      cache: "no-store",
+    },
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error("Kai Core BluePass quote request failed.");
+  }
+
+  const data = (await response.json()) as { quote?: KaiCoreBluePassQuoteResponse };
+  return data.quote ?? null;
+}
+
+export async function approveKaiCoreBluePassQuote(
+  input: { quoteId: string },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCoreBluePassQuote> {
+  const config = resolveKaiCoreConfig(env);
+  const response = await fetchKaiCoreWithRetry(
+    fetchImpl,
+    `${config.baseUrl}/api/bluepass/quotes/${encodeURIComponent(input.quoteId)}`,
+    {
+      method: "POST",
+      headers: buildKaiCoreHeaders(config),
+      body: JSON.stringify({ action: "approve" }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Kai Core BluePass quote approval failed.");
+  }
+
+  const data = (await response.json()) as { quote?: KaiCoreBluePassQuoteResponse };
+  if (!data.quote) {
+    throw new Error("Kai Core quote approval response did not include a quote.");
+  }
+
+  return data.quote;
 }
 
 async function createKaiCoreSession(input: {
