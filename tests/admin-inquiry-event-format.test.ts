@@ -15,6 +15,7 @@ describe("admin inquiry event formatting", () => {
 
   it("appends alternative chain context to the event summary", () => {
     const summary = formatInquiryEventSummary({
+      type: "INQUIRY_CREATED",
       actorType: "SYSTEM",
       fromStatus: null,
       toStatus: "READY_TO_DISPATCH",
@@ -26,8 +27,43 @@ describe("admin inquiry event formatting", () => {
       },
     });
 
-    expect(summary).toContain("system");
-    expect(summary).toContain("new -> ready_to_dispatch");
+    expect(summary).toContain("Inquiry created");
     expect(summary).toContain("Calico Jack declined -> Alila Purnama dispatched");
+  });
+
+  it("formats Kai Core operator acceptance without duplicated status transitions", () => {
+    const summary = formatInquiryEventSummary({
+      type: "OPERATOR_RESPONSE_ACCEPTED",
+      actorType: null,
+      fromStatus: "OPERATOR_ACCEPTED",
+      toStatus: "OPERATOR_ACCEPTED",
+      createdAt: new Date("2026-07-01T06:00:00.000Z"),
+      payload: null,
+    });
+
+    expect(summary).toContain("Operator accepted");
+    expect(summary).not.toContain("operator_accepted -> operator_accepted");
+  });
+
+  it("formats traveller notification and counter offer events for admins", () => {
+    const travellerSummary = formatInquiryEventSummary({
+      type: "TRAVELLER_WHATSAPP_NOTIFICATION_SENT",
+      actorType: null,
+      fromStatus: "OPERATOR_ACCEPTED",
+      toStatus: "OPERATOR_ACCEPTED",
+      createdAt: new Date("2026-07-01T06:00:00.000Z"),
+      payload: null,
+    });
+    const counterSummary = formatInquiryEventSummary({
+      type: "OPERATOR_RESPONSE_COUNTERED",
+      actorType: null,
+      fromStatus: "COUNTER_OFFERED",
+      toStatus: "COUNTER_OFFERED",
+      createdAt: new Date("2026-07-01T06:00:00.000Z"),
+      payload: { counterDetails: "Available 3 July, USD 3,900 per cabin." },
+    });
+
+    expect(travellerSummary).toContain("Traveller WhatsApp notified");
+    expect(counterSummary).toContain("Counter-offer received");
   });
 });
