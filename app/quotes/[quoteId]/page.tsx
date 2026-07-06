@@ -5,6 +5,7 @@ import {
   getKaiCoreBluePassQuote,
   type KaiCoreBluePassQuote,
 } from "@/lib/services/kai-core/client";
+import { formatQuoteOperationalStep, type QuoteOperationalStep } from "./quote-flow";
 
 export const metadata = {
   title: "BluePass Quote",
@@ -21,6 +22,8 @@ export default async function BluePassQuotePage({ params }: QuotePageProps) {
   if (!quote) {
     notFound();
   }
+
+  const operationalStep = formatQuoteOperationalStep(quote);
 
   return (
     <section className="cinematic-page relative min-h-svh overflow-hidden bg-[#020b11] text-white">
@@ -49,7 +52,7 @@ export default async function BluePassQuotePage({ params }: QuotePageProps) {
                 Operator response converted into a BluePass quote. Booking is not confirmed until payment and final operator confirmation are complete.
               </p>
             </div>
-            <QuoteStatusBadge status={quote.status} />
+            <QuoteStatusBadge step={operationalStep} />
           </div>
 
           <div className="grid gap-3 md:grid-cols-3">
@@ -80,7 +83,7 @@ export default async function BluePassQuotePage({ params }: QuotePageProps) {
                 label="Reef contribution"
                 value={formatMoney(quote.conservationContributionCents, quote.currency) ?? "Calculated after final price"}
               />
-              <QuoteAction quote={quote} />
+              <QuoteAction quote={quote} step={operationalStep} />
             </div>
           </div>
         </div>
@@ -89,17 +92,10 @@ export default async function BluePassQuotePage({ params }: QuotePageProps) {
   );
 }
 
-function QuoteStatusBadge({ status }: { status: KaiCoreBluePassQuote["status"] }) {
-  const label =
-    status === "TRAVELLER_APPROVED"
-      ? "Traveller approved"
-      : status === "READY_FOR_TRAVELLER"
-        ? "Ready to approve"
-        : "Final price pending";
-
+function QuoteStatusBadge({ step }: { step: QuoteOperationalStep }) {
   return (
-    <span className="inline-flex w-fit rounded-full border border-[#9fe8df]/24 bg-[#9fe8df]/12 px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-[#d9fffa]">
-      {label}
+    <span className={`inline-flex w-fit rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] ${getQuoteStepToneClass(step.tone)}`}>
+      {step.label}
     </span>
   );
 }
@@ -122,12 +118,13 @@ function QuoteText({ label, value, fallback }: { label: string; value: string | 
   );
 }
 
-function QuoteAction({ quote }: { quote: KaiCoreBluePassQuote }) {
-  if (quote.status === "TRAVELLER_APPROVED") {
+function QuoteAction({ quote, step }: { quote: KaiCoreBluePassQuote; step: QuoteOperationalStep }) {
+  if (quote.operationalStatus === "BOOKING_CONFIRMED" || quote.operationalStatus === "PAYMENT_READY" || quote.status === "TRAVELLER_APPROVED") {
     return (
-      <p className="rounded-xl border border-emerald-300/24 bg-emerald-300/12 p-3 text-sm font-semibold text-emerald-50">
-        Quote approved. BluePass will continue with payment and operator confirmation.
-      </p>
+      <div className={`rounded-xl border p-3 text-sm font-semibold leading-6 ${getQuoteStepPanelClass(step.tone)}`}>
+        <p className="text-[10px] font-black uppercase tracking-[0.14em] opacity-70">{step.label}</p>
+        <p className="mt-1">{step.body}</p>
+      </div>
     );
   }
 
@@ -150,6 +147,34 @@ function QuoteAction({ quote }: { quote: KaiCoreBluePassQuote }) {
       </button>
     </form>
   );
+}
+
+function getQuoteStepToneClass(tone: QuoteOperationalStep["tone"]) {
+  switch (tone) {
+    case "done":
+      return "border-emerald-200/30 bg-emerald-300/12 text-emerald-100";
+    case "ready":
+      return "border-[#9fe8df]/24 bg-[#9fe8df]/12 text-[#d9fffa]";
+    case "blocked":
+      return "border-amber-300/24 bg-amber-300/12 text-amber-50";
+    case "waiting":
+    default:
+      return "border-sky-200/30 bg-sky-300/12 text-sky-100";
+  }
+}
+
+function getQuoteStepPanelClass(tone: QuoteOperationalStep["tone"]) {
+  switch (tone) {
+    case "done":
+      return "border-emerald-300/24 bg-emerald-300/12 text-emerald-50";
+    case "ready":
+      return "border-sky-300/24 bg-sky-300/12 text-sky-50";
+    case "blocked":
+      return "border-amber-300/24 bg-amber-300/12 text-amber-50";
+    case "waiting":
+    default:
+      return "border-white/14 bg-white/[0.08] text-white/76";
+  }
 }
 
 async function approveQuoteAction(formData: FormData) {

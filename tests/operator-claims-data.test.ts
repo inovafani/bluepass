@@ -36,4 +36,16 @@ describe("claimable operator metadata", () => {
       expect(claimableOperatorByYachtSlug[slug]?.slug).toBe("scuba-republic");
     }
   });
+
+  it("allows Calico Jack to be claimed as an operator", () => {
+    expect(claimableOperatorBySlug["calico-jack"]).toEqual(
+      expect.objectContaining({
+        slug: "calico-jack",
+        name: "Calico Jack",
+        representativeYachtSlug: "calico-jack",
+        yachtSlugs: ["calico-jack"],
+      }),
+    );
+    expect(claimableOperatorByYachtSlug["calico-jack"]?.slug).toBe("calico-jack");
+  });
 });

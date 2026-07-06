@@ -89,6 +89,12 @@ type KaiCoreBluePassQuoteResponse = {
   id: string;
   inquiryId: string;
   status: "NEEDS_FINAL_PRICE" | "READY_FOR_TRAVELLER" | "TRAVELLER_APPROVED";
+  operationalStatus?:
+    | "NEEDS_FINAL_PRICE"
+    | "READY_FOR_TRAVELLER"
+    | "TRAVELLER_APPROVED"
+    | "PAYMENT_READY"
+    | "BOOKING_CONFIRMED";
   selectedYachtName: string | null;
   operatorName: string | null;
   destination: string | null;
@@ -100,6 +106,8 @@ type KaiCoreBluePassQuoteResponse = {
   inclusions: string | null;
   exclusions: string | null;
   terms: string | null;
+  paymentText?: string | null;
+  confirmationText?: string | null;
   source: "operator_accept" | "operator_counter";
   quoteUrl: string | null;
   createdAt: string;

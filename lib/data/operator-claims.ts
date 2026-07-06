@@ -24,6 +24,14 @@ export const claimableOperators: ClaimableOperator[] = [
     websiteUrl: "https://scuba-republic.com",
     sourceLabel: "Scuba Republic public website",
   },
+  {
+    slug: "calico-jack",
+    name: "Calico Jack",
+    yachtSlugs: ["calico-jack"],
+    representativeYachtSlug: "calico-jack",
+    websiteUrl: "https://calicojackcharters.com",
+    sourceLabel: "Calico Jack public website",
+  },
 ];
 
 export const claimableOperatorBySlug = Object.fromEntries(

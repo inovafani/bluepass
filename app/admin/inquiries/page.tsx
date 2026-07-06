@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { formatInquiryEventSummary } from "./event-format";
+import {
+  formatInquiryEventDetail,
+  formatInquiryEventSummary,
+  formatInquiryPipelineState,
+  type InquiryPipelineState,
+} from "./event-format";
 import { loadKaiCoreAdminInquiries } from "./kai-core-admin";
 import { prisma } from "@/lib/db/prisma";
 import { requireCurrentAdmin } from "@/lib/services/auth/admin";
@@ -130,11 +135,17 @@ export default async function AdminInquiriesPage() {
                     {kaiCorePipeline.inquiries.length} latest core inquiries
                   </p>
                 </div>
-                {kaiCorePipeline.inquiries.map((inquiry) => (
-                  <article
-                    key={`kai-core-${inquiry.id}`}
-                    className="rounded-2xl border border-[#9fe8df]/18 bg-[#022a2b]/55 p-4 backdrop-blur-md"
-                  >
+                {kaiCorePipeline.inquiries.map((inquiry) => {
+                  const pipelineState = formatInquiryPipelineState({
+                    status: inquiry.status,
+                    events: inquiry.events,
+                  });
+
+                  return (
+                    <article
+                      key={`kai-core-${inquiry.id}`}
+                      className="rounded-2xl border border-[#9fe8df]/18 bg-[#022a2b]/55 p-4 backdrop-blur-md"
+                    >
                     <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -178,17 +189,30 @@ export default async function AdminInquiriesPage() {
                       </div>
                     </div>
 
+                    <PipelineStatePanel state={pipelineState} />
+
                     <div className="mt-4 rounded-xl border border-white/10 bg-black/15 p-3">
                       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
                         Latest core events
                       </p>
                       <div className="mt-3 grid gap-2">
                         {inquiry.events.length ? (
-                          inquiry.events.slice(0, 3).map((event) => (
-                            <p key={event.id} className="text-xs text-white/58">
-                              {formatInquiryEventSummary(event)}
-                            </p>
-                          ))
+                          inquiry.events.slice(0, 3).map((event) => {
+                            const detail = formatInquiryEventDetail(event);
+
+                            return (
+                              <div key={event.id} className="grid gap-1">
+                                <p className="text-xs text-white/58">
+                                  {formatInquiryEventSummary(event)}
+                                </p>
+                                {detail ? (
+                                  <p className="text-xs leading-relaxed text-white/42">
+                                    {detail}
+                                  </p>
+                                ) : null}
+                              </div>
+                            );
+                          })
                         ) : (
                           <p className="text-xs text-white/44">
                             No operator action yet.
@@ -196,14 +220,19 @@ export default async function AdminInquiriesPage() {
                         )}
                       </div>
                     </div>
-                  </article>
-                ))}
+                    </article>
+                  );
+                })}
               </div>
             ) : null}
 
             {inquiries.length ? (
               inquiries.map((inquiry) => {
                 const outbound = inquiry.outboundMessages[0];
+                const pipelineState = formatInquiryPipelineState({
+                  status: inquiry.status,
+                  events: inquiry.events,
+                });
 
                 return (
                   <article
@@ -248,17 +277,30 @@ export default async function AdminInquiriesPage() {
                       </div>
                     </div>
 
+                    <PipelineStatePanel state={pipelineState} />
+
                     <div className="mt-4 rounded-xl border border-white/10 bg-black/15 p-3">
                       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
                         Latest events
                       </p>
                       <div className="mt-3 grid gap-2">
                         {inquiry.events.length ? (
-                          inquiry.events.map((event) => (
-                            <p key={event.id} className="text-xs text-white/58">
-                              {formatInquiryEventSummary(event)}
-                            </p>
-                          ))
+                          inquiry.events.map((event) => {
+                            const detail = formatInquiryEventDetail(event);
+
+                            return (
+                              <div key={event.id} className="grid gap-1">
+                                <p className="text-xs text-white/58">
+                                  {formatInquiryEventSummary(event)}
+                                </p>
+                                {detail ? (
+                                  <p className="text-xs leading-relaxed text-white/42">
+                                    {detail}
+                                  </p>
+                                ) : null}
+                              </div>
+                            );
+                          })
                         ) : (
                           <p className="text-xs text-white/44">
                             No operator action yet.
@@ -290,6 +332,45 @@ function AdminMetric({ label, value }: { label: string; value: string }) {
       <p className="mt-2 truncate text-sm font-black text-white">{value}</p>
     </div>
   );
+}
+
+function PipelineStatePanel({ state }: { state: InquiryPipelineState }) {
+  const toneClass = getPipelineToneClass(state.tone);
+
+  return (
+    <div className="mt-4 border-t border-white/10 pt-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+            Current step
+          </p>
+          <p className="mt-1 text-sm font-black text-white">{state.label}</p>
+        </div>
+        <span
+          className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${toneClass}`}
+        >
+          {state.tone}
+        </span>
+      </div>
+      <p className="mt-2 text-xs leading-5 text-white/58">{state.nextAction}</p>
+    </div>
+  );
+}
+
+function getPipelineToneClass(tone: InquiryPipelineState["tone"]) {
+  switch (tone) {
+    case "done":
+      return "border-emerald-200/30 bg-emerald-300/12 text-emerald-100";
+    case "ready":
+      return "border-sky-200/30 bg-sky-300/12 text-sky-100";
+    case "action":
+      return "border-amber-200/30 bg-amber-300/12 text-amber-100";
+    case "blocked":
+      return "border-rose-200/30 bg-rose-300/12 text-rose-100";
+    case "waiting":
+    default:
+      return "border-white/16 bg-white/[0.08] text-white/62";
+  }
 }
 
 function formatReferral(inquiry: {
