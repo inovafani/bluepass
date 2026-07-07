@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
+import { listClaimedOperatorYachtSlugs } from "@/lib/services/operators/operator-claim-status";
 import { FleetBrowser } from "./FleetBrowser";
 import { KaiSearchHero } from "./KaiSearchHero";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Discover | BluePass",
@@ -43,7 +46,9 @@ const conservationCards = [
   },
 ];
 
-export default function DiscoverPage() {
+export default async function DiscoverPage() {
+  const claimedYachtSlugs = await listClaimedOperatorYachtSlugs();
+
   return (
     <>
       <main className="cinematic-page min-h-screen bg-[#020b11] text-white">
@@ -52,7 +57,7 @@ export default function DiscoverPage() {
 
         {/* Fleet browser */}
         <div id="fleet">
-          <FleetBrowser />
+          <FleetBrowser claimedYachtSlugs={claimedYachtSlugs} />
         </div>
 
         {/* Conservation & Partners carousel */}

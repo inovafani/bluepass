@@ -23,6 +23,14 @@ describe("yacht unclaimed claim banner", () => {
     );
   });
 
+  it("does not build a claim display once the yacht has an approved operator profile", () => {
+    const display = buildYachtClaimDisplay("calico-jack", yachtBySlug["calico-jack"], {
+      isClaimed: true,
+    });
+
+    expect(display).toBeUndefined();
+  });
+
   it("renders an inline unclaimed claim CTA for the hero meta area", () => {
     const html = renderToStaticMarkup(
       createElement(UnclaimedOperatorInlineClaim, {

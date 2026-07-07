@@ -7,7 +7,10 @@ import { ArrowRight } from "@/app/components/icons/ArrowRight";
 import { claimableOperatorByYachtSlug } from "@/lib/data/operator-claims";
 import { yachts, yachtBySlug } from "@/lib/data/yachts";
 import type { Yacht } from "@/lib/data/yachts";
+import { isYachtClaimedByApprovedOperator } from "@/lib/services/operators/operator-claim-status";
 import { GalleryLightbox } from "./GalleryLightbox";
+
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   return yachts.map((y) => ({ slug: y.slug }));
@@ -35,7 +38,8 @@ export default async function YachtPage({
   const { slug } = await params;
   const yacht = yachtBySlug[slug];
   if (!yacht) notFound();
-  const claimDisplay = buildYachtClaimDisplay(slug, yacht);
+  const isClaimed = await isYachtClaimedByApprovedOperator(slug);
+  const claimDisplay = buildYachtClaimDisplay(slug, yacht, { isClaimed });
 
   return (
     <>
@@ -338,8 +342,12 @@ export default async function YachtPage({
   );
 }
 
-export function buildYachtClaimDisplay(slug: string, yacht?: Yacht) {
+export function buildYachtClaimDisplay(slug: string, yacht?: Yacht, options?: { isClaimed?: boolean }) {
   if (!yacht) {
+    return undefined;
+  }
+
+  if (options?.isClaimed) {
     return undefined;
   }
 

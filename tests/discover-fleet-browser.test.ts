@@ -47,4 +47,10 @@ describe("discover fleet browser", () => {
     );
     expect(badges.map((badge) => badge.label)).not.toContain("Cabin OK");
   });
+
+  it("hides the unclaimed badge for yachts with approved operator profiles", () => {
+    const badges = getDiscoverYachtBadges(yachtBySlug["calico-jack"], ["calico-jack"]);
+
+    expect(badges.map((badge) => badge.label)).not.toContain("UNCLAIMED");
+  });
 });

@@ -19,11 +19,19 @@ export type DiscoverFilters = {
   search: string;
 };
 
-export function FleetBrowser() {
+export function FleetBrowser({
+  claimedYachtSlugs = [],
+}: {
+  claimedYachtSlugs?: string[];
+}) {
   const [region, setRegion] = useState<Region>("All");
   const [tier, setTier] = useState<Tier>("All");
   const [booking, setBooking] = useState<Booking>("Any");
   const [search, setSearch] = useState("");
+  const claimedYachtSlugSet = useMemo(
+    () => new Set(claimedYachtSlugs.map(normalizeClaimedYachtSlug)),
+    [claimedYachtSlugs],
+  );
 
   const filtered = useMemo(
     () => filterDiscoverYachts({ region, tier, booking, search }),
@@ -96,7 +104,7 @@ export function FleetBrowser() {
                     }}
                   />
                   <div className="absolute left-2.5 top-2.5 z-10 flex flex-wrap gap-1.5">
-                    {getDiscoverYachtBadges(yacht).map((badge) => (
+                    {getDiscoverYachtBadges(yacht, claimedYachtSlugSet).map((badge) => (
                       <DiscoverBadge
                         key={`${badge.kind}-${badge.label}`}
                         kind={badge.kind}
@@ -204,7 +212,7 @@ export function buildYachtSearchText(yacht: Yacht) {
   return normalizeSearch(parts.filter(Boolean).join(" "));
 }
 
-export function getDiscoverYachtBadges(yacht: Yacht) {
+export function getDiscoverYachtBadges(yacht: Yacht, claimedYachtSlugs?: ReadonlySet<string> | string[]) {
   const badges: Array<{ label: string; kind: DiscoverBadgeKind }> = [
     { label: yacht.locationBadge, kind: "region" },
   ];
@@ -213,11 +221,25 @@ export function getDiscoverYachtBadges(yacht: Yacht) {
     badges.push({ label: yacht.tier, kind: "tier" });
   }
 
-  if (claimableOperatorByYachtSlug[yacht.slug]) {
+  if (claimableOperatorByYachtSlug[yacht.slug] && !isYachtClaimed(yacht.slug, claimedYachtSlugs)) {
     badges.push({ label: "UNCLAIMED", kind: "unclaimed" });
   }
 
   return badges;
+}
+
+function isYachtClaimed(yachtSlug: string, claimedYachtSlugs?: ReadonlySet<string> | string[]) {
+  const normalizedSlug = normalizeClaimedYachtSlug(yachtSlug);
+  if (!claimedYachtSlugs) return false;
+  if (Array.isArray(claimedYachtSlugs)) {
+    return claimedYachtSlugs.map(normalizeClaimedYachtSlug).includes(normalizedSlug);
+  }
+
+  return claimedYachtSlugs.has(normalizedSlug);
+}
+
+function normalizeClaimedYachtSlug(value: string) {
+  return value.trim().toLowerCase();
 }
 
 function normalizeSearch(value: string) {
