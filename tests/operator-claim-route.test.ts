@@ -22,7 +22,7 @@ afterEach(() => {
 
 describe("operator claim route", () => {
   it("rejects signed-out claim submissions", async () => {
-    vi.mocked(getCurrentTraveller).mockResolvedValue(null);
+    vi.mocked(getCurrentTraveller).mockResolvedValue(undefined);
 
     const response = await POST(buildRequest({ operatorSlug: "scuba-republic" }));
 
@@ -36,15 +36,17 @@ describe("operator claim route", () => {
   it("creates a claim for the signed-in account", async () => {
     vi.mocked(getCurrentTraveller).mockResolvedValue({
       accountId: "acct_123",
+      id: "account_traveller_123",
       email: "owner@scuba-republic.com",
       name: "Sri",
       phone: "+628123",
+      roles: ["OPERATOR"],
     });
     vi.mocked(createOperatorClaimForAccount).mockResolvedValue({
       id: "claim_123",
       operatorSlug: "scuba-republic",
       status: "PENDING_REVIEW",
-    });
+    } as Awaited<ReturnType<typeof createOperatorClaimForAccount>>);
 
     const response = await POST(
       buildRequest({

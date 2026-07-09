@@ -52,6 +52,8 @@ const readyInquiry = {
   budget: "$2,000",
   notes: "Mantas please",
   operatorId: null,
+  referralCode: null,
+  referralRole: null,
 };
 
 describe("operator dispatch service", () => {

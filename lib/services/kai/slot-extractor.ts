@@ -473,7 +473,16 @@ function findTravellerName(
   );
 
   if (explicitMatch) {
-    return cleanTravellerName(explicitMatch[1]);
+    const candidate = cleanTravellerName(explicitMatch[1]);
+    const candidateNormalized = normalize(candidate);
+
+    if (
+      !looksLikeYachtSelection(normalize(explicitMatch[0])) &&
+      !looksLikeYachtSelection(candidateNormalized) &&
+      !findSelectedYachtSlug(candidateNormalized)
+    ) {
+      return candidate;
+    }
   }
 
   if (looksLikeYachtSelection(normalized)) {

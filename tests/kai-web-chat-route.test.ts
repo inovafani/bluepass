@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/kai/web-chat/history/route";
 import { POST } from "@/app/api/kai/web-chat/route";
 import { buildDeterministicReply, DEFAULT_KAI_REPLY } from "@/lib/services/kai/conversation-service";
@@ -20,6 +20,10 @@ vi.mock("@/lib/services/kai/prisma-conversation-store", () => ({
 vi.mock("@/lib/services/kai/llm-provider", () => ({
   generateKaiReply: llmMocks.generateKaiReply,
 }));
+
+beforeEach(() => {
+  vi.stubEnv("KAI_CORE_ENABLED", "false");
+});
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -610,7 +614,7 @@ describe("POST /api/kai/web-chat", () => {
   });
 
   it("does not persist undefined assistant content when LLM returns nullish output", async () => {
-    llmMocks.generateKaiReply.mockResolvedValue(undefined);
+    llmMocks.generateKaiReply.mockResolvedValue(undefined as unknown as string);
 
     const response = await POST(
       buildPostRequest({

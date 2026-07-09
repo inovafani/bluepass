@@ -5,6 +5,10 @@ import {
 } from "@/lib/services/kai/conversation-service";
 import { generateKaiReply } from "@/lib/services/kai/llm-provider";
 
+type TestKaiConversationStore = KaiConversationStore & {
+  getSessionContext: NonNullable<KaiConversationStore["getSessionContext"]>;
+};
+
 const llmMocks = vi.hoisted(() => ({
   generateKaiReply: vi.fn(
     async (input: { deterministicReply: string }) => input.deterministicReply,
@@ -30,7 +34,7 @@ afterEach(() => {
   matchMocks.matchTripsForKai.mockImplementation(async () => []);
 });
 
-function buildStore(): KaiConversationStore {
+function buildStore(): TestKaiConversationStore {
   return {
     upsertSession: vi.fn(),
     addMessage: vi.fn(),

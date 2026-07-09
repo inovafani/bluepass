@@ -44,6 +44,6 @@ describe("partners page partner program content", () => {
   it("keeps reel cards tied to Instagram reel URLs instead of partner profile posters", () => {
     expect(featuredReels).toHaveLength(4);
     expect(featuredReels.every((reel) => reel.reelHref.includes("/reel/"))).toBe(true);
-    expect(featuredReels.every((reel) => reel.thumbnail === undefined)).toBe(true);
+    expect(featuredReels.every((reel) => !("thumbnail" in reel))).toBe(true);
   });
 });

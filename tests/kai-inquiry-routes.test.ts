@@ -62,7 +62,9 @@ describe("POST /api/kai/web-chat/inquiry", () => {
         id: "inq_123",
         status: "READY_TO_DISPATCH",
         selectedYachtSlug: "aliikai",
-      },
+      } as Awaited<ReturnType<typeof createInquiryFromKaiSession>> extends { inquiry: infer Inquiry }
+        ? Inquiry
+        : never,
       missingSlots: [],
       reusedExisting: false,
     });
