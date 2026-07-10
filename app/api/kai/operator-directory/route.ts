@@ -8,7 +8,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const operators = await listApprovedOperatorDirectory();
+  const operators = await listApprovedOperatorDirectory().catch((error) => {
+    console.error("kai.operator_directory_failed", error);
+
+    return [];
+  });
 
   return NextResponse.json({
     operators,

@@ -5,6 +5,7 @@ import { AdminNav } from "@/app/admin/admin-nav";
 import {
   buildOperatorOutreachPaginationItems,
   loadOperatorOutreachList,
+  operatorOutreachFilterOptions,
   type OperatorOutreachFilter,
 } from "@/lib/services/operators/operator-outreach-list";
 
@@ -27,7 +28,15 @@ export default async function AdminOperatorOutreachPage({
   const filter = params?.filter ?? "all";
   const q = params?.q ?? "";
   const page = params?.page ?? "1";
-  const outreach = await loadOperatorOutreachList({ filter, q, page });
+  let outreachLoadFailed = false;
+  const outreach = await loadOperatorOutreachList({ filter, q, page }).catch(
+    (error) => {
+      outreachLoadFailed = true;
+      console.error("operator_outreach.load_failed", error);
+
+      return buildEmptyOperatorOutreachList({ filter, q });
+    },
+  );
   const paginationItems = buildOperatorOutreachPaginationItems(
     outreach.page,
     outreach.totalPages,
@@ -93,6 +102,16 @@ export default async function AdminOperatorOutreachPage({
             />
             <OutreachStat label="Declined" value={outreach.totals.declined} />
           </div>
+
+          {outreachLoadFailed ? (
+            <div className="mt-6 rounded-2xl border border-[#f1d58a]/28 bg-[#f1d58a]/12 px-4 py-3 text-sm font-semibold leading-6 text-[#f7e7ad]">
+              Operator outreach data could not be loaded from the production
+              database. Check the Vercel logs for
+              <span className="font-mono"> operator_outreach.load_failed</span>,
+              then confirm the outreach migration and database env are pointed
+              at the same Supabase project.
+            </div>
+          ) : null}
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <form className="bp-bare-form grid gap-2 lg:w-[360px]">
@@ -235,6 +254,38 @@ export default async function AdminOperatorOutreachPage({
       </div>
     </section>
   );
+}
+
+function buildEmptyOperatorOutreachList({
+  filter,
+  q,
+}: {
+  filter: string;
+  q: string;
+}) {
+  const activeFilter = operatorOutreachFilterOptions.some(
+    (option) => option.key === filter,
+  )
+    ? (filter as OperatorOutreachFilter)
+    : "all";
+
+  return {
+    activeFilter,
+    search: q.trim(),
+    page: 1,
+    pageSize: 20,
+    filteredTotal: 0,
+    totalPages: 1,
+    filterOptions: operatorOutreachFilterOptions,
+    totals: {
+      all: 0,
+      needsOutreach: 0,
+      pendingClaim: 0,
+      approved: 0,
+      declined: 0,
+    },
+    leads: [],
+  };
 }
 
 function OutreachStat({ label, value }: { label: string; value: number }) {
