@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
 import { requireCurrentAdmin } from "@/lib/services/auth/admin";
+import { AdminNav } from "@/app/admin/admin-nav";
 import { buildReferralShareUrl } from "@/lib/services/referrals/application-approval";
 import { creatorCommissionLedgerKind } from "@/lib/services/referrals/commission-ledger";
 
@@ -81,21 +82,17 @@ export default async function AdminReferralsPage() {
 
       <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-6xl flex-col justify-center px-[var(--cinematic-screen-x)] pb-14 pt-32">
         <div className="overflow-hidden rounded-2xl border border-white/16 bg-white/[0.10] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.30),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[34px] backdrop-saturate-150 sm:p-6 md:p-8">
-          <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-6 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
-                BluePass admin
-              </p>
-              <h1 className="bp-page-title mt-3 text-4xl leading-none text-white md:text-5xl">
-                Referral ledger
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/66">
-                Track referral partners, share links, attributed inquiries, and
-                pending commission estimates from Kai inquiries.
-              </p>
-            </div>
-            <p className="text-xs text-white/44">
-              Signed in as <span className="text-white/76">{admin.email}</span>
+          <AdminNav active="referrals" email={admin.email} />
+          <div className="mt-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
+              BluePass admin
+            </p>
+            <h1 className="bp-page-title mt-3 text-4xl leading-none text-white md:text-5xl">
+              Referral ledger
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/66">
+              Track referral partners, share links, attributed inquiries, and
+              pending commission estimates from Kai inquiries.
             </p>
           </div>
 

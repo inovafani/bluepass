@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
 import { requireCurrentAdmin } from "@/lib/services/auth/admin";
+import { AdminNav } from "@/app/admin/admin-nav";
 import {
   approveReferralApplication,
   buildReferralShareUrl,
@@ -81,44 +82,18 @@ export default async function AdminApplicationsPage() {
 
       <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-6xl flex-col justify-center px-[var(--cinematic-screen-x)] pb-14 pt-32">
         <div className="overflow-hidden rounded-2xl border border-white/16 bg-white/[0.10] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.30),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[34px] backdrop-saturate-150 sm:p-6 md:p-8">
-          <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-6 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
-                BluePass admin
-              </p>
-              <h1 className="bp-page-title mt-3 text-4xl leading-none text-white md:text-5xl">
-                Applications
-              </h1>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-white/66">
-                Approve partner and operator applications. Approved profiles get
-                a referral partner and share link automatically.
-              </p>
-            </div>
-            <div className="flex flex-col items-start gap-2 md:items-end">
-              <div className="flex flex-wrap gap-2">
-                <a
-                  href="/admin/operator-outreach"
-                  className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] px-4 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#071827]"
-                >
-                  Operator outreach
-                </a>
-                <a
-                  href="/admin/inquiries"
-                  className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] px-4 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#071827]"
-                >
-                  Inquiry pipeline
-                </a>
-                <a
-                  href="/admin/referrals"
-                  className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] px-4 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#071827]"
-                >
-                  Referral ledger
-                </a>
-              </div>
-              <p className="text-xs text-white/44">
-                Signed in as <span className="text-white/76">{admin.email}</span>
-              </p>
-            </div>
+          <AdminNav active="applications" email={admin.email} />
+          <div className="mt-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
+              BluePass admin
+            </p>
+            <h1 className="bp-page-title mt-3 text-4xl leading-none text-white md:text-5xl">
+              Applications
+            </h1>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-white/66">
+              Approve partner and operator applications. Approved profiles get a
+              referral partner and share link automatically.
+            </p>
           </div>
 
           <OperatorOutreachPanel overview={operatorOutreachOverview} />

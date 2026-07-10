@@ -348,6 +348,20 @@ body {
   backdrop-filter: none !important;
 }
 
+.cinematic-page form.bp-bare-form {
+  overflow: visible;
+  border-radius: 0;
+  border-color: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.cinematic-page form.bp-bare-form:hover {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
 .cinematic-page .cinematic-hero-stage > section {
   border-width: 1px !important;
   border-style: solid !important;

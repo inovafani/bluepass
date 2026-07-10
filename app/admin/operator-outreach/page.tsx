@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireCurrentAdmin } from "@/lib/services/auth/admin";
+import { AdminNav } from "@/app/admin/admin-nav";
 import {
   buildOperatorOutreachPaginationItems,
   loadOperatorOutreachList,
@@ -51,39 +52,29 @@ export default async function AdminOperatorOutreachPage({
 
       <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-7xl flex-col justify-center px-[var(--cinematic-screen-x)] pb-14 pt-32">
         <div className="overflow-hidden rounded-2xl border border-white/16 bg-white/[0.10] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.30),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[34px] backdrop-saturate-150 sm:p-6 md:p-8">
-          <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
-                BluePass admin
-              </p>
-              <h1 className="bp-page-title mt-3 text-4xl leading-none text-white md:text-5xl">
-                Operator outreach
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/66">
-                Track imported operator leads, claim links, approval state, and
-                which operators are ready to follow up.
-              </p>
-            </div>
-            <div className="flex flex-col items-start gap-2 lg:items-end">
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href="/admin/applications"
-                  className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] px-4 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#071827]"
-                >
-                  Applications
-                </Link>
-                <a
-                  href={exportHref}
-                  className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#071827] transition-colors hover:bg-white/88"
-                >
-                  Export CSV
-                </a>
-              </div>
-              <p className="text-xs text-white/44">
-                Signed in as{" "}
-                <span className="text-white/76">{admin.email}</span>
-              </p>
-            </div>
+          <AdminNav
+            active="operator-outreach"
+            email={admin.email}
+            actions={
+              <a
+                href={exportHref}
+                className="bp-focus-ring inline-flex h-9 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#071827] transition-colors hover:bg-white/88"
+              >
+                Export CSV
+              </a>
+            }
+          />
+          <div className="mt-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
+              BluePass admin
+            </p>
+            <h1 className="bp-page-title mt-3 text-4xl leading-none text-white md:text-5xl">
+              Operator outreach
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/66">
+              Track imported operator leads, claim links, approval state, and
+              which operators are ready to follow up.
+            </p>
           </div>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -103,8 +94,8 @@ export default async function AdminOperatorOutreachPage({
             <OutreachStat label="Declined" value={outreach.totals.declined} />
           </div>
 
-          <div className="mt-6 border-y border-white/10 py-5">
-            <form className="grid gap-2">
+          <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <form className="bp-bare-form grid gap-2 lg:w-[360px]">
               <input
                 type="hidden"
                 name="filter"
@@ -117,28 +108,28 @@ export default async function AdminOperatorOutreachPage({
               >
                 Search operator
               </label>
-              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_132px]">
+              <div className="flex gap-2">
                 <input
                   id="operator-search"
                   name="q"
                   defaultValue={outreach.search}
                   placeholder="Name, slug, email, region..."
-                  className="h-12 rounded-xl border border-white/18 bg-white px-4 text-sm font-semibold text-[#071827] caret-[#007a78] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] outline-none transition-colors placeholder:text-[#64727c] focus:border-[#9fe8df]/80 focus:bg-white"
+                  className="h-12 min-w-0 flex-1 rounded-xl border border-white/18 bg-white px-4 text-sm font-semibold text-[#071827] caret-[#007a78] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] outline-none transition-colors placeholder:text-[#64727c] focus:border-[#9fe8df]/80 focus:bg-white"
                 />
                 <button
                   type="submit"
-                  className="bp-focus-ring inline-flex h-12 items-center justify-center rounded-xl bg-white px-5 text-xs font-black text-[#071827] transition-colors hover:bg-white/88"
+                  className="bp-focus-ring inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-white px-5 text-xs font-black text-[#071827] transition-colors hover:bg-white/88"
                 >
                   Search
                 </button>
               </div>
             </form>
 
-            <div className="mt-5 grid gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/48">
+            <div className="grid gap-2 lg:items-end">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/48 lg:text-right">
                 Outreach status
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 lg:justify-end">
                 {outreach.filterOptions.map((option) => (
                   <FilterPill
                     key={option.key}
@@ -317,19 +308,25 @@ function PaginationBar({
         item === "ellipsis" ? (
           <span
             key={`ellipsis-${index}`}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-xs font-bold text-white/36"
+            className="inline-flex h-11 items-center justify-center px-1 text-sm font-bold text-white/36"
           >
             ...
           </span>
         ) : (
-          <PageButton
+          <Link
             key={item}
-            label={String(item)}
-            page={item}
-            filter={filter}
-            q={q}
-            active={item === currentPage}
-          />
+            href={`/admin/operator-outreach?filter=${encodeURIComponent(
+              filter,
+            )}&q=${encodeURIComponent(q)}&page=${item}`}
+            aria-current={item === currentPage ? "page" : undefined}
+            className={`bp-focus-ring inline-flex h-11 min-w-[1.75rem] items-center justify-center px-1 text-sm font-bold transition-colors ${
+              item === currentPage
+                ? "text-white underline decoration-2 underline-offset-[6px]"
+                : "text-white/52 hover:text-white"
+            }`}
+          >
+            {item}
+          </Link>
         ),
       )}
       <PageButton
@@ -358,14 +355,9 @@ function PageButton({
   q: string;
   active?: boolean;
 }) {
-  const widthClass =
-    label === "Previous" || label === "Next" ? "w-24" : "w-11";
-
   if (disabled) {
     return (
-      <span
-        className={`inline-flex h-11 ${widthClass} items-center justify-center rounded-xl border border-white/10 bg-transparent text-xs font-bold text-white/28`}
-      >
+      <span className="inline-flex h-11 w-24 items-center justify-center rounded-xl border border-white/10 bg-transparent text-xs font-bold text-white/28">
         {label}
       </span>
     );
@@ -376,7 +368,7 @@ function PageButton({
       href={`/admin/operator-outreach?filter=${encodeURIComponent(
         filter,
       )}&q=${encodeURIComponent(q)}&page=${page}`}
-      className={`bp-focus-ring inline-flex h-11 ${widthClass} items-center justify-center rounded-xl border text-xs font-bold transition-colors ${
+      className={`bp-focus-ring inline-flex h-11 w-24 items-center justify-center rounded-xl border text-xs font-bold transition-colors ${
         active
           ? "border-white bg-white text-[#071827]"
           : "border-white/18 bg-transparent text-white hover:bg-white hover:text-[#071827]"
