@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { claimableOperatorBySlug } from "@/lib/data/operator-claims";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentTraveller } from "@/lib/services/auth/session";
+import { buildOperatorDashboardClaimView } from "@/lib/services/operators/operator-dashboard-view";
 import { creatorCommissionLedgerKind } from "@/lib/services/referrals/commission-ledger";
 
 export const metadata = {
@@ -97,14 +97,8 @@ export default async function DashboardPage() {
   const operatorShareUrl = operatorLink
     ? buildReferralShareUrl(operatorLink.code, operatorLink.targetPath)
     : undefined;
-  const claimedOperator =
-    account?.operatorProfile?.claimedOperatorSlug
-      ? claimableOperatorBySlug[account.operatorProfile.claimedOperatorSlug]
-      : undefined;
-  const claimedYachtSlugs =
-    account?.operatorProfile?.claimedYachtSlugs.length
-      ? account.operatorProfile.claimedYachtSlugs
-      : claimedOperator?.yachtSlugs ?? [];
+  const operatorProfile = account?.operatorProfile ?? null;
+  const operatorClaimView = buildOperatorDashboardClaimView(operatorProfile);
 
   return (
     <section className="cinematic-page home-hero relative min-h-svh overflow-hidden bg-[#020b11] text-white">
@@ -211,15 +205,13 @@ export default async function DashboardPage() {
               )}
 
               {hasOperator ? (
-                account?.operatorProfile?.status === "APPROVED" &&
-                claimedOperator ? (
+                operatorClaimView ? (
                   <ClaimedOperatorDashboardPanel
-                    companyName={
-                      account.operatorProfile.companyName ?? claimedOperator.name
-                    }
-                    websiteUrl={account.operatorProfile.websiteUrl}
-                    claimedYachtSlugs={claimedYachtSlugs}
-                    representativeYachtSlug={claimedOperator.representativeYachtSlug}
+                    companyName={operatorClaimView.companyName}
+                    websiteUrl={operatorProfile?.websiteUrl}
+                    claimedYachtSlugs={operatorClaimView.claimedYachtSlugs}
+                    inventoryLabel={operatorClaimView.inventoryLabel}
+                    primaryHref={operatorClaimView.primaryHref}
                     referralCode={operatorLink?.code}
                     shareUrl={operatorShareUrl}
                   />
@@ -253,14 +245,16 @@ function ClaimedOperatorDashboardPanel({
   companyName,
   websiteUrl,
   claimedYachtSlugs,
-  representativeYachtSlug,
+  inventoryLabel,
+  primaryHref,
   referralCode,
   shareUrl,
 }: {
   companyName: string;
   websiteUrl?: string | null;
   claimedYachtSlugs: string[];
-  representativeYachtSlug: string;
+  inventoryLabel: string;
+  primaryHref: string;
   referralCode?: string;
   shareUrl?: string;
 }) {
@@ -275,9 +269,7 @@ function ClaimedOperatorDashboardPanel({
             {companyName}
           </h2>
           <p className="mt-2 text-sm leading-6 text-white/60">
-            {claimedYachtSlugs.length} claimed vessel
-            {claimedYachtSlugs.length === 1 ? "" : "s"} are now connected to
-            this account.
+            {inventoryLabel}
           </p>
         </div>
         {referralCode && (
@@ -287,17 +279,19 @@ function ClaimedOperatorDashboardPanel({
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {claimedYachtSlugs.map((slug) => (
-          <Link
-            key={slug}
-            href={`/yachts/${slug}`}
-            className="bp-focus-ring inline-flex h-8 items-center rounded-full border border-white/12 bg-black/14 px-3 text-[11px] font-bold text-white/72 transition-colors hover:bg-white hover:text-[#071827]"
-          >
-            /yachts/{slug}
-          </Link>
-        ))}
-      </div>
+      {claimedYachtSlugs.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {claimedYachtSlugs.map((slug) => (
+            <Link
+              key={slug}
+              href={`/yachts/${slug}`}
+              className="bp-focus-ring inline-flex h-8 items-center rounded-full border border-white/12 bg-black/14 px-3 text-[11px] font-bold text-white/72 transition-colors hover:bg-white hover:text-[#071827]"
+            >
+              /yachts/{slug}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {shareUrl && (
         <a
@@ -310,7 +304,7 @@ function ClaimedOperatorDashboardPanel({
 
       <div className="mt-5 flex flex-wrap gap-2">
         <Link
-          href={`/yachts/${representativeYachtSlug}`}
+          href={primaryHref}
           className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#071827] transition-colors hover:bg-white/88"
         >
           View claimed page

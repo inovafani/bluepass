@@ -84,6 +84,24 @@ enum OperatorClaimStatus {
   DECLINED
 }
 
+enum OperatorLeadStatus {
+  IMPORTED
+  CLAIM_LINK_REQUESTED
+  CLAIM_SUBMITTED
+  APPROVED
+  LIVE
+  DECLINED
+  MANUAL_REVIEW
+}
+
+enum OperatorPmsReadinessStatus {
+  NEEDS_CREDENTIALS
+  CREDENTIALS_SUBMITTED
+  CONNECTED
+  SYNCED
+  MANUAL_REVIEW
+}
+
 enum KaiChannel {
   WEB      @map("web")
   WHATSAPP @map("whatsapp")
@@ -321,11 +339,66 @@ model OperatorProfile {
   updatedAt   DateTime          @updatedAt
   account     BluePassAccount   @relation(fields: [accountId], references: [id], onDelete: Cascade)
   referralPartner ReferralPartner? @relation(fields: [referralPartnerId], references: [id], onDelete: SetNull)
+  pmsReadiness OperatorPmsReadiness?
 
   @@index([status])
   @@index([companyName])
   @@index([claimedOperatorSlug])
   @@index([referralPartnerId])
+}
+
+model OperatorLead {
+  id          String             @id @default(cuid())
+  slug        String             @unique
+  name        String
+  category    String?
+  region      String?
+  email       String?
+  phone       String?
+  claimUrl    String?
+  websiteUrl  String?
+  source      String             @default("csv")
+  status      OperatorLeadStatus @default(IMPORTED)
+  lastOutreachAt DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  claimTokens OperatorClaimToken[]
+  outreachEvents OperatorOutreachEvent[]
+
+  @@index([status])
+  @@index([email])
+  @@index([region])
+}
+
+model OperatorClaimToken {
+  id          String       @id @default(cuid())
+  operatorLeadId String
+  tokenHash   String       @unique
+  email       String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime     @default(now())
+  operatorLead OperatorLead @relation(fields: [operatorLeadId], references: [id], onDelete: Cascade)
+
+  @@index([operatorLeadId])
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model OperatorOutreachEvent {
+  id          String        @id @default(cuid())
+  operatorLeadId String?
+  operatorSlug String
+  type        String
+  message     String?
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  operatorLead OperatorLead? @relation(fields: [operatorLeadId], references: [id], onDelete: SetNull)
+
+  @@index([operatorLeadId])
+  @@index([operatorSlug])
+  @@index([type])
+  @@index([createdAt])
 }
 
 model OperatorClaim {
@@ -351,6 +424,23 @@ model OperatorClaim {
   @@index([operatorSlug])
   @@index([accountId])
   @@index([status])
+}
+
+model OperatorPmsReadiness {
+  id          String                    @id @default(cuid())
+  operatorProfileId String              @unique
+  platform    PmsPlatform
+  status      OperatorPmsReadinessStatus @default(NEEDS_CREDENTIALS)
+  contactEmail String?
+  contactWhatsapp String?
+  notes       String?
+  metadata    Json?
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  operatorProfile OperatorProfile       @relation(fields: [operatorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([platform])
 }
 
 model CommissionLedgerEntry {
@@ -421,6 +511,7 @@ model Booking {
   traveller              Traveller              @relation(fields: [travellerId], references: [id])
   events                 BookingEvent[]
   conservationTransfer   ConservationTransfer?
+  bookingInquiry         BookingInquiry?
 
   @@index([operatorId, status])
   @@index([travellerId])
@@ -503,16 +594,19 @@ model BookingInquiry {
   referralPartnerId   String?
   referralCode        String?
   referralRole        ReferralPartnerRole?
+  bookingId           String?                @unique
   status              BookingInquiryStatus  @default(DRAFT)
   operatorId          String?
   createdAt           DateTime               @default(now())
   updatedAt           DateTime               @updatedAt
+  booking             Booking?               @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   operator            Operator?              @relation(fields: [operatorId], references: [id])
   referralLink        ReferralLink?          @relation(fields: [referralLinkId], references: [id])
   referralPartner     ReferralPartner?       @relation(fields: [referralPartnerId], references: [id])
   outboundMessages    WhatsAppOutboundMessage[]
   events              BookingInquiryEvent[]
 
+  @@index([bookingId])
   @@index([kaiSessionId, status])
   @@index([selectedYachtSlug])
   @@index([operatorId, status])

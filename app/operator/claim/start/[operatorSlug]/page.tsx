@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
-import { claimableOperatorBySlug } from "@/lib/data/operator-claims";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentTraveller } from "@/lib/services/auth/session";
+import {
+  getClaimableOperator,
+  getClaimableOperatorBackHref,
+} from "@/lib/services/operators/claimable-operators";
+import { ClaimEmailLinkForm } from "./ClaimEmailLinkForm";
 import { ClaimStartForm } from "./ClaimStartForm";
 
 export const metadata = {
@@ -16,7 +20,7 @@ export default async function OperatorClaimStartPage({
   params: Promise<{ operatorSlug: string }>;
 }) {
   const { operatorSlug } = await params;
-  const operator = claimableOperatorBySlug[operatorSlug];
+  const operator = await getClaimableOperator(operatorSlug);
 
   if (!operator) {
     notFound();
@@ -32,8 +36,7 @@ export default async function OperatorClaimStartPage({
         orderBy: { createdAt: "desc" },
       })
     : null;
-  const representativeHref = `/yachts/${operator.representativeYachtSlug}`;
-  const nextPath = `/operator/claim/start/${operator.slug}`;
+  const representativeHref = getClaimableOperatorBackHref(operator);
 
   return (
     <>
@@ -93,27 +96,10 @@ export default async function OperatorClaimStartPage({
                 defaultPhone={traveller.phone}
               />
             ) : (
-              <div className="mt-10 rounded-2xl border border-white/14 bg-white/[0.08] p-5 backdrop-blur-md">
-                <p className="text-sm leading-6 text-white/68">
-                  Claim requests are tied to a verified BluePass account so the
-                  dashboard, referrals, and review history stay attached to the
-                  right person.
-                </p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <Link
-                    href={`/register?next=${encodeURIComponent(nextPath)}`}
-                    className="bp-focus-ring inline-flex h-12 items-center justify-center rounded-full bg-white px-5 text-sm font-black text-[#071827] transition-colors hover:bg-white/88"
-                  >
-                    Create account
-                  </Link>
-                  <Link
-                    href={`/login?next=${encodeURIComponent(nextPath)}`}
-                    className="bp-focus-ring inline-flex h-12 items-center justify-center rounded-full border border-white/24 bg-white/[0.07] px-5 text-sm font-black text-white transition-colors hover:bg-white/[0.14]"
-                  >
-                    Sign in
-                  </Link>
-                </div>
-              </div>
+              <ClaimEmailLinkForm
+                operatorSlug={operator.slug}
+                operatorName={operator.name}
+              />
             )}
 
             <Link

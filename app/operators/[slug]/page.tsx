@@ -3,6 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
+import {
+  getPublicOperatorProfile,
+  type PublicOperatorProfile,
+} from "@/lib/services/operators/operator-public-profile";
 
 type Departure = { dates: string; duration: string; berths: string };
 type ItineraryDay = { day: number; title: string; description: string };
@@ -470,7 +474,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const op = operators[slug];
-  if (!op) return { title: "Operator | BluePass" };
+  if (!op) {
+    const publicProfile = await getPublicOperatorProfile(slug);
+    if (!publicProfile) return { title: "Operator | BluePass" };
+    return {
+      title: `${publicProfile.name} | BluePass`,
+      description:
+        publicProfile.status === "VERIFIED"
+          ? `${publicProfile.name} is a verified BluePass operator.`
+          : `${publicProfile.name} is an unclaimed BluePass preview listing built from public information.`,
+    };
+  }
   return {
     title: `${op.name} | BluePass`,
     description: op.about,
@@ -484,7 +498,11 @@ export default async function OperatorPage({
 }) {
   const { slug } = await params;
   const op = operators[slug];
-  if (!op) notFound();
+  if (!op) {
+    const publicProfile = await getPublicOperatorProfile(slug);
+    if (!publicProfile) notFound();
+    return <PublicOperatorProfilePage profile={publicProfile} />;
+  }
 
   return (
     <>
@@ -846,6 +864,134 @@ export default async function OperatorPage({
   );
 }
 
+function PublicOperatorProfilePage({
+  profile,
+}: {
+  profile: PublicOperatorProfile;
+}) {
+  const verified = profile.status === "VERIFIED";
+  const statusLabel = verified
+    ? profile.visibility === "DISCOVER_READY"
+      ? "Verified BluePass operator"
+      : "Verified operator setup"
+    : "Unclaimed preview";
+
+  return (
+    <>
+      <main className="cinematic-page min-h-screen bg-[#020b11] text-white">
+        <section className="relative min-h-[70svh] overflow-hidden bg-[#020b11]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(92,200,190,0.20),transparent_34%),linear-gradient(135deg,rgba(2,11,17,0.94),rgba(7,24,39,0.84)_48%,rgba(2,11,17,0.96))]" />
+          <div className="absolute inset-0 bg-[url('/operator/operator-header.jpg')] bg-cover bg-center opacity-20" />
+          <div className="absolute inset-0 bg-[#020b11]/58" />
+          <div className="bp-film-grain absolute inset-0" />
+
+          <div className="relative flex min-h-[70svh] flex-col justify-end px-[var(--cinematic-screen-x)] pb-10 pt-28">
+            <Link
+              href="/discover"
+              className="mb-8 inline-flex w-fit items-center gap-2 text-[10px] tracking-[0.22em] text-white/46 transition-colors hover:text-white/80"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+              Operators
+            </Link>
+
+            <p className="text-[10px] uppercase tracking-[0.26em] text-[#9fe8df]">
+              BluePass operator
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <h1 className="bp-page-title text-[clamp(2.5rem,5.5vw,4rem)] leading-[0.96] text-white">
+                {profile.name}
+              </h1>
+              {verified ? <VerifiedBadge /> : <UnclaimedPublicBadge />}
+            </div>
+            <p className="mt-4 max-w-2xl text-[15px] font-light leading-7 text-white/64">
+              {verified
+                ? `${profile.name} has claimed this BluePass operator profile. BluePass can route Kai inquiries to the operator contact on file while final availability and payment are confirmed.`
+                : `This BluePass preview was built from public information so travellers can discover the operator and the business can claim the page, correct details, add trips, and connect booking tools.`}
+            </p>
+          </div>
+        </section>
+
+        <section className="px-[var(--cinematic-screen-x)] py-12 md:py-16">
+          <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[1fr_360px]">
+            <div className="rounded-2xl border border-white/12 bg-white/[0.07] p-5 backdrop-blur-md md:p-6">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#9fe8df]">
+                Status
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-white">
+                {statusLabel}
+              </h2>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <InfoTile label="Region" value={profile.region ?? "Indonesia"} />
+                <InfoTile label="Category" value={profile.category ?? "Ocean operator"} />
+                <InfoTile label="Inventory" value={profile.showInDiscover ? "Discover ready" : "Setup required"} />
+                <InfoTile label="Source" value={profile.sourceLabel ?? "BluePass profile"} />
+              </div>
+            </div>
+
+            <aside className="rounded-2xl border border-white/12 bg-[#071827]/78 p-5 backdrop-blur-md">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/42">
+                Next step
+              </p>
+              {profile.showClaimCta ? (
+                <>
+                  <p className="mt-3 text-sm leading-6 text-white/64">
+                    Own or represent {profile.name}? Claim this business so
+                    BluePass can verify the listing and route Kai leads to your
+                    team.
+                  </p>
+                  <Link
+                    href={`/operator/claim/start/${profile.slug}`}
+                    className="bp-focus-ring mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-white text-xs font-black text-[#071827] transition-colors hover:bg-white/88"
+                  >
+                    Claim this operator
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="mt-3 text-sm leading-6 text-white/64">
+                    This operator is approved. Complete PMS setup and trip data
+                    to make the page stronger for traveller discovery.
+                  </p>
+                  <Link
+                    href="/dashboard"
+                    className="bp-focus-ring mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-white text-xs font-black text-[#071827] transition-colors hover:bg-white/88"
+                  >
+                    Open operator dashboard
+                  </Link>
+                </>
+              )}
+              {profile.websiteUrl && (
+                <a
+                  href={profile.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-xl border border-white/14 bg-white/[0.06] text-xs font-bold text-white transition-colors hover:bg-white/12"
+                >
+                  Visit website
+                </a>
+              )}
+            </aside>
+          </div>
+        </section>
+      </main>
+      <BluePassFooter />
+    </>
+  );
+}
+
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p
@@ -862,6 +1008,17 @@ function VesselRow({ label, value }: { label: string; value: string }) {
     <div className="flex items-baseline justify-between gap-4 border-b border-white/[0.06] pb-2 last:border-0 last:pb-0">
       <dt className="text-[12px] text-white/44">{label}</dt>
       <dd className="text-[0.8125rem] font-medium text-white">{value}</dd>
+    </div>
+  );
+}
+
+function InfoTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/18 p-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
     </div>
   );
 }
@@ -886,6 +1043,17 @@ function VerifiedBadge() {
       >
         <path d="M20 6 9 17l-5-5" />
       </svg>
+    </span>
+  );
+}
+
+function UnclaimedPublicBadge() {
+  return (
+    <span
+      className="inline-flex h-7 shrink-0 items-center rounded-full border border-[#f1d58a]/40 bg-[#b89a5d]/18 px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[#f1d58a]"
+      title="Unclaimed BluePass preview"
+    >
+      Preview
     </span>
   );
 }

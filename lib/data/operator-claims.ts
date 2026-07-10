@@ -2,7 +2,7 @@ export type ClaimableOperator = {
   slug: string;
   name: string;
   yachtSlugs: string[];
-  representativeYachtSlug: string;
+  representativeYachtSlug: string | null;
   websiteUrl: string;
   sourceLabel: string;
 };

@@ -1,7 +1,10 @@
 import { BluePassAccountRole } from "@prisma/client";
 import { z } from "zod";
-import { claimableOperatorBySlug } from "@/lib/data/operator-claims";
 import { prisma } from "@/lib/db/prisma";
+import {
+  getClaimableOperator,
+  getClaimableOperatorBackHref,
+} from "@/lib/services/operators/claimable-operators";
 import { normalizeReferralCode } from "@/lib/services/referrals/attribution";
 
 export const operatorClaimSchema = z.object({
@@ -21,7 +24,7 @@ export type OperatorClaimInput = z.infer<typeof operatorClaimSchema>;
 export async function createOperatorClaimForAccount(
   input: OperatorClaimInput & { accountId: string },
 ) {
-  const operator = claimableOperatorBySlug[input.operatorSlug];
+  const operator = await getClaimableOperator(input.operatorSlug);
 
   if (!operator) {
     throw new Error("Claimable operator was not found.");
@@ -108,6 +111,12 @@ export async function createOperatorClaimForAccount(
       notes: `Claim request ${claim.id} updated for ${operator.name}.`,
     },
   });
+  await syncOperatorLeadClaimStatus({
+    operatorSlug: operator.slug,
+    status: "CLAIM_SUBMITTED",
+    eventType: "CLAIM_SUBMITTED",
+    message: `Claim ${claim.id} submitted for ${operator.name}.`,
+  });
 
   return claim;
 }
@@ -134,7 +143,7 @@ export async function approveOperatorClaim(input: {
     throw new Error("Operator claim was not found.");
   }
 
-  const operator = claimableOperatorBySlug[claim.operatorSlug];
+  const operator = await getClaimableOperator(claim.operatorSlug);
 
   if (!operator) {
     throw new Error("Claimable operator was not found.");
@@ -150,7 +159,7 @@ export async function approveOperatorClaim(input: {
       operatorName: claim.operatorName,
       email: claim.claimantEmail || claim.account.email,
       phone: claim.claimantPhone ?? claim.account.phone,
-      targetPath: `/yachts/${operator.representativeYachtSlug}`,
+      targetPath: getClaimableOperatorBackHref(operator),
     }));
   const approvedAt = new Date();
 
@@ -178,6 +187,12 @@ export async function approveOperatorClaim(input: {
       },
     }),
   ]);
+  await syncOperatorLeadClaimStatus({
+    operatorSlug: claim.operatorSlug,
+    status: "APPROVED",
+    eventType: "CLAIM_APPROVED",
+    message: `Claim ${claim.id} approved by ${input.reviewerEmail}.`,
+  });
 
   return {
     claim: approvedClaim,
@@ -190,12 +205,39 @@ export async function declineOperatorClaim(input: {
   claimId: string;
   reviewerEmail: string;
 }) {
-  return prisma.operatorClaim.update({
+  const claim = await prisma.operatorClaim.update({
     where: { id: input.claimId },
     data: {
       status: "DECLINED",
       reviewedAt: new Date(),
       reviewedBy: input.reviewerEmail,
+    },
+  });
+  await syncOperatorLeadClaimStatus({
+    operatorSlug: claim.operatorSlug,
+    status: "DECLINED",
+    eventType: "CLAIM_DECLINED",
+    message: `Claim ${claim.id} declined by ${input.reviewerEmail}.`,
+  });
+
+  return claim;
+}
+
+async function syncOperatorLeadClaimStatus(input: {
+  operatorSlug: string;
+  status: "CLAIM_SUBMITTED" | "APPROVED" | "DECLINED";
+  eventType: "CLAIM_SUBMITTED" | "CLAIM_APPROVED" | "CLAIM_DECLINED";
+  message: string;
+}) {
+  await prisma.operatorLead.updateMany({
+    where: { slug: input.operatorSlug },
+    data: { status: input.status },
+  });
+  await prisma.operatorOutreachEvent.create({
+    data: {
+      operatorSlug: input.operatorSlug,
+      type: input.eventType,
+      message: input.message,
     },
   });
 }

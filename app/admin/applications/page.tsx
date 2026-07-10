@@ -11,6 +11,7 @@ import {
   approveOperatorClaim,
   declineOperatorClaim,
 } from "@/lib/services/operators/operator-claim-service";
+import { loadOperatorOutreachOverview } from "@/lib/services/operators/operator-outreach-overview";
 
 export const metadata = {
   title: "Applications | BluePass Admin",
@@ -23,7 +24,12 @@ export default async function AdminApplicationsPage() {
     redirect("/login?next=/admin/applications");
   }
 
-  const [creatorProfiles, operatorProfiles, operatorClaims] = await Promise.all([
+  const [
+    creatorProfiles,
+    operatorProfiles,
+    operatorClaims,
+    operatorOutreachOverview,
+  ] = await Promise.all([
     prisma.creatorProfile.findMany({
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
       include: {
@@ -42,6 +48,7 @@ export default async function AdminApplicationsPage() {
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
       include: { account: true },
     }),
+    loadOperatorOutreachOverview(),
   ]);
 
   return (
@@ -90,6 +97,12 @@ export default async function AdminApplicationsPage() {
             <div className="flex flex-col items-start gap-2 md:items-end">
               <div className="flex flex-wrap gap-2">
                 <a
+                  href="/admin/operator-outreach"
+                  className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] px-4 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#071827]"
+                >
+                  Operator outreach
+                </a>
+                <a
                   href="/admin/inquiries"
                   className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] px-4 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#071827]"
                 >
@@ -107,6 +120,8 @@ export default async function AdminApplicationsPage() {
               </p>
             </div>
           </div>
+
+          <OperatorOutreachPanel overview={operatorOutreachOverview} />
 
           <div className="mt-6 grid gap-6 xl:grid-cols-3">
             <ApplicationColumn title="Partners">
@@ -203,6 +218,89 @@ function ApplicationColumn({
         {title}
       </h2>
       <div className="mt-4 grid gap-3">{children}</div>
+    </section>
+  );
+}
+
+function OperatorOutreachPanel({
+  overview,
+}: {
+  overview: Awaited<ReturnType<typeof loadOperatorOutreachOverview>>;
+}) {
+  return (
+    <section className="mt-6 rounded-2xl border border-[#9fe8df]/16 bg-[#022a2b]/42 p-4 backdrop-blur-md">
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fe8df]">
+            Operator outreach
+          </p>
+          <h2 className="mt-1 text-xl font-black text-white">
+            {overview.total} generated claim leads
+          </h2>
+        </div>
+        <a
+          href="/admin/applications"
+          className="text-xs font-semibold text-white/46"
+        >
+          Latest outreach activity
+        </a>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-2 sm:grid-cols-2">
+          {overview.statusCounts.length ? (
+            overview.statusCounts.map((status) => (
+              <div
+                key={status.status}
+                className="rounded-xl border border-white/10 bg-black/15 p-3"
+              >
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/38">
+                  {formatStatus(status.status)}
+                </p>
+                <p className="mt-1 text-2xl font-black text-white">
+                  {status.count}
+                </p>
+              </div>
+            ))
+          ) : (
+            <EmptyState label="No operator leads imported yet." />
+          )}
+        </div>
+
+        <div className="grid gap-2">
+          {overview.recentLeads.length ? (
+            overview.recentLeads.slice(0, 4).map((lead) => (
+              <div
+                key={lead.id}
+                className="rounded-xl border border-white/10 bg-black/15 p-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-white">
+                      {lead.name}
+                    </p>
+                    <p className="mt-1 truncate text-xs text-white/42">
+                      /operator/claim/start/{lead.slug}
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-white/14 bg-white/[0.08] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/62">
+                    {formatStatus(lead.status)}
+                  </span>
+                </div>
+                {lead.events[0] ? (
+                  <p className="mt-2 text-xs leading-5 text-white/48">
+                    {lead.events[0].type}: {lead.events[0].message}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-white/34">No events yet.</p>
+                )}
+              </div>
+            ))
+          ) : (
+            <EmptyState label="No recent outreach events yet." />
+          )}
+        </div>
+      </div>
     </section>
   );
 }

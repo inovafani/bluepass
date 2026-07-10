@@ -26,6 +26,13 @@ const prismaMocks = vi.hoisted(() => ({
   referralLink: {
     findUnique: vi.fn(),
   },
+  operatorLead: {
+    updateMany: vi.fn(),
+    findUnique: vi.fn(),
+  },
+  operatorOutreachEvent: {
+    create: vi.fn(),
+  },
 }));
 
 vi.mock("@/lib/db/prisma", () => ({
@@ -44,6 +51,9 @@ afterEach(() => {
   prismaMocks.operatorProfile.update.mockReset();
   prismaMocks.referralPartner.create.mockReset();
   prismaMocks.referralLink.findUnique.mockReset();
+  prismaMocks.operatorLead.updateMany.mockReset();
+  prismaMocks.operatorLead.findUnique.mockReset();
+  prismaMocks.operatorOutreachEvent.create.mockReset();
 });
 
 describe("operator claim service", () => {
@@ -112,6 +122,16 @@ describe("operator claim service", () => {
         }),
       }),
     );
+    expect(prismaMocks.operatorLead.updateMany).toHaveBeenCalledWith({
+      where: { slug: "mermaid-liveaboards" },
+      data: { status: "CLAIM_SUBMITTED" },
+    });
+    expect(prismaMocks.operatorOutreachEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        operatorSlug: "mermaid-liveaboards",
+        type: "CLAIM_SUBMITTED",
+      }),
+    });
   });
 
   it("approves a claim and creates an operator referral partner link", async () => {
@@ -193,5 +213,50 @@ describe("operator claim service", () => {
         }),
       }),
     );
+    expect(prismaMocks.operatorLead.updateMany).toHaveBeenCalledWith({
+      where: { slug: "scuba-republic" },
+      data: { status: "APPROVED" },
+    });
+    expect(prismaMocks.operatorOutreachEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        operatorSlug: "scuba-republic",
+        type: "CLAIM_APPROVED",
+      }),
+    });
+  });
+
+  it("declines a claim and marks the matching operator lead declined", async () => {
+    prismaMocks.operatorClaim.update.mockResolvedValue({
+      id: "claim_456",
+      operatorSlug: "dewi-nusantara",
+      status: "DECLINED",
+    });
+
+    const { declineOperatorClaim } = await import(
+      "@/lib/services/operators/operator-claim-service"
+    );
+
+    await expect(
+      declineOperatorClaim({
+        claimId: "claim_456",
+        reviewerEmail: "admin@bluepass.co",
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        id: "claim_456",
+        status: "DECLINED",
+      }),
+    );
+
+    expect(prismaMocks.operatorLead.updateMany).toHaveBeenCalledWith({
+      where: { slug: "dewi-nusantara" },
+      data: { status: "DECLINED" },
+    });
+    expect(prismaMocks.operatorOutreachEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        operatorSlug: "dewi-nusantara",
+        type: "CLAIM_DECLINED",
+      }),
+    });
   });
 });

@@ -7,7 +7,9 @@ type SubmitState = "idle" | "submitting" | "success" | "error";
 
 export function ConnectPmsForm() {
   const [platform, setPlatform] = useState<Platform>("");
-  const [operatorId, setOperatorId] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactWhatsapp, setContactWhatsapp] = useState("");
+  const [notes, setNotes] = useState("");
   const [apiBase, setApiBase] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [supplierId, setSupplierId] = useState("");
@@ -20,12 +22,12 @@ export function ConnectPmsForm() {
   const [message, setMessage] = useState("");
   const isBokun = platform === "BOKUN";
   const canSubmit = useMemo(() => {
-    if (!operatorId || !platform || submitState === "submitting") {
+    if (!platform || submitState === "submitting") {
       return false;
     }
 
-    return !isBokun || Boolean(accessToken);
-  }, [accessToken, isBokun, operatorId, platform, submitState]);
+    return true;
+  }, [platform, submitState]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,8 +38,10 @@ export function ConnectPmsForm() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        operatorId,
         platform,
+        contactEmail,
+        contactWhatsapp,
+        notes,
         credentials: {
           apiBase,
           accessToken,
@@ -52,6 +56,7 @@ export function ConnectPmsForm() {
     });
     const payload = (await response.json()) as {
       error?: string;
+      readiness?: { status?: string };
       sync?: { synced?: number };
     };
 
@@ -64,25 +69,13 @@ export function ConnectPmsForm() {
     setSubmitState("success");
     setMessage(
       isBokun
-        ? `Bokun connected. ${payload.sync?.synced ?? 0} products synced.`
-        : "Booking system connected.",
+        ? "Bokun readiness received. BluePass will verify credentials and sync products with you."
+        : `PMS setup received${payload.readiness?.status ? `: ${payload.readiness.status.toLowerCase()}` : ""}.`,
     );
   }
 
   return (
     <form className="mt-8 grid gap-5" onSubmit={handleSubmit}>
-      <label className="grid gap-2">
-        <span className="text-xs font-medium tracking-[0.16em] text-white/70">
-          Operator ID
-        </span>
-        <input
-          className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
-          value={operatorId}
-          onChange={(event) => setOperatorId(event.target.value)}
-          placeholder="operator_..."
-        />
-      </label>
-
       <label className="grid gap-2">
         <span className="text-xs font-medium tracking-[0.16em] text-white/70">
           Booking system
@@ -101,6 +94,32 @@ export function ConnectPmsForm() {
           <option value="NATIVE">None</option>
         </select>
       </label>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-xs font-medium tracking-[0.16em] text-white/70">
+            Contact email
+          </span>
+          <input
+            className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+            type="email"
+            value={contactEmail}
+            onChange={(event) => setContactEmail(event.target.value)}
+            placeholder="ops@yourcompany.com"
+          />
+        </label>
+        <label className="grid gap-2">
+          <span className="text-xs font-medium tracking-[0.16em] text-white/70">
+            WhatsApp
+          </span>
+          <input
+            className="h-12 rounded-lg border border-white/16 bg-white px-4 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+            value={contactWhatsapp}
+            onChange={(event) => setContactWhatsapp(event.target.value)}
+            placeholder="+62..."
+          />
+        </label>
+      </div>
 
       {isBokun ? (
         <div className="grid gap-5 rounded-xl bg-[#071e2e] p-4">
@@ -199,6 +218,18 @@ export function ConnectPmsForm() {
           </label>
         </div>
       ) : null}
+
+      <label className="grid gap-2">
+        <span className="text-xs font-medium tracking-[0.16em] text-white/70">
+          PMS notes
+        </span>
+        <textarea
+          className="min-h-28 rounded-lg border border-white/16 bg-white px-4 py-3 text-sm font-medium text-[#071827] outline-none transition-colors focus:border-[#B89A5D] focus:ring-2 focus:ring-[#B89A5D]/30"
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+          placeholder="Tell us your booking system account, preferred setup contact, or where availability/pricing currently lives."
+        />
+      </label>
 
       {message ? (
         <p
