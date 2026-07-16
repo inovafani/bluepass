@@ -17,13 +17,24 @@ export type KaiCoreWebChatInput = {
   sessionId?: string;
   message: string;
   region?: KaiRegion;
+  travellerAccountId?: string;
   referralAttribution?: ReferralAttribution;
 };
 
 type KaiCoreSessionResponse = {
   conversation?: {
     id?: string;
+    updatedAt?: string;
   };
+  resumed?: boolean;
+  messages?: Array<{ role: "traveller" | "assistant"; content: string }>;
+};
+
+export type KaiCoreResumedSession = {
+  conversationId: string;
+  resumed: boolean;
+  region: KaiRegion;
+  messages: Array<{ role: "user" | "assistant"; content: string }>;
 };
 
 type KaiCoreMessageResponse = {
@@ -218,6 +229,7 @@ export async function handleKaiCoreWebChat(
     (await createKaiCoreSession({
       config,
       fetchImpl,
+      travellerAccountId: input.travellerAccountId,
     }));
   const payload = {
     key: config.widgetKey,
@@ -419,11 +431,19 @@ export async function approveKaiCoreBluePassQuote(
 async function createKaiCoreSession(input: {
   config: ReturnType<typeof resolveKaiCoreConfig>;
   fetchImpl: FetchLike;
+  travellerAccountId?: string;
 }) {
+  // Passing travellerAccountId here (resume-or-create, not resume-only) means even a logged-in
+  // traveller's very first-ever message - which is what decides their region - still gets tagged
+  // to their account at creation time, so it's resumable later regardless of which tenant it
+  // landed in.
   const response = await fetchKaiCoreWithRetry(input.fetchImpl, `${input.config.baseUrl}/api/widget/session`, {
     method: "POST",
     headers: buildKaiCoreHeaders(input.config),
-    body: JSON.stringify({ key: input.config.widgetKey }),
+    body: JSON.stringify({
+      key: input.config.widgetKey,
+      ...(input.travellerAccountId ? { travellerId: input.travellerAccountId } : {}),
+    }),
   });
 
   if (!response.ok) {
@@ -438,6 +458,69 @@ async function createKaiCoreSession(input: {
   }
 
   return conversationId;
+}
+
+// Lets a logged-in traveller's Kai memory follow their account rather than one browser's local
+// storage. Checks every region's tenant in parallel with resumeOnly (so merely checking never
+// creates an empty conversation in a tenant the traveller has never actually talked to), and
+// resumes whichever existing conversation was most recently active. Returns null when the
+// traveller has no existing conversation in any tenant yet - callers should fall back to the
+// normal first-message flow, which tags a fresh conversation to the account as soon as region is
+// known.
+export async function resumeKaiCoreSession(
+  input: { travellerAccountId: string },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCoreResumedSession | null> {
+  const regions: KaiRegion[] = ["indonesia", "australia"];
+
+  const attempts = await Promise.all(
+    regions.map(async (region) => {
+      const config = resolveKaiCoreConfig(env, region);
+
+      try {
+        const response = await fetchKaiCoreWithRetry(fetchImpl, `${config.baseUrl}/api/widget/session`, {
+          method: "POST",
+          headers: buildKaiCoreHeaders(config),
+          body: JSON.stringify({
+            key: config.widgetKey,
+            travellerId: input.travellerAccountId,
+            resumeOnly: true,
+          }),
+        });
+
+        if (!response.ok) return null;
+
+        const data = (await response.json()) as KaiCoreSessionResponse;
+        if (!data.resumed || !data.conversation?.id) return null;
+
+        return {
+          conversationId: data.conversation.id,
+          region,
+          updatedAt: data.conversation.updatedAt ?? "",
+          messages: (data.messages ?? []).map((message) => ({
+            role: message.role === "traveller" ? ("user" as const) : ("assistant" as const),
+            content: message.content,
+          })),
+        };
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  const found = attempts.filter((attempt): attempt is NonNullable<typeof attempt> => attempt !== null);
+  if (found.length === 0) return null;
+
+  found.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const best = found[0];
+
+  return {
+    conversationId: best.conversationId,
+    resumed: true,
+    region: best.region,
+    messages: best.messages,
+  };
 }
 
 function resolveKaiCoreConfig(env: KaiCoreClientEnv, region: KaiRegion = "indonesia") {

@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
         sessionId,
         message: parsed.data.message,
         region: parsed.data.region,
+        travellerAccountId: traveller?.accountId,
         referralAttribution,
       });
 

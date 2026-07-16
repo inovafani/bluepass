@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { useToast } from "@/app/components/ui/ToastProvider";
+import { PasswordInput } from "@/app/components/auth/PasswordInput";
 
 type AuthMode = "login" | "register";
 
 const inputClassName =
   "mt-2 h-12 w-full rounded-xl border border-white/20 bg-white px-4 text-sm font-medium text-[#071827] caret-[#006F8E] outline-none transition-colors placeholder:text-slate-400 focus:border-[#9fe8df] focus:ring-2 focus:ring-[#9fe8df]/30";
+const passwordInputClassName = `${inputClassName} pr-11`;
 
 export function AuthForm({
   mode,
@@ -17,6 +20,7 @@ export function AuthForm({
   nextPath?: string | null;
 }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const isRegister = mode === "register";
   const safeNextPath = sanitizeNextPath(nextPath);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +78,7 @@ export function AuthForm({
         return;
       }
 
+      showToast(isRegister ? "Account created. Welcome to BluePass." : "Logged in successfully.");
       router.push(safeNextPath ?? "/discover");
       router.refresh();
     } catch (err) {
@@ -172,15 +177,23 @@ export function AuthForm({
         )}
         <label className="block text-sm font-medium text-white/78 drop-shadow-[0_1px_10px_rgba(0,0,0,0.32)]">
           Password
-          <input
+          <PasswordInput
             name="password"
-            type="password"
             autoComplete={isRegister ? "new-password" : "current-password"}
             required
             minLength={8}
-            className={inputClassName}
+            className={passwordInputClassName}
           />
         </label>
+
+        {!isRegister && (
+          <Link
+            href="/forgot-password"
+            className="-mt-2 justify-self-end text-sm font-semibold text-white/72 hover:text-[#9fe8df]"
+          >
+            Forgot password?
+          </Link>
+        )}
 
         {error && (
           <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

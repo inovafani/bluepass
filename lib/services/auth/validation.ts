@@ -15,6 +15,15 @@ export const resendVerificationSchema = z.object({
   email: z.string().trim().email().max(180),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().email().max(180),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(1),
+  password: z.string().min(8).max(128),
+});
+
 export function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }

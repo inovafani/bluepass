@@ -4,6 +4,7 @@ import { SiteHeader } from "@/app/components/SiteHeader";
 import { ScrollRevealInit } from "@/app/components/ScrollRevealInit";
 import { KaiWebChat } from "@/app/components/kai/KaiWebChat";
 import { ReferralCapture } from "@/app/components/referrals/ReferralCapture";
+import { ToastProvider } from "@/app/components/ui/ToastProvider";
 import "./globals.css";
 
 const sans = Inter({
@@ -29,11 +30,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body className="min-h-screen antialiased">
-        <SiteHeader />
-        <ScrollRevealInit />
-        <ReferralCapture />
-        <main>{children}</main>
-        <KaiWebChat />
+        <ToastProvider>
+          <SiteHeader />
+          <ScrollRevealInit />
+          <ReferralCapture />
+          <main>{children}</main>
+          <KaiWebChat />
+        </ToastProvider>
       </body>
     </html>
   );

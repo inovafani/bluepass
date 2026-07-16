@@ -5,6 +5,7 @@ import {
   getKaiCoreBluePassQuote,
   handleKaiCoreWebChat,
   listKaiCoreBluePassInquiries,
+  resumeKaiCoreSession,
 } from "@/lib/services/kai-core/client";
 
 describe("handleKaiCoreWebChat", () => {
@@ -311,6 +312,104 @@ describe("handleKaiCoreWebChat", () => {
     const messageBody = JSON.parse(String(messageRequest.body));
     expect(messageBody.key).toBe("pk_test_bluepass_au");
     expect(result.region).toBe("australia");
+  });
+});
+
+describe("resumeKaiCoreSession", () => {
+  const env = {
+    KAI_CORE_BASE_URL: "http://127.0.0.1:3107",
+    KAI_CORE_WIDGET_KEY: "pk_test_bluepass",
+    KAI_CORE_WIDGET_KEY_AU: "pk_test_bluepass_au",
+  };
+
+  it("checks both tenants with resumeOnly and resumes the Indonesia one when only it has history", async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body));
+      if (body.key === "pk_test_bluepass") {
+        return Promise.resolve(
+          Response.json({
+            conversation: { id: "core_id_conversation", updatedAt: "2026-07-01T00:00:00.000Z" },
+            resumed: true,
+            messages: [{ role: "traveller", content: "Tell me about Komodo" }],
+          }),
+        );
+      }
+      return Promise.resolve(Response.json({ resumed: false }));
+    });
+
+    const result = await resumeKaiCoreSession({ travellerAccountId: "acct_1" }, env, fetchMock);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    for (const call of fetchMock.mock.calls) {
+      const body = JSON.parse(String((call[1] as RequestInit).body));
+      expect(body).toMatchObject({ travellerId: "acct_1", resumeOnly: true });
+    }
+    expect(result).toEqual({
+      conversationId: "core_id_conversation",
+      resumed: true,
+      region: "indonesia",
+      messages: [{ role: "user", content: "Tell me about Komodo" }],
+    });
+  });
+
+  it("resumes the Australia tenant when only it has history", async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body));
+      if (body.key === "pk_test_bluepass_au") {
+        return Promise.resolve(
+          Response.json({
+            conversation: { id: "core_au_conversation", updatedAt: "2026-07-01T00:00:00.000Z" },
+            resumed: true,
+            messages: [{ role: "assistant", content: "Gold Coast Whale Escape is available." }],
+          }),
+        );
+      }
+      return Promise.resolve(Response.json({ resumed: false }));
+    });
+
+    const result = await resumeKaiCoreSession({ travellerAccountId: "acct_2" }, env, fetchMock);
+
+    expect(result).toEqual({
+      conversationId: "core_au_conversation",
+      resumed: true,
+      region: "australia",
+      messages: [{ role: "assistant", content: "Gold Coast Whale Escape is available." }],
+    });
+  });
+
+  it("resumes whichever tenant's conversation was updated more recently when both exist", async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body));
+      if (body.key === "pk_test_bluepass") {
+        return Promise.resolve(
+          Response.json({
+            conversation: { id: "older_indonesia", updatedAt: "2026-06-01T00:00:00.000Z" },
+            resumed: true,
+            messages: [],
+          }),
+        );
+      }
+      return Promise.resolve(
+        Response.json({
+          conversation: { id: "newer_australia", updatedAt: "2026-07-10T00:00:00.000Z" },
+          resumed: true,
+          messages: [],
+        }),
+      );
+    });
+
+    const result = await resumeKaiCoreSession({ travellerAccountId: "acct_3" }, env, fetchMock);
+
+    expect(result?.conversationId).toBe("newer_australia");
+    expect(result?.region).toBe("australia");
+  });
+
+  it("returns null when the traveller has no existing conversation in either tenant", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ resumed: false }));
+
+    const result = await resumeKaiCoreSession({ travellerAccountId: "acct_new" }, env, fetchMock);
+
+    expect(result).toBeNull();
   });
 });
 

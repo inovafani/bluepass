@@ -267,6 +267,7 @@ model BluePassAccount {
   traveller       Traveller?            @relation(fields: [travellerId], references: [id], onDelete: SetNull)
   sessions        BluePassAccountSession[]
   emailVerificationTokens BluePassAccountEmailVerificationToken[]
+  passwordResetTokens BluePassAccountPasswordResetToken[]
   creatorProfile  CreatorProfile?
   operatorProfile OperatorProfile?
   operatorClaims   OperatorClaim[]
@@ -300,6 +301,19 @@ model BluePassAccountEmailVerificationToken {
 
   @@index([accountId])
   @@index([email])
+  @@index([expiresAt])
+}
+
+model BluePassAccountPasswordResetToken {
+  id        String          @id @default(cuid())
+  accountId String
+  tokenHash String          @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime        @default(now())
+  account   BluePassAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
   @@index([expiresAt])
 }
 

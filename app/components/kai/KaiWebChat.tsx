@@ -201,41 +201,74 @@ export function KaiWebChat() {
     }
 
     const stored = localStorage.getItem(LS_KEY);
-    if (!stored) return;
-
-    sessionIdRef.current = stored;
-
-    if (!stored.startsWith("kai_")) {
-      return;
+    if (stored) {
+      sessionIdRef.current = stored;
     }
 
-    fetch(`/api/kai/web-chat/history?sessionId=${encodeURIComponent(stored)}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("history unavailable");
-        return res.json() as Promise<{
-          sessionId: string;
-          messages: Array<{ role: string; content: string; createdAt: string }>;
-        }>;
-      })
-      .then((data) => {
-        const visible = data.messages
-          .filter((m) => m.role === "user" || m.role === "assistant")
-          .map((m) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-          }));
-        if (visible.length > 0) {
-          setMessages(visible);
-          return;
-        }
+    function restoreFromLocalSession() {
+      if (!stored || !stored.startsWith("kai_")) return;
 
-        localStorage.removeItem(LS_KEY);
-        sessionIdRef.current = null;
-      })
+      fetch(`/api/kai/web-chat/history?sessionId=${encodeURIComponent(stored)}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("history unavailable");
+          return res.json() as Promise<{
+            sessionId: string;
+            messages: Array<{ role: string; content: string; createdAt: string }>;
+          }>;
+        })
+        .then((data) => {
+          const visible = data.messages
+            .filter((m) => m.role === "user" || m.role === "assistant")
+            .map((m) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            }));
+          if (visible.length > 0) {
+            setMessages(visible);
+            return;
+          }
+
+          localStorage.removeItem(LS_KEY);
+          sessionIdRef.current = null;
+        })
+        .catch(() => {
+          localStorage.removeItem(LS_KEY);
+          sessionIdRef.current = null;
+          // History unavailable; messages stays as [GREETING].
+        });
+    }
+
+    // A logged-in traveller's account-linked conversation always wins over whatever anonymous
+    // session this one browser happens to have cached - that's the whole point of tying memory to
+    // the account rather than local storage (a different browser/device has no local session at
+    // all, but should still pick up where they left off).
+    fetch("/api/kai/web-chat/resume", { method: "POST" })
+      .then((res) => (res.ok ? res.json() : { resumed: false }))
+      .then(
+        (data: {
+          resumed?: boolean;
+          sessionId?: string;
+          region?: KaiRegion;
+          messages?: Array<{ role: "user" | "assistant"; content: string }>;
+        }) => {
+          if (!data.sessionId) {
+            restoreFromLocalSession();
+            return;
+          }
+
+          sessionIdRef.current = data.sessionId;
+          localStorage.setItem(LS_KEY, data.sessionId);
+          if (data.region) {
+            regionRef.current = data.region;
+            localStorage.setItem(LS_REGION_KEY, data.region);
+          }
+          if (data.resumed && data.messages && data.messages.length > 0) {
+            setMessages(data.messages);
+          }
+        },
+      )
       .catch(() => {
-        localStorage.removeItem(LS_KEY);
-        sessionIdRef.current = null;
-        // History unavailable; messages stays as [GREETING].
+        restoreFromLocalSession();
       });
   }, []);
 

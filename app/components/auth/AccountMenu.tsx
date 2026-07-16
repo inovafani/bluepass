@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useToast } from "@/app/components/ui/ToastProvider";
 
 type Traveller = {
   name?: string;
@@ -27,6 +28,7 @@ export function AccountMenu({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { showToast } = useToast();
   const menuRef = useRef<HTMLDivElement>(null);
   const [traveller, setTraveller] = useState<Traveller | null | undefined>(undefined);
   const [open, setOpen] = useState(false);
@@ -73,6 +75,7 @@ export function AccountMenu({
     setTraveller(null);
     setOpen(false);
     onNavigate?.();
+    showToast("Logged out.");
     router.refresh();
   }
 
