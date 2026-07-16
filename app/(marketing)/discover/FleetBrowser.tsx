@@ -41,7 +41,7 @@ export function FleetBrowser({
   return (
     <section className="px-[var(--cinematic-screen-x)] py-14 md:py-20">
       <div className="mx-auto max-w-6xl">
-        <p className="text-[10px] uppercase tracking-[0.22em] text-[#B89A5D]">
+        <p className="bp-eyebrow">
           Browse the fleet
         </p>
         <h2 className="bp-page-title mt-3 text-[2.5rem] leading-none text-white md:text-[3rem]">
@@ -77,14 +77,14 @@ export function FleetBrowser({
           </div>
         </div>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
           {filtered.map((yacht) => (
             <Link
               key={yacht.slug}
               href={`/yachts/${yacht.slug}`}
-              className="group block"
+              className="group flex h-full"
             >
-              <article className="overflow-hidden border border-white/[0.08] bg-[#03111d]/40 transition-colors hover:border-white/18">
+              <article className="flex h-full w-full flex-col overflow-hidden rounded-[var(--bp-radius-md)] border border-white/12 bg-[#0d1f2e] shadow-[0_14px_44px_rgba(0,0,0,0.32)] transition-colors hover:border-white/22 hover:bg-[#112738]">
                 <div className="relative aspect-[3/2] overflow-hidden">
                   <Image
                     src={yacht.images.card}
@@ -115,7 +115,7 @@ export function FleetBrowser({
                   </div>
                 </div>
 
-                <div className="p-4">
+                <div className="flex flex-1 flex-col p-4">
                   <h3 className="bp-page-title text-[1.1rem] leading-tight text-white">
                     {yacht.name}
                   </h3>
@@ -124,7 +124,7 @@ export function FleetBrowser({
                     {yacht.maxGuests} guests / {yacht.cabins} cabins
                   </p>
 
-                  <div className="mt-2.5 border-t border-white/[0.07] pt-2.5">
+                  <div className="mt-auto border-t border-white/[0.07] pt-2.5">
                     {yacht.pricePerCabin.startsWith("Quote") ? (
                       <p className="text-[0.8125rem] font-medium text-[#B89A5D]">
                         Quote on request

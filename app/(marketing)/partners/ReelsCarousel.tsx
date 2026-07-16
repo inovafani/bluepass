@@ -78,7 +78,7 @@ export function ReelsCarousel({
 
   return (
     <>
-      <div className="mt-9">
+      <div className="mt-6">
         <div className="relative mx-auto max-w-[88rem] px-14 md:px-16">
           <div
             onPointerDown={onPointerDown}
@@ -86,9 +86,9 @@ export function ReelsCarousel({
             onPointerCancel={() => {
               dragStartX.current = null;
             }}
-            className="relative min-h-[min(76vh,38rem)] overflow-hidden py-7 md:min-h-[39rem]"
+            className="relative overflow-hidden py-2"
           >
-            <div className="relative mx-auto h-[min(72vh,36rem)] max-h-[36rem] min-h-[30rem] w-full md:h-[36rem]">
+            <div className="relative mx-auto h-[min(62vh,32rem)] w-full">
               {reels.map((reel, index) => {
                 const offset = getLoopOffset(index, activeIndex, reels.length);
 
@@ -132,7 +132,7 @@ export function ReelsCarousel({
           </button>
         </div>
 
-        <div className="mt-1 flex items-center justify-center gap-2">
+        <div className="mt-8 flex items-center justify-center gap-2">
           {reels.map((reel, index) => (
             <button
               key={`${getReelKey(reel, index)}-dot`}
@@ -229,7 +229,7 @@ function ReelCard({
       type="button"
       onClick={onClick}
       style={position.style}
-      className={`group absolute left-1/2 top-1/2 block h-full w-[min(62vw,20.25rem)] text-left transition-[transform,opacity,filter] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform md:w-[20.25rem] ${position.className}`}
+      className={`group absolute left-1/2 top-1/2 block aspect-[9/16] h-full text-left transition-[transform,opacity,filter] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${position.className}`}
       aria-label={
         active
           ? `Open ${reel.creator} reel`
@@ -237,7 +237,7 @@ function ReelCard({
       }
     >
       <div
-        className={`relative aspect-[9/16] overflow-hidden rounded-[1.35rem] border bg-[#071827] transition-colors ${
+        className={`relative h-full w-full overflow-hidden rounded-[1.35rem] border bg-[#071827] transition-colors ${
           active ? "border-white/42" : "border-white/12"
         }`}
       >
@@ -309,21 +309,24 @@ function getPosition(
   className: string;
   style: CSSProperties;
 } {
-  const near = spacing === "wide" ? "21rem" : "18rem";
-  const far = spacing === "wide" ? "35rem" : "30rem";
-  const hidden = spacing === "wide" ? "35rem" : "30rem";
+  // Offsets are kept proportional to the card itself: the card is height-driven
+  // (width = height * 9/16, capped at 18rem), so these min(vh, rem) values track
+  // the card width at every viewport instead of drifting apart on short screens.
+  const near = spacing === "wide" ? "min(34vh,17.5rem)" : "min(30vh,15.5rem)";
+  const far = spacing === "wide" ? "min(56vh,29rem)" : "min(50vh,26rem)";
+  const hidden = far;
 
   if (reelCount <= 4 && Math.abs(offset) > 1) {
     return {
       className: "pointer-events-none z-0 opacity-0",
-      style: getTransform(offset < 0 ? `-${hidden}` : hidden, 0.76),
+      style: getTransform(offset < 0 ? neg(hidden) : hidden, 0.76),
     };
   }
 
   if (offset < -2) {
     return {
       className: "pointer-events-none z-0 opacity-0",
-      style: getTransform(`-${hidden}`, 0.76),
+      style: getTransform(neg(hidden), 0.76),
     };
   }
 
@@ -337,11 +340,11 @@ function getPosition(
   const positions = {
     "-2": {
       className: "z-0 opacity-[0.52] blur-[0.4px] hover:opacity-70",
-      style: getTransform(`-${far}`, 0.76),
+      style: getTransform(neg(far), 0.76),
     },
     "-1": {
       className: "z-10 opacity-[0.84] hover:opacity-95",
-      style: getTransform(`-${near}`, 0.86),
+      style: getTransform(neg(near), 0.86),
     },
     "0": {
       className: "z-30 opacity-100",
@@ -358,6 +361,10 @@ function getPosition(
   } as const;
 
   return positions[String(offset) as keyof typeof positions];
+}
+
+function neg(value: string): string {
+  return `calc(-1 * ${value})`;
 }
 
 function getTransform(x: string, scale: number): CSSProperties {

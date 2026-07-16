@@ -56,10 +56,77 @@ interface ContactRequest {
   status: "CONTACT_DETAILS_REQUIRED";
 }
 
+interface PaymentRequest {
+  conversationId: string;
+  productTitle: string | null;
+  dateText: string | null;
+  guests: number | null;
+  status: "PAYMENT_PENDING";
+}
+
+interface PaymentIntent {
+  provider: "REZDYPAY_STRIPE";
+  publishableKey: string;
+  conversationId: string;
+}
+
+interface StripeCardElement {
+  mount(selector: string): void;
+  unmount?: () => void;
+}
+
+interface StripeInstance {
+  elements(): {
+    create(type: "card", options?: unknown): StripeCardElement;
+  };
+  createToken(
+    cardElement: StripeCardElement,
+    details?: { name?: string },
+  ): Promise<{ token?: { id: string }; error?: { message?: string } }>;
+}
+
+declare global {
+  interface Window {
+    Stripe?: (publishableKey: string) => StripeInstance | null;
+  }
+}
+
+function loadStripeScript() {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Secure payment can only start in a browser."));
+  }
+
+  if (window.Stripe) {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://js.stripe.com/v3/"]',
+    );
+    if (existingScript) {
+      existingScript.addEventListener("load", () => resolve(), { once: true });
+      existingScript.addEventListener(
+        "error",
+        () => reject(new Error("Secure payment could not load.")),
+        { once: true },
+      );
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://js.stripe.com/v3/";
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Secure payment could not load."));
+    document.head.appendChild(script);
+  });
+}
+
 const GREETING: Message = {
   role: "assistant",
   content:
-    "Hey, I'm Kai. Tell me what kind of liveaboard experience you're looking for - diving, cruising, or a mix of both.",
+    "Hey, I'm Kai. Tell me what kind of trip you're after - a liveaboard in Indonesia, or a Gold Coast charter in Australia.",
   suggestedReplies: [
     {
       label: "Tell me about Komodo",
@@ -70,13 +137,15 @@ const GREETING: Message = {
       message: "Tell me about Raja Ampat liveaboards",
     },
     {
-      label: "I want to dive",
-      message: "I want a dive-focused liveaboard",
+      label: "Gold Coast, Australia",
+      message: "I'm interested in a Gold Coast charter in Australia",
     },
   ],
 };
 
 const LS_KEY = "bluepass:kaiSessionId";
+const LS_REGION_KEY = "bluepass:kaiRegion";
+type KaiRegion = "indonesia" | "australia";
 const WA_HREF = "https://wa.me/628213143343";
 
 export function KaiWebChat() {
@@ -98,12 +167,26 @@ export function KaiWebChat() {
     phone: "",
   });
   const [contactFormError, setContactFormError] = useState<string | null>(null);
+  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
+    null,
+  );
+  const [paymentIntent, setPaymentIntent] = useState<PaymentIntent | null>(
+    null,
+  );
+  const [paymentStatus, setPaymentStatus] = useState<
+    "idle" | "starting" | "ready" | "confirming"
+  >("idle");
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [cardholderName, setCardholderName] = useState("");
 
   // sessionId drives no rendering — ref avoids synchronous setState in effects
   const sessionIdRef = useRef<string | null>(null);
+  const regionRef = useRef<KaiRegion | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const didInit = useRef(false);
+  const stripeRef = useRef<StripeInstance | null>(null);
+  const cardElementRef = useRef<StripeCardElement | null>(null);
 
   // On mount: restore session from localStorage and fetch history.
   // All setState calls happen inside async .then()/.catch() — not synchronously
@@ -111,6 +194,11 @@ export function KaiWebChat() {
   useEffect(() => {
     if (didInit.current) return;
     didInit.current = true;
+
+    const storedRegion = localStorage.getItem(LS_REGION_KEY);
+    if (storedRegion === "indonesia" || storedRegion === "australia") {
+      regionRef.current = storedRegion;
+    }
 
     const stored = localStorage.getItem(LS_KEY);
     if (!stored) return;
@@ -173,6 +261,53 @@ export function KaiWebChat() {
     return () => window.removeEventListener("kai:open", handleKaiOpen);
   }, []);
 
+  useEffect(() => {
+    let active = true;
+
+    async function mountPaymentElement() {
+      if (!paymentIntent) return;
+
+      try {
+        setPaymentError(null);
+        await loadStripeScript();
+        if (!active) return;
+
+        const stripe = window.Stripe?.(paymentIntent.publishableKey) ?? null;
+        if (!stripe) {
+          throw new Error("Secure payment could not initialize.");
+        }
+
+        const cardElement = stripe.elements().create("card", { hidePostalCode: true });
+        stripeRef.current = stripe;
+        cardElementRef.current = cardElement;
+        cardElement.mount("#kai-payment-card-element");
+        setPaymentStatus("ready");
+      } catch (mountError) {
+        if (!active) return;
+        setPaymentStatus("idle");
+        setPaymentError(
+          mountError instanceof Error ? mountError.message : "Secure payment could not load.",
+        );
+      }
+    }
+
+    void mountPaymentElement();
+
+    return () => {
+      active = false;
+      cardElementRef.current?.unmount?.();
+      cardElementRef.current = null;
+      stripeRef.current = null;
+    };
+  }, [paymentIntent]);
+
+  useEffect(() => {
+    setPaymentStatus("idle");
+    setPaymentError(null);
+    setPaymentIntent(null);
+    setCardholderName("");
+  }, [paymentRequest]);
+
   const sendMessage = useCallback(
     async (overrideText?: string) => {
       const text = (overrideText ?? input).trim();
@@ -197,6 +332,7 @@ export function KaiWebChat() {
           body: JSON.stringify({
             sessionId: sessionIdRef.current ?? undefined,
             message: text,
+            region: regionRef.current ?? undefined,
             recentMessages,
           }),
         });
@@ -204,16 +340,22 @@ export function KaiWebChat() {
         if (!res.ok) throw new Error("non-ok response");
 
         const data: {
-          sessionId: string;
+          sessionId?: string;
+          region?: KaiRegion;
           reply: string;
           matches?: MatchCard[];
           suggestedReplies?: SuggestedReply[];
           contactRequest?: ContactRequest | null;
+          paymentRequest?: PaymentRequest | null;
         } = await res.json();
 
-        if (data.sessionId !== sessionIdRef.current) {
+        if (data.sessionId && data.sessionId !== sessionIdRef.current) {
           sessionIdRef.current = data.sessionId;
           localStorage.setItem(LS_KEY, data.sessionId);
+        }
+        if (data.region && data.region !== regionRef.current) {
+          regionRef.current = data.region;
+          localStorage.setItem(LS_REGION_KEY, data.region);
         }
 
         setMessages((prev) => [
@@ -229,6 +371,7 @@ export function KaiWebChat() {
         if (!data.contactRequest) {
           setContactForm({ name: "", email: "", phone: "" });
         }
+        setPaymentRequest(data.paymentRequest ?? null);
       } catch {
         setError("Couldn't reach Kai right now. Please try again.");
       } finally {
@@ -239,6 +382,81 @@ export function KaiWebChat() {
     },
     [input, isSending, messages],
   );
+
+  const startPayment = useCallback(async () => {
+    if (!paymentRequest) return;
+
+    try {
+      setPaymentStatus("starting");
+      setPaymentError(null);
+
+      const res = await fetch("/api/kai/web-chat/payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: paymentRequest.conversationId,
+          region: regionRef.current ?? undefined,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Secure payment is not available yet.");
+
+      const intent: PaymentIntent = await res.json();
+      setPaymentIntent(intent);
+    } catch (startError) {
+      setPaymentStatus("idle");
+      setPaymentError(
+        startError instanceof Error ? startError.message : "Secure payment is not available yet.",
+      );
+    }
+  }, [paymentRequest]);
+
+  const confirmPayment = useCallback(async () => {
+    if (!paymentRequest || !paymentIntent || !stripeRef.current || !cardElementRef.current) return;
+
+    try {
+      setPaymentStatus("confirming");
+      setPaymentError(null);
+
+      const tokenResult = await stripeRef.current.createToken(cardElementRef.current, {
+        name: cardholderName.trim() || undefined,
+      });
+
+      if (tokenResult.error || !tokenResult.token?.id) {
+        throw new Error(tokenResult.error?.message ?? "Card details could not be verified.");
+      }
+
+      const res = await fetch("/api/kai/web-chat/payment-confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: paymentIntent.conversationId,
+          cardToken: tokenResult.token.id,
+          region: regionRef.current ?? undefined,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Payment could not be completed.");
+
+      const confirmation: { externalBookingId: string } = await res.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `Payment received and your booking is confirmed. Confirmation reference: ${confirmation.externalBookingId}.`,
+        },
+      ]);
+      setPaymentRequest(null);
+      setPaymentIntent(null);
+      setPaymentStatus("idle");
+    } catch (confirmError) {
+      setPaymentStatus("ready");
+      setPaymentError(
+        confirmError instanceof Error ? confirmError.message : "Payment could not be completed.",
+      );
+    }
+  }, [paymentRequest, paymentIntent, cardholderName]);
 
   const sendInquiry = useCallback(
     async (match: YachtMatchCard) => {
@@ -335,13 +553,20 @@ export function KaiWebChat() {
 
   function startNewChat() {
     localStorage.removeItem(LS_KEY);
+    localStorage.removeItem(LS_REGION_KEY);
     sessionIdRef.current = null;
+    regionRef.current = null;
     setMessages([GREETING]);
     setInput("");
     setError(null);
     setContactRequest(null);
     setContactForm({ name: "", email: "", phone: "" });
     setContactFormError(null);
+    setPaymentRequest(null);
+    setPaymentIntent(null);
+    setPaymentStatus("idle");
+    setPaymentError(null);
+    setCardholderName("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
   }
 
@@ -623,6 +848,69 @@ export function KaiWebChat() {
                     Send contact details
                   </button>
                 </form>
+              )}
+
+              {paymentRequest && (
+                <section
+                  aria-label="Secure payment"
+                  className="ml-7 grid gap-2 rounded-xl border border-white/12 bg-[#071a29] p-3 text-white shadow-sm"
+                >
+                  <p className="text-[12px] font-semibold leading-tight">
+                    Secure payment
+                  </p>
+                  <p className="text-[11px] leading-snug text-white/60">
+                    {paymentRequest.productTitle ?? "Selected booking"}
+                    {paymentRequest.dateText ? ` - ${paymentRequest.dateText}` : ""}
+                    {paymentRequest.guests
+                      ? ` - ${paymentRequest.guests} guest${paymentRequest.guests === 1 ? "" : "s"}`
+                      : ""}
+                  </p>
+                  <p className="text-[11px] leading-snug text-white/50">
+                    Card details are handled by Rezdy&apos;s secure Stripe form; Kai will not store card
+                    numbers.
+                  </p>
+                  {paymentError && (
+                    <p className="rounded-lg border border-red-300/20 bg-red-400/10 px-2 py-1.5 text-[11px] leading-snug text-red-100">
+                      {paymentError}
+                    </p>
+                  )}
+                  {!paymentIntent ? (
+                    <button
+                      type="button"
+                      onClick={() => void startPayment()}
+                      disabled={paymentStatus === "starting"}
+                      className="bp-focus-ring mt-1 inline-flex h-9 items-center justify-center rounded-lg bg-[#075e54] px-3 text-[12px] font-semibold text-white transition-colors hover:bg-[#0b6f63] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {paymentStatus === "starting" ? "Preparing..." : "Continue to secure payment"}
+                    </button>
+                  ) : (
+                    <>
+                      <label className="grid gap-1 text-[11px] font-semibold text-white/70">
+                        Name on card
+                        <input
+                          value={cardholderName}
+                          onChange={(e) => setCardholderName(e.target.value)}
+                          disabled={paymentStatus === "confirming"}
+                          autoComplete="cc-name"
+                          className="h-9 rounded-lg border border-white/15 bg-[#0a1f32] px-3 text-[12px] text-white outline-none transition-colors placeholder:text-white/35 focus:border-white/35 disabled:opacity-50"
+                        />
+                      </label>
+                      <div
+                        aria-label="Card details"
+                        id="kai-payment-card-element"
+                        className="min-h-[38px] rounded-lg border border-white/15 bg-[#0a1f32] px-3 py-2.5"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void confirmPayment()}
+                        disabled={paymentStatus === "confirming"}
+                        className="bp-focus-ring mt-1 inline-flex h-9 items-center justify-center rounded-lg bg-[#075e54] px-3 text-[12px] font-semibold text-white transition-colors hover:bg-[#0b6f63] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {paymentStatus === "confirming" ? "Confirming..." : "Pay securely"}
+                      </button>
+                    </>
+                  )}
+                </section>
               )}
 
               <div ref={messagesEndRef} />

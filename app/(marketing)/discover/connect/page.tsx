@@ -5,7 +5,7 @@ export default function OperatorConnectPage() {
     <main className="min-h-screen bg-[#04111d] px-5 py-24 text-white">
       <section className="mx-auto flex min-h-[calc(100vh-12rem)] max-w-3xl items-center">
         <div className="w-full rounded-2xl bg-[#0a2538] p-6 shadow-[0_28px_100px_rgba(0,0,0,0.36)] md:p-10">
-          <p className="text-[11px] font-medium tracking-[0.22em] text-[#B89A5D]">
+          <p className="bp-eyebrow">
             Early operator setup
           </p>
           <h1 className="bp-page-title mt-4 text-[clamp(2.25rem,5vw,4rem)] leading-none">

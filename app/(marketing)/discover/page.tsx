@@ -63,7 +63,7 @@ export default async function DiscoverPage() {
         {/* Conservation & Partners carousel */}
         <section className="px-[var(--cinematic-screen-x)] pb-16 md:pb-20">
           <div className="mx-auto max-w-6xl">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-[#5cc8be]">
+            <p className="bp-eyebrow">
               Conservation &amp; Partners
             </p>
             <h2 className="bp-page-title mt-3 max-w-2xl text-2xl leading-[1.1] text-white md:text-3xl">

@@ -9,6 +9,8 @@ import { AccountMenu } from "@/app/components/auth/AccountMenu";
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/discover", label: "Discover", aliases: ["/for-operators", "/operators", "/trips", "/preview"] },
+  { href: "/indonesia", label: "Indonesia" },
+  { href: "/australia", label: "Australia" },
   { href: "/conservation", label: "Conservation" },
   { href: "/partners", label: "Partners" },
 ];

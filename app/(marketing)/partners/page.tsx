@@ -138,7 +138,7 @@ export default function CreatorsPage() {
           <div className="relative mx-auto max-w-6xl">
             <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
               <div>
-                <p className="text-[11px] font-normal uppercase tracking-[0.18em] text-[#B89A5D]">
+                <p className="bp-eyebrow">
                   Why partner with BluePass
                 </p>
                 <h2 className="bp-page-title mt-4 max-w-[42rem] text-[clamp(1.9rem,3vw,2.75rem)] leading-[1.02] text-white/92">
@@ -217,7 +217,7 @@ export default function CreatorsPage() {
           <div className="relative mx-auto max-w-6xl">
             <div className="grid gap-6 md:grid-cols-[0.7fr_1fr] md:items-end">
               <div>
-                <p className="text-[11px] font-normal uppercase tracking-[0.18em] text-[#B89A5D]">
+                <p className="bp-eyebrow">
                   How it works
                 </p>
                 <h2 className="bp-page-title mt-4 max-w-md text-[clamp(1.8rem,3vw,2.65rem)] font-normal leading-[0.98] text-white/90">
@@ -288,7 +288,7 @@ export default function CreatorsPage() {
           />
           <div className="relative mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.74fr_1.26fr] lg:items-start">
             <div className="relative">
-              <p className="text-[11px] font-normal uppercase tracking-[0.18em] text-[#B89A5D]">
+              <p className="bp-eyebrow">
                 What you get
               </p>
               <h2 className="bp-page-title mt-4 max-w-xl text-[clamp(1.8rem,3vw,2.5rem)] font-normal leading-tight text-white/90">
@@ -360,7 +360,7 @@ export default function CreatorsPage() {
           className="border-y border-white/10 bg-[#04111d] px-[var(--cinematic-screen-x)] py-14 md:py-20"
         >
           <div className="mx-auto max-w-6xl">
-            <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
+            <p className="bp-eyebrow">
               Featured partners
             </p>
             <h2 className="bp-page-title mt-4 max-w-3xl text-xl leading-none text-white/82 md:text-2xl">
@@ -417,12 +417,12 @@ export default function CreatorsPage() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden px-[var(--cinematic-screen-x)] py-14 md:py-20">
+        <section className="relative flex min-h-svh flex-col justify-center overflow-hidden px-[var(--cinematic-screen-x)] py-12">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_12%,rgba(184,154,93,0.18),transparent_28%),radial-gradient(ellipse_at_70%_30%,rgba(80,111,94,0.13),transparent_46%),linear-gradient(180deg,rgba(4,17,29,0),rgba(7,24,39,0.50)_48%,rgba(2,11,17,0))]" />
-          <div className="relative mx-auto max-w-6xl">
+          <div className="relative mx-auto w-full max-w-6xl">
             <div className="bp-reveal grid gap-5 border-b border-white/10 pb-8 md:grid-cols-[0.86fr_1.14fr] md:items-end">
               <div>
-                <p className="text-[11px] font-normal tracking-[0.18em] text-[#B89A5D]">
+                <p className="bp-eyebrow">
                   Most viewed reels
                 </p>
                 <h2 className="bp-page-title mt-4 max-w-xl text-2xl leading-none text-white/90 md:text-3xl">

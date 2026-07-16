@@ -110,7 +110,7 @@ export default function HomePage() {
           overlay="bg-[linear-gradient(180deg,rgba(3,12,20,0.60)_0%,rgba(3,12,20,0.34)_45%,rgba(3,12,20,0.85)_100%)]"
         >
           <div className="mx-auto max-w-4xl">
-            <p className="bp-home-fade-up text-xs uppercase tracking-[0.32em] text-[#9fe8df]/90 md:text-sm">
+            <p className="bp-home-fade-up bp-eyebrow">
               Surf - Sail - Dive
             </p>
             <h1 className="bp-home-fade-up-2 bp-page-title mt-5 text-balance text-[clamp(2.8rem,8vw,6.5rem)] leading-[0.97] text-white">
@@ -155,7 +155,7 @@ export default function HomePage() {
           overlay="bg-[linear-gradient(180deg,rgba(3,14,24,0.80)_0%,rgba(4,20,34,0.68)_100%)]"
         >
           <div className="bp-reveal mx-auto w-full max-w-5xl">
-            <p className="text-xs uppercase tracking-[0.3em] text-[#9fe8df]/85">
+            <p className="bp-eyebrow">
               Why BluePass
             </p>
             <h2 className="bp-page-title mx-auto mt-4 max-w-3xl text-[clamp(2rem,5.2vw,3.7rem)] leading-[1.02]">
@@ -187,7 +187,7 @@ export default function HomePage() {
           overlay="bg-[linear-gradient(180deg,rgba(3,16,26,0.72)_0%,rgba(3,16,26,0.88)_100%)]"
         >
           <div className="bp-reveal mx-auto w-full max-w-6xl">
-            <p className="text-xs uppercase tracking-[0.3em] text-[#9fe8df]/85">
+            <p className="bp-eyebrow">
               Explore
             </p>
             <h2 className="bp-page-title mt-4 text-[clamp(2rem,5.5vw,3.8rem)] leading-[1.02]">
@@ -325,7 +325,7 @@ export default function HomePage() {
           overlay="bg-[linear-gradient(180deg,rgba(3,14,24,0.74)_0%,rgba(6,26,40,0.86)_100%)]"
         >
           <div className="bp-reveal mx-auto w-full max-w-6xl">
-            <p className="text-xs uppercase tracking-[0.3em] text-[#9fe8df]/85">
+            <p className="bp-eyebrow">
               From the network
             </p>
             <h2 className="bp-page-title mt-4 text-[clamp(2rem,5.5vw,3.8rem)] leading-[1.02]">

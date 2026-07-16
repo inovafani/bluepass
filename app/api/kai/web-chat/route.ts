@@ -8,6 +8,7 @@ import { getReferralAttributionFromCookies } from "@/lib/services/referrals/attr
 const webChatRequestSchema = z.object({
   sessionId: z.string().trim().min(1).optional(),
   message: z.string().trim().min(1),
+  region: z.enum(["indonesia", "australia"]).optional(),
   recentMessages: z
     .array(
       z.object({
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
       const result = await handleKaiCoreWebChat({
         sessionId,
         message: parsed.data.message,
+        region: parsed.data.region,
         referralAttribution,
       });
 

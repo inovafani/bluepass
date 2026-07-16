@@ -1,5 +1,6 @@
 import type { ReferralAttribution } from "@/lib/services/referrals/attribution";
 import { yachts } from "@/lib/data/yachts";
+import { detectKaiRegion, KAI_REGION_CLARIFYING_QUESTION, type KaiRegion } from "./region-router";
 
 type FetchLike = typeof fetch;
 
@@ -7,6 +8,7 @@ export type KaiCoreClientEnv = Record<string, string | undefined> & {
   KAI_CORE_ENABLED?: string;
   KAI_CORE_BASE_URL?: string;
   KAI_CORE_WIDGET_KEY?: string;
+  KAI_CORE_WIDGET_KEY_AU?: string;
   KAI_CORE_ORIGIN?: string;
   KAI_CORE_ADMIN_TOKEN?: string;
 };
@@ -14,6 +16,7 @@ export type KaiCoreClientEnv = Record<string, string | undefined> & {
 export type KaiCoreWebChatInput = {
   sessionId?: string;
   message: string;
+  region?: KaiRegion;
   referralAttribution?: ReferralAttribution;
 };
 
@@ -29,6 +32,27 @@ type KaiCoreMessageResponse = {
   };
   bluepassMatches?: KaiCoreBluePassMatch[];
   contactRequest?: KaiCoreContactRequest | null;
+  paymentRequest?: KaiCorePaymentRequest | null;
+};
+
+export type KaiCorePaymentRequest = {
+  conversationId: string;
+  productTitle: string | null;
+  dateText: string | null;
+  guests: number | null;
+  status: "PAYMENT_PENDING";
+};
+
+export type KaiCorePaymentIntent = {
+  provider: "REZDYPAY_STRIPE";
+  publishableKey: string;
+  conversationId: string;
+};
+
+export type KaiCorePaymentConfirmation = {
+  status: "CONFIRMED";
+  externalBookingId: string;
+  provider: string;
 };
 
 type KaiCoreBluePassMatch = {
@@ -142,14 +166,55 @@ export type KaiCoreBluePassInquiry = {
 
 export type KaiCoreBluePassQuote = KaiCoreBluePassQuoteResponse;
 
+export type KaiCoreWebChatResult = {
+  reply: string;
+  sessionId?: string;
+  region?: KaiRegion;
+  matches?: ReturnType<typeof toBluePassChatMatch>[];
+  contactRequest?: KaiCoreContactRequest | null;
+  paymentRequest?: KaiCorePaymentRequest | null;
+};
+
 export async function handleKaiCoreWebChat(
   input: KaiCoreWebChatInput,
   env: KaiCoreClientEnv = process.env,
   fetchImpl: FetchLike = fetch,
-) {
-  const config = resolveKaiCoreConfig(env);
+): Promise<KaiCoreWebChatResult> {
+  // Region decides which Kai Core tenant (Indonesia's native marketplace vs the Australia Rezdy
+  // pilot) this conversation talks to. Once a conversation has a sessionId, its region is normally
+  // already locked in and passed back by the caller - only a brand-new conversation needs
+  // detection. Ambiguous first messages get a cheap, deterministic clarifying question with no Kai
+  // Core call at all, rather than guessing.
+  let region = input.region;
+  let effectiveSessionId = input.sessionId;
+
+  if (!region) {
+    if (input.sessionId) {
+      // A sessionId with no cached region only happens for conversations that started before
+      // region-routing existed (or otherwise lost their cached region) - forcing these onto
+      // Indonesia forever regardless of what the traveller says next is a real bug, not a safe
+      // default (a stale pre-existing session could sit on this path indefinitely). If the current
+      // message is an unambiguous Australia signal, treat it as a fresh start under the right
+      // tenant rather than silently continuing the old conversation.
+      const detected = detectKaiRegion(input.message);
+      if (detected === "australia") {
+        region = "australia";
+        effectiveSessionId = undefined;
+      } else {
+        region = "indonesia";
+      }
+    } else {
+      const detected = detectKaiRegion(input.message);
+      if (detected === "ambiguous") {
+        return { reply: KAI_REGION_CLARIFYING_QUESTION };
+      }
+      region = detected;
+    }
+  }
+
+  const config = resolveKaiCoreConfig(env, region);
   const conversationId =
-    input.sessionId ??
+    effectiveSessionId ??
     (await createKaiCoreSession({
       config,
       fetchImpl,
@@ -158,7 +223,7 @@ export async function handleKaiCoreWebChat(
     key: config.widgetKey,
     conversationId,
     content: input.message,
-    bluepassCatalog: buildBluePassCatalogSnapshot(),
+    ...(region === "indonesia" ? { bluepassCatalog: buildBluePassCatalogSnapshot() } : {}),
     ...(input.referralAttribution
       ? {
           referral: {
@@ -185,8 +250,10 @@ export async function handleKaiCoreWebChat(
 
   return {
     sessionId: conversationId,
+    region,
     reply: data.assistantMessage?.content ?? "Kai Core did not return a reply.",
     ...(data.contactRequest ? { contactRequest: data.contactRequest } : {}),
+    ...(data.paymentRequest ? { paymentRequest: data.paymentRequest } : {}),
     ...(data.bluepassMatches && data.bluepassMatches.length > 0
       ? { matches: data.bluepassMatches.map(toBluePassChatMatch) }
       : {}),
@@ -195,6 +262,48 @@ export async function handleKaiCoreWebChat(
 
 export function shouldUseKaiCore(env: KaiCoreClientEnv = process.env) {
   return env.KAI_CORE_ENABLED === "true";
+}
+
+export async function createKaiCorePaymentIntent(
+  input: { conversationId: string; region?: KaiRegion },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCorePaymentIntent> {
+  const config = resolveKaiCoreConfig(env, input.region);
+  const response = await fetchKaiCoreWithRetry(fetchImpl, `${config.baseUrl}/api/widget/payments/intent`, {
+    method: "POST",
+    headers: buildKaiCoreHeaders(config),
+    body: JSON.stringify({ key: config.widgetKey, conversationId: input.conversationId }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Kai Core payment intent request failed.");
+  }
+
+  return (await response.json()) as KaiCorePaymentIntent;
+}
+
+export async function confirmKaiCorePayment(
+  input: { conversationId: string; cardToken: string; region?: KaiRegion },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCorePaymentConfirmation> {
+  const config = resolveKaiCoreConfig(env, input.region);
+  const response = await fetchKaiCoreWithRetry(fetchImpl, `${config.baseUrl}/api/widget/payments/confirm`, {
+    method: "POST",
+    headers: buildKaiCoreHeaders(config),
+    body: JSON.stringify({
+      key: config.widgetKey,
+      conversationId: input.conversationId,
+      cardToken: input.cardToken,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Kai Core payment confirmation request failed.");
+  }
+
+  return (await response.json()) as KaiCorePaymentConfirmation;
 }
 
 export async function forwardWhatsAppWebhookToKaiCore(
@@ -331,10 +440,13 @@ async function createKaiCoreSession(input: {
   return conversationId;
 }
 
-function resolveKaiCoreConfig(env: KaiCoreClientEnv) {
+function resolveKaiCoreConfig(env: KaiCoreClientEnv, region: KaiRegion = "indonesia") {
   return {
     baseUrl: (env.KAI_CORE_BASE_URL ?? "http://127.0.0.1:3107").replace(/\/$/, ""),
-    widgetKey: env.KAI_CORE_WIDGET_KEY ?? "pk_test_bluepass",
+    widgetKey:
+      region === "australia"
+        ? (env.KAI_CORE_WIDGET_KEY_AU ?? "pk_test_bluepass_au")
+        : (env.KAI_CORE_WIDGET_KEY ?? "pk_test_bluepass"),
     origin: env.KAI_CORE_ORIGIN ?? "https://bluepass.co",
   };
 }

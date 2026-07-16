@@ -107,6 +107,7 @@ describe("handleKaiCoreWebChat", () => {
     );
     expect(result).toEqual({
       sessionId: "core_conversation_1",
+      region: "indonesia",
       reply: "I prepared BluePass inquiry inquiry_1. This is not a confirmed booking.",
       matches: [
         {
@@ -170,6 +171,43 @@ describe("handleKaiCoreWebChat", () => {
     expect(result.sessionId).toBe("core_conversation_1");
   });
 
+  it("starts a fresh Australia conversation instead of continuing a stale pre-region sessionId", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ conversation: { id: "core_conversation_au_fresh" } }))
+      .mockResolvedValueOnce(
+        Response.json({
+          assistantMessage: { content: "You can choose from our Gold Coast experiences." },
+        }),
+      );
+
+    const result = await handleKaiCoreWebChat(
+      {
+        // A sessionId with no region attached simulates a conversation that started before
+        // region-routing existed (or otherwise lost its cached region) - this must not get stuck
+        // forever replaying whatever old BluePass Indonesia conversation that id points to.
+        sessionId: "core_conversation_stale_indonesia",
+        message: "I'm interested in a Gold Coast charter in Australia",
+      },
+      {
+        KAI_CORE_BASE_URL: "http://127.0.0.1:3107",
+        KAI_CORE_WIDGET_KEY: "pk_test_bluepass",
+        KAI_CORE_WIDGET_KEY_AU: "pk_test_bluepass_au",
+      },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const sessionRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(sessionRequest.body))).toMatchObject({ key: "pk_test_bluepass_au" });
+    const messageRequest = fetchMock.mock.calls[1]?.[1] as RequestInit;
+    const messageBody = JSON.parse(String(messageRequest.body));
+    expect(messageBody.conversationId).toBe("core_conversation_au_fresh");
+    expect(messageBody.conversationId).not.toBe("core_conversation_stale_indonesia");
+    expect(result.sessionId).toBe("core_conversation_au_fresh");
+    expect(result.region).toBe("australia");
+  });
+
   it("retries a transient Kai Core session failure before sending the message", async () => {
     const fetchMock = vi
       .fn()
@@ -200,8 +238,79 @@ describe("handleKaiCoreWebChat", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(result).toEqual({
       sessionId: "core_conversation_retry",
+      region: "indonesia",
       reply: "Retry recovered.",
     });
+  });
+
+  it("returns a clarifying question with no Kai Core call for an ambiguous first message", async () => {
+    const fetchMock = vi.fn();
+
+    const result = await handleKaiCoreWebChat(
+      { message: "Hi, what trips do you have?" },
+      { KAI_CORE_BASE_URL: "http://127.0.0.1:3107", KAI_CORE_WIDGET_KEY: "pk_test_bluepass" },
+      fetchMock,
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      reply: "Are you looking at trips in Indonesia (Komodo, Raja Ampat) or in Australia (Gold Coast)? I can help with either.",
+    });
+  });
+
+  it("routes an Australia-specific first message to the AU widget key without the BluePass catalog", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ conversation: { id: "core_conversation_au" } }))
+      .mockResolvedValueOnce(
+        Response.json({
+          assistantMessage: { content: "Gold Coast Whale Escape is available. How many guests?" },
+        }),
+      );
+
+    const result = await handleKaiCoreWebChat(
+      { message: "What's available on the Gold Coast?" },
+      {
+        KAI_CORE_BASE_URL: "http://127.0.0.1:3107",
+        KAI_CORE_WIDGET_KEY: "pk_test_bluepass",
+        KAI_CORE_WIDGET_KEY_AU: "pk_test_bluepass_au",
+      },
+      fetchMock,
+    );
+
+    const messageRequest = fetchMock.mock.calls[1]?.[1] as RequestInit;
+    const messageBody = JSON.parse(String(messageRequest.body));
+    expect(messageBody.key).toBe("pk_test_bluepass_au");
+    expect(messageBody.bluepassCatalog).toBeUndefined();
+    expect(result).toEqual({
+      sessionId: "core_conversation_au",
+      region: "australia",
+      reply: "Gold Coast Whale Escape is available. How many guests?",
+    });
+  });
+
+  it("keeps an existing conversation on its already-resolved Australia region without re-detecting", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      Response.json({
+        assistantMessage: { content: "2 guests, got it. What date works?" },
+      }),
+    );
+
+    const result = await handleKaiCoreWebChat(
+      { sessionId: "core_conversation_au", message: "2 guests", region: "australia" },
+      {
+        KAI_CORE_BASE_URL: "http://127.0.0.1:3107",
+        KAI_CORE_WIDGET_KEY: "pk_test_bluepass",
+        KAI_CORE_WIDGET_KEY_AU: "pk_test_bluepass_au",
+      },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const messageRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const messageBody = JSON.parse(String(messageRequest.body));
+    expect(messageBody.key).toBe("pk_test_bluepass_au");
+    expect(result.region).toBe("australia");
   });
 });
 
