@@ -103,6 +103,46 @@ describe("operator claim token service", () => {
     );
   });
 
+  it("does not mark the lead as sent when the email send actually fails", async () => {
+    const now = new Date("2026-07-10T02:00:00.000Z");
+    prismaMocks.operatorLead.findUnique.mockResolvedValue({
+      id: "lead_789",
+      slug: "bad-inbox-operator",
+      name: "Bad Inbox Operator",
+      email: "claims@bad-inbox-operator.com",
+    });
+    prismaMocks.operatorClaimToken.create.mockResolvedValue({
+      id: "token_789",
+    });
+    emailMocks.sendAuthEmail.mockRejectedValue(
+      new Error("Unable to send auth email: 500 upstream error"),
+    );
+
+    await expect(
+      requestOperatorClaimToken({
+        operatorSlug: "bad-inbox-operator",
+        baseUrl: "https://bluepass.co",
+        now,
+        tokenFactory: () => "raw-claim-token",
+      }),
+    ).resolves.toEqual({
+      ok: false,
+      reason: "send_failed",
+    });
+
+    // The token row is still created (so a retry can reuse it), but the lead must not be marked
+    // as sent, and the outreach event must reflect the failure, not a fake success.
+    expect(prismaMocks.operatorClaimToken.create).toHaveBeenCalled();
+    expect(prismaMocks.operatorLead.update).not.toHaveBeenCalled();
+    expect(prismaMocks.operatorOutreachEvent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        operatorLeadId: "lead_789",
+        operatorSlug: "bad-inbox-operator",
+        type: "CLAIM_LINK_SEND_FAILED",
+      }),
+    });
+  });
+
   it("returns a missing-email result instead of minting a token", async () => {
     prismaMocks.operatorLead.findUnique.mockResolvedValue({
       id: "lead_456",

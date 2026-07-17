@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { BluePassFooter } from "@/app/components/BluePassFooter";
+import { prisma } from "@/lib/db/prisma";
 import { listClaimedOperatorYachtSlugs } from "@/lib/services/operators/operator-claim-status";
 import { FleetBrowser } from "./FleetBrowser";
 import { KaiSearchHero } from "./KaiSearchHero";
+import { OperatorListingsSection } from "./OperatorListingsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +49,25 @@ const conservationCards = [
 ];
 
 export default async function DiscoverPage() {
-  const claimedYachtSlugs = await listClaimedOperatorYachtSlugs();
+  const [claimedYachtSlugs, operatorListings] = await Promise.all([
+    listClaimedOperatorYachtSlugs(),
+    prisma.operatorListing.findMany({
+      where: { status: "LIVE" },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        region: true,
+        description: true,
+        heroImageUrl: true,
+        maxGuests: true,
+        priceSignal: true,
+        currency: true,
+        operatorProfile: { select: { companyName: true } },
+      },
+    }),
+  ]);
 
   return (
     <>
@@ -59,6 +79,13 @@ export default async function DiscoverPage() {
         <div id="fleet">
           <FleetBrowser claimedYachtSlugs={claimedYachtSlugs} />
         </div>
+
+        <OperatorListingsSection
+          listings={operatorListings.map((listing) => ({
+            ...listing,
+            operatorName: listing.operatorProfile.companyName,
+          }))}
+        />
 
         {/* Conservation & Partners carousel */}
         <section className="px-[var(--cinematic-screen-x)] pb-16 md:pb-20">

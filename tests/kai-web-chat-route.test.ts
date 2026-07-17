@@ -13,12 +13,22 @@ const storeMocks = vi.hoisted(() => ({
 const llmMocks = vi.hoisted(() => ({
   generateKaiReply: vi.fn(async (input: { deterministicReply: string }) => input.deterministicReply),
 }));
+// buildBluePassCatalogSnapshot() (called when Kai Core is enabled) merges in LIVE
+// OperatorListing rows - keep that a no-op DB call here rather than an unmocked real connection.
+const prismaMocks = vi.hoisted(() => ({
+  operatorListing: {
+    findMany: vi.fn().mockResolvedValue([]),
+  },
+}));
 
 vi.mock("@/lib/services/kai/prisma-conversation-store", () => ({
   prismaKaiConversationStore: storeMocks,
 }));
 vi.mock("@/lib/services/kai/llm-provider", () => ({
   generateKaiReply: llmMocks.generateKaiReply,
+}));
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: prismaMocks,
 }));
 
 beforeEach(() => {

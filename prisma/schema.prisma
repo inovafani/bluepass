@@ -354,11 +354,55 @@ model OperatorProfile {
   account     BluePassAccount   @relation(fields: [accountId], references: [id], onDelete: Cascade)
   referralPartner ReferralPartner? @relation(fields: [referralPartnerId], references: [id], onDelete: SetNull)
   pmsReadiness OperatorPmsReadiness?
+  listings    OperatorListing[]
 
   @@index([status])
   @@index([companyName])
   @@index([claimedOperatorSlug])
   @@index([referralPartnerId])
+}
+
+enum OperatorListingStatus {
+  DRAFT
+  LIVE
+  ARCHIVED
+}
+
+// A listing an operator authors and publishes themselves, once approved (OperatorProfile.status
+// = APPROVED) - no admin review gate before going live, matching how most self-service
+// marketplaces work (publish first, moderate reactively). Admins can only take an already-live
+// listing down (ARCHIVED) and bring it back, via archivedAt/archivedBy/archivedReason.
+// Deliberately hangs off OperatorProfile (the account-linked entity real claim/approval flows
+// actually populate) rather than the legacy Operator/Trip/Booking tables, which are only ever
+// touched by the Bokun PMS-sync adapter and have no bridge from an approved claim today.
+// category/region are free strings (matching OperatorLead's existing pattern) rather than enums,
+// so an Australian region (e.g. "Great Barrier Reef") needs no schema change to be listed
+// alongside "Komodo"/"Raja Ampat".
+model OperatorListing {
+  id                String                 @id @default(cuid())
+  operatorProfileId String
+  title             String
+  slug              String                 @unique
+  category          String
+  region            String
+  description       String
+  heroImageUrl      String?
+  maxGuests         Int?
+  priceSignal       String?
+  currency          String                 @default("AUD")
+  status            OperatorListingStatus  @default(DRAFT)
+  publishedAt       DateTime?
+  archivedAt        DateTime?
+  archivedBy        String?
+  archivedReason    String?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  operatorProfile OperatorProfile @relation(fields: [operatorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([operatorProfileId])
+  @@index([status])
+  @@index([region])
 }
 
 model OperatorLead {

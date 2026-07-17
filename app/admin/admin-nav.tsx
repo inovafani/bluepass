@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 export type AdminSectionKey =
   | "applications"
   | "operator-outreach"
+  | "listings"
   | "inquiries"
   | "referrals";
 
@@ -18,6 +19,7 @@ const ADMIN_SECTIONS: {
     href: "/admin/operator-outreach",
     label: "Operator outreach",
   },
+  { key: "listings", href: "/admin/listings", label: "Listings" },
   { key: "inquiries", href: "/admin/inquiries", label: "Inquiry pipeline" },
   { key: "referrals", href: "/admin/referrals", label: "Referral ledger" },
 ];

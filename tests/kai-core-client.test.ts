@@ -1,6 +1,21 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+// buildBluePassCatalogSnapshot() merges in LIVE OperatorListing rows alongside the static yachts;
+// none of these tests are about that merge itself, so keep it a no-op DB call rather than letting
+// an unmocked Prisma client attempt a real connection on every handleKaiCoreWebChat call.
+const prismaMocks = vi.hoisted(() => ({
+  operatorListing: {
+    findMany: vi.fn().mockResolvedValue([]),
+  },
+}));
+
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: prismaMocks,
+}));
+
 import {
   approveKaiCoreBluePassQuote,
+  buildBluePassCatalogSnapshot,
   forwardWhatsAppWebhookToKaiCore,
   getKaiCoreBluePassQuote,
   handleKaiCoreWebChat,
@@ -633,5 +648,78 @@ describe("Kai Core BluePass quotes", () => {
       }),
     );
     expect(quote.status).toBe("TRAVELLER_APPROVED");
+  });
+});
+
+describe("buildBluePassCatalogSnapshot", () => {
+  afterEach(() => {
+    prismaMocks.operatorListing.findMany.mockReset();
+  });
+
+  it("merges LIVE operator listings alongside the static yacht catalog", async () => {
+    prismaMocks.operatorListing.findMany.mockResolvedValue([
+      {
+        id: "listing_1",
+        slug: "reef-dive-day-trip",
+        title: "Reef Dive Day Trip",
+        category: "reef_dive",
+        region: "Great Barrier Reef",
+        description: "A full-day guided reef dive for small groups.",
+        maxGuests: 12,
+        priceSignal: "from AUD 150pp",
+        operatorProfile: { companyName: "Calico Jack" },
+      },
+    ]);
+
+    const catalog = await buildBluePassCatalogSnapshot();
+
+    expect(prismaMocks.operatorListing.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { status: "LIVE" } }),
+    );
+    // Static yachts are still present - additive, not a replacement.
+    expect(catalog).toEqual(
+      expect.arrayContaining([expect.objectContaining({ slug: "calico-jack", region: "Komodo" })]),
+    );
+    expect(catalog).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          slug: "reef-dive-day-trip",
+          name: "Reef Dive Day Trip",
+          region: "Great Barrier Reef",
+          operatorName: "Calico Jack",
+          maxGuests: 12,
+          priceSignal: "from AUD 150pp",
+        }),
+      ]),
+    );
+  });
+
+  it("falls back to a placeholder operator name when the listing's profile has none", async () => {
+    prismaMocks.operatorListing.findMany.mockResolvedValue([
+      {
+        id: "listing_2",
+        slug: "sunset-sail",
+        title: "Sunset Sail",
+        category: "charter_sailing",
+        region: "Sydney Harbour",
+        description: "An evening sailing charter.",
+        maxGuests: null,
+        priceSignal: null,
+        operatorProfile: { companyName: null },
+      },
+    ]);
+
+    const catalog = await buildBluePassCatalogSnapshot();
+
+    expect(catalog).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          slug: "sunset-sail",
+          operatorName: "Sunset Sail",
+          maxGuests: 0,
+          priceSignal: "Quote on request",
+        }),
+      ]),
+    );
   });
 });

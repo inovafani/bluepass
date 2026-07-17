@@ -55,6 +55,39 @@ export async function requestOperatorClaimToken(
       expiresAt,
     },
   });
+
+  // The send is attempted before anything records "sent" - previously the lead status and
+  // outreach event were written first, so a failed send still left the database claiming the
+  // email went out. The token row above is created regardless of send outcome so a retry can
+  // reuse it rather than minting a new one.
+  let delivery: Awaited<ReturnType<typeof sendAuthEmail>>;
+  try {
+    delivery = await sendAuthEmail({
+      to: lead.email,
+      subject: `Claim ${lead.name} on BluePass`,
+      text: buildClaimEmailText({ operatorName: lead.name, claimUrl }),
+      html: buildClaimEmailHtml({ operatorName: lead.name, claimUrl }),
+    });
+  } catch (error) {
+    await prisma.operatorOutreachEvent.create({
+      data: {
+        operatorLeadId: lead.id,
+        operatorSlug: lead.slug,
+        type: "CLAIM_LINK_SEND_FAILED",
+        message: `Claim link email to ${lead.email} failed to send.`,
+        metadata: {
+          email: lead.email,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      },
+    });
+
+    return {
+      ok: false as const,
+      reason: "send_failed" as const,
+    };
+  }
+
   await prisma.operatorLead.update({
     where: { id: lead.id },
     data: {
@@ -75,16 +108,9 @@ export async function requestOperatorClaimToken(
     },
   });
 
-  const delivery = await sendAuthEmail({
-    to: lead.email,
-    subject: `Claim ${lead.name} on BluePass`,
-    text: buildClaimEmailText({ operatorName: lead.name, claimUrl }),
-    html: buildClaimEmailHtml({ operatorName: lead.name, claimUrl }),
-  });
-
   return {
     ok: true as const,
-    claimUrl: delivery.provider === "development" ? claimUrl : claimUrl,
+    claimUrl,
     expiresAt,
     delivery,
   };

@@ -1,9 +1,23 @@
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentTraveller } from "@/lib/services/auth/session";
 import { buildOperatorDashboardClaimView } from "@/lib/services/operators/operator-dashboard-view";
+import {
+  createDraftListing,
+  listOperatorListingsForAccount,
+  operatorListingInputSchema,
+  publishListing,
+} from "@/lib/services/operators/operator-listing-service";
 import { creatorCommissionLedgerKind } from "@/lib/services/referrals/commission-ledger";
+import { uploadListingHeroImage } from "@/lib/services/storage/listing-images";
+import {
+  NewListingForm,
+  PublishListingButton,
+  type CreateListingState,
+  type PublishListingState,
+} from "./NewListingForm";
 
 export const metadata = {
   title: "Dashboard | BluePass",
@@ -99,6 +113,10 @@ export default async function DashboardPage() {
     : undefined;
   const operatorProfile = account?.operatorProfile ?? null;
   const operatorClaimView = buildOperatorDashboardClaimView(operatorProfile);
+  const operatorApproved = operatorProfile?.status === "APPROVED";
+  const operatorListings = operatorApproved
+    ? await listOperatorListingsForAccount(traveller.accountId)
+    : [];
 
   return (
     <section className="cinematic-page home-hero relative min-h-svh overflow-hidden bg-[#020b11] text-white">
@@ -233,6 +251,10 @@ export default async function DashboardPage() {
                   actionLabel="Apply as operator"
                 />
               )}
+
+              {hasOperator && operatorApproved && (
+                <OperatorListingsPanel listings={operatorListings} />
+              )}
             </section>
           </div>
         </div>
@@ -326,6 +348,70 @@ function ClaimedOperatorDashboardPanel({
           </a>
         )}
       </div>
+    </article>
+  );
+}
+
+function OperatorListingsPanel({
+  listings,
+}: {
+  listings: Array<{
+    id: string;
+    title: string;
+    category: string;
+    region: string;
+    status: string;
+    archivedReason: string | null;
+  }>;
+}) {
+  return (
+    <article className="rounded-2xl border border-white/14 bg-white/[0.08] p-5 backdrop-blur-md">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fe8df]">
+        My listings
+      </p>
+      <h2 className="mt-3 text-xl font-semibold leading-tight text-white">
+        Trips you list yourself
+      </h2>
+      <p className="mt-2 text-sm leading-6 text-white/60">
+        Save a draft, then publish it - it goes live on Discover right away, no review wait.
+      </p>
+
+      <div className="mt-4 grid gap-2">
+        {listings.length ? (
+          listings.map((listing) => (
+            <div
+              key={listing.id}
+              className="rounded-xl border border-white/10 bg-black/14 p-3"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="truncate text-sm font-bold text-white/84">
+                  {listing.title}
+                </p>
+                <span className="shrink-0 rounded-full border border-white/14 bg-white/[0.08] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/62">
+                  {formatStatus(listing.status)}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-white/48">
+                {listing.category} / {listing.region}
+              </p>
+              {listing.status === "ARCHIVED" && listing.archivedReason && (
+                <p className="mt-2 text-xs text-[#f1a3a3]">
+                  Taken down by BluePass: {listing.archivedReason}
+                </p>
+              )}
+              {listing.status === "DRAFT" && (
+                <PublishListingButton listingId={listing.id} action={publishListingAction} />
+              )}
+            </div>
+          ))
+        ) : (
+          <p className="rounded-xl border border-white/10 bg-black/14 p-3 text-sm text-white/46">
+            No listings yet. Add your first trip below.
+          </p>
+        )}
+      </div>
+
+      <NewListingForm action={createListingAction} />
     </article>
   );
 }
@@ -618,6 +704,99 @@ function formatMoney(cents: number) {
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(cents / 100);
+}
+
+const LISTING_FIELD_LABELS: Record<string, string> = {
+  title: "Trip title",
+  category: "Category",
+  region: "Region",
+  description: "Description",
+  heroImageUrl: "Hero image URL",
+  maxGuests: "Max guests",
+  priceSignal: "Price",
+};
+
+async function createListingAction(
+  _prevState: CreateListingState,
+  formData: FormData,
+): Promise<CreateListingState> {
+  "use server";
+
+  const traveller = await getCurrentTraveller();
+  if (!traveller) redirect("/login?next=/dashboard");
+
+  const maxGuestsRaw = String(formData.get("maxGuests") ?? "").trim();
+  const priceSignalRaw = String(formData.get("priceSignal") ?? "").trim();
+  const heroImageFile = formData.get("heroImageFile");
+
+  let heroImageUrl: string | undefined;
+
+  try {
+    if (heroImageFile instanceof File && heroImageFile.size > 0) {
+      heroImageUrl = await uploadListingHeroImage(heroImageFile, traveller.accountId);
+    }
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : "Unable to upload the hero image right now.",
+    };
+  }
+
+  const parsed = operatorListingInputSchema.safeParse({
+    title: String(formData.get("title") ?? ""),
+    category: String(formData.get("category") ?? ""),
+    region: String(formData.get("region") ?? ""),
+    description: String(formData.get("description") ?? ""),
+    heroImageUrl,
+    maxGuests: maxGuestsRaw || undefined,
+    priceSignal: priceSignalRaw || undefined,
+  });
+
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    const fieldLabel = issue ? LISTING_FIELD_LABELS[String(issue.path[0])] : undefined;
+    return {
+      error: fieldLabel
+        ? `${fieldLabel}: ${issue.message}`
+        : "Please check the form fields and try again.",
+    };
+  }
+
+  try {
+    await createDraftListing({ ...parsed.data, accountId: traveller.accountId });
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Unable to save this listing right now.",
+    };
+  }
+
+  revalidatePath("/dashboard");
+  return { error: null };
+}
+
+async function publishListingAction(
+  _prevState: PublishListingState,
+  formData: FormData,
+): Promise<PublishListingState> {
+  "use server";
+
+  const traveller = await getCurrentTraveller();
+  if (!traveller) redirect("/login?next=/dashboard");
+
+  try {
+    await publishListing({
+      listingId: String(formData.get("listingId") ?? ""),
+      accountId: traveller.accountId,
+    });
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Unable to publish this listing right now.",
+    };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/discover");
+  return { error: null };
 }
 
 function buildReferralShareUrl(code: string, targetPath?: string | null) {

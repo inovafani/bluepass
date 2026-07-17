@@ -1,4 +1,5 @@
 import type { ReferralAttribution } from "@/lib/services/referrals/attribution";
+import { prisma } from "@/lib/db/prisma";
 import { yachts } from "@/lib/data/yachts";
 import { detectKaiRegion, KAI_REGION_CLARIFYING_QUESTION, type KaiRegion } from "./region-router";
 
@@ -235,7 +236,7 @@ export async function handleKaiCoreWebChat(
     key: config.widgetKey,
     conversationId,
     content: input.message,
-    ...(region === "indonesia" ? { bluepassCatalog: buildBluePassCatalogSnapshot() } : {}),
+    ...(region === "indonesia" ? { bluepassCatalog: await buildBluePassCatalogSnapshot() } : {}),
     ...(input.referralAttribution
       ? {
           referral: {
@@ -620,8 +621,8 @@ function toKaiCoreBluePassInquiry(inquiry: KaiCoreBluePassInquiryResponse): KaiC
   };
 }
 
-function buildBluePassCatalogSnapshot() {
-  return yachts.map((yacht) => ({
+export async function buildBluePassCatalogSnapshot() {
+  const staticSnapshot = yachts.map((yacht) => ({
     slug: yacht.slug,
     name: yacht.name,
     region: yacht.region,
@@ -637,6 +638,38 @@ function buildBluePassCatalogSnapshot() {
     productUrl: buildBluePassProductUrl(yacht.slug),
     departuresPreview: yacht.departures.slice(0, 3).map((departure) => departure.dates),
     interests: buildCatalogInterests(yacht),
+  }));
+
+  return [...staticSnapshot, ...(await buildOperatorListingCatalogSnapshot())];
+}
+
+// Operator-authored listings (self-service, any region - see OperatorListing in schema.prisma)
+// merged in alongside the static curated yachts, so Kai can match/discuss them the same way.
+// Exported so the WhatsApp-facing snapshot route (app/api/kai/operator-listings-snapshot) can
+// reuse the exact same mapping without duplicating the query - WhatsApp messages hit kai directly
+// and never pass through this web-widget client at all, so they need their own pull endpoint.
+export async function buildOperatorListingCatalogSnapshot() {
+  const listings = await prisma.operatorListing.findMany({
+    where: { status: "LIVE" },
+    include: { operatorProfile: { select: { companyName: true } } },
+  });
+
+  return listings.map((listing) => ({
+    slug: listing.slug,
+    name: listing.title,
+    region: listing.region,
+    tier: listing.category,
+    maxGuests: listing.maxGuests ?? 0,
+    cabins: 0,
+    priceSignal: listing.priceSignal ?? "Quote on request",
+    charterPriceSignal: null,
+    operatorId: `operator_listing_${listing.id}`,
+    operatorName: listing.operatorProfile.companyName ?? listing.title,
+    cabinBookable: false,
+    about: listing.description,
+    productUrl: null,
+    departuresPreview: [] as string[],
+    interests: [] as string[],
   }));
 }
 

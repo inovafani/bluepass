@@ -35,6 +35,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!result.ok && result.reason === "send_failed") {
+      return NextResponse.json(
+        {
+          ok: false,
+          reason: "send_failed",
+          message: "The claim link email could not be sent right now. Please try again shortly.",
+        },
+        { status: 502 },
+      );
+    }
+
     return NextResponse.json({
       ok: true,
       developmentClaimUrl:
