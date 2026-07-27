@@ -16,10 +16,13 @@ vi.mock("@/lib/db/prisma", () => ({
 import {
   approveKaiCoreBluePassQuote,
   buildBluePassCatalogSnapshot,
+  createKaiCoreBluePassCheckoutSession,
+  createKaiCoreOperatorStripeConnectAccount,
   forwardWhatsAppWebhookToKaiCore,
   getKaiCoreBluePassQuote,
   handleKaiCoreWebChat,
   listKaiCoreBluePassInquiries,
+  releaseKaiCoreBluePassLedgerEntryPayoutViaStripe,
   resumeKaiCoreSession,
 } from "@/lib/services/kai-core/client";
 
@@ -148,6 +151,47 @@ describe("handleKaiCoreWebChat", () => {
         fields: ["name", "email", "phone"],
         status: "CONTACT_DETAILS_REQUIRED",
       },
+    });
+  });
+
+  it("maps a BluePass match's imageUrl to the widget card's heroImageUrl field", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json({
+          conversation: { id: "core_conversation_2" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        Response.json({
+          assistantMessage: { content: "Here are some Komodo options." },
+          bluepassMatches: [
+            {
+              slug: "alila-purnama",
+              name: "Alila Purnama",
+              region: "Komodo",
+              imageUrl: "https://bluepass.co/yachts/alila-purnama/hero.jpg",
+            },
+          ],
+        }),
+      );
+
+    const result = await handleKaiCoreWebChat(
+      {
+        sessionId: undefined,
+        message: "Komodo yacht for 8 guests",
+      },
+      {
+        KAI_CORE_BASE_URL: "http://127.0.0.1:3107",
+        KAI_CORE_WIDGET_KEY: "pk_test_bluepass",
+        KAI_CORE_ORIGIN: "https://bluepass.co",
+      },
+      fetchMock,
+    );
+
+    expect(result.matches?.[0]).toMatchObject({
+      slug: "alila-purnama",
+      heroImageUrl: "https://bluepass.co/yachts/alila-purnama/hero.jpg",
     });
   });
 
@@ -649,6 +693,125 @@ describe("Kai Core BluePass quotes", () => {
     );
     expect(quote.status).toBe("TRAVELLER_APPROVED");
   });
+
+  it("creates a Stripe checkout session for a payment-ready quote", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      Response.json({ checkoutUrl: "https://checkout.stripe.com/c/pay/cs_test_123" }),
+    );
+
+    const result = await createKaiCoreBluePassCheckoutSession(
+      { quoteId: "inq_1" },
+      {
+        KAI_CORE_BASE_URL: "https://kai-core.example.com",
+        KAI_CORE_ORIGIN: "https://bluepass.co",
+      },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://kai-core.example.com/api/bluepass/quotes/inq_1",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ action: "checkout" }),
+      }),
+    );
+    expect(result).toEqual({ checkoutUrl: "https://checkout.stripe.com/c/pay/cs_test_123" });
+  });
+
+  it("surfaces the Kai Core error message when checkout session creation fails", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      Response.json(
+        { error: { code: "CHECKOUT_SESSION_FAILED", message: "Quote is not ready for payment." } },
+        { status: 400 },
+      ),
+    );
+
+    await expect(
+      createKaiCoreBluePassCheckoutSession(
+        { quoteId: "inq_1" },
+        { KAI_CORE_BASE_URL: "https://kai-core.example.com", KAI_CORE_ORIGIN: "https://bluepass.co" },
+        fetchMock,
+      ),
+    ).rejects.toThrow("Quote is not ready for payment.");
+  });
+});
+
+describe("Kai Core Stripe Connect payouts", () => {
+  it("creates a Connect account and returns the onboarding link", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      Response.json({ stripeAccountId: "acct_123", onboardingUrl: "https://connect.stripe.com/setup/acct_123" }),
+    );
+
+    const result = await createKaiCoreOperatorStripeConnectAccount(
+      { existingStripeAccountId: null },
+      {
+        KAI_CORE_BASE_URL: "https://kai-core.example.com",
+        KAI_CORE_ORIGIN: "https://bluepass.co",
+        KAI_CORE_ADMIN_TOKEN: "admin_secret",
+      },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://kai-core.example.com/api/admin/stripe/connect-accounts",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ authorization: "Bearer admin_secret" }),
+        body: JSON.stringify({ existingStripeAccountId: null }),
+      }),
+    );
+    expect(result).toEqual({ stripeAccountId: "acct_123", onboardingUrl: "https://connect.stripe.com/setup/acct_123" });
+  });
+
+  it("throws when the Kai Core admin token is not configured", async () => {
+    const fetchMock = vi.fn();
+
+    await expect(
+      createKaiCoreOperatorStripeConnectAccount(
+        { existingStripeAccountId: null },
+        { KAI_CORE_BASE_URL: "https://kai-core.example.com" },
+        fetchMock,
+      ),
+    ).rejects.toThrow("Kai Core admin token is not configured.");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("releases a finalized ledger entry via Stripe transfer", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      Response.json({
+        entry: {
+          id: "entry_1",
+          kind: "OPERATOR_PAYOUT_PLACEHOLDER",
+          amountCents: 164000,
+          currency: "USD",
+          status: "FINALIZED",
+          paidOutAt: "2026-07-24T10:00:00.000Z",
+          paidOutReference: "tr_test_123",
+          paidOutBy: "admin@bluepass.co",
+        },
+      }),
+    );
+
+    const result = await releaseKaiCoreBluePassLedgerEntryPayoutViaStripe(
+      { tenantSlug: "bluepass", entryId: "entry_1", stripeConnectAccountId: "acct_operator_123", reviewerEmail: "admin@bluepass.co" },
+      {
+        KAI_CORE_BASE_URL: "https://kai-core.example.com",
+        KAI_CORE_ORIGIN: "https://bluepass.co",
+        KAI_CORE_ADMIN_TOKEN: "admin_secret",
+      },
+      fetchMock,
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://kai-core.example.com/api/admin/bluepass/bluepass-ledger/entry_1/mark-paid",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ authorization: "Bearer admin_secret" }),
+        body: JSON.stringify({ stripeConnectAccountId: "acct_operator_123", reviewerEmail: "admin@bluepass.co" }),
+      }),
+    );
+    expect(result).toMatchObject({ id: "entry_1", paidOutReference: "tr_test_123" });
+  });
 });
 
 describe("buildBluePassCatalogSnapshot", () => {
@@ -718,6 +881,42 @@ describe("buildBluePassCatalogSnapshot", () => {
           operatorName: "Sunset Sail",
           maxGuests: 0,
           priceSignal: "Quote on request",
+        }),
+      ]),
+    );
+  });
+
+  it("carries an image for both static yachts and operator listings, so widget recommendation cards can show a photo", async () => {
+    prismaMocks.operatorListing.findMany.mockResolvedValue([
+      {
+        id: "listing_1",
+        slug: "reef-dive-day-trip",
+        title: "Reef Dive Day Trip",
+        category: "reef_dive",
+        region: "Great Barrier Reef",
+        description: "A full-day guided reef dive for small groups.",
+        maxGuests: 12,
+        priceSignal: "from AUD 150pp",
+        heroImageUrl: "https://bluepass.co/listings/reef-dive-day-trip/hero.jpg",
+        operatorProfile: { companyName: "Calico Jack" },
+      },
+    ]);
+
+    const catalog = await buildBluePassCatalogSnapshot();
+
+    expect(catalog).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          slug: "calico-jack",
+          imageUrl: expect.stringContaining("/yachts/calico-jack/"),
+        }),
+      ]),
+    );
+    expect(catalog).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          slug: "reef-dive-day-trip",
+          imageUrl: "https://bluepass.co/listings/reef-dive-day-trip/hero.jpg",
         }),
       ]),
     );

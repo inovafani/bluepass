@@ -79,6 +79,7 @@ type KaiCoreBluePassMatch = {
   reasons?: string[];
   score?: number;
   productUrl?: string | null;
+  imageUrl?: string | null;
 };
 
 type KaiCoreContactRequest = {
@@ -130,6 +131,7 @@ type KaiCoreBluePassQuoteResponse = {
     | "READY_FOR_TRAVELLER"
     | "TRAVELLER_APPROVED"
     | "PAYMENT_READY"
+    | "PAID"
     | "BOOKING_CONFIRMED";
   selectedYachtName: string | null;
   operatorName: string | null;
@@ -372,6 +374,178 @@ export async function listKaiCoreBluePassInquiries(
   return (data.inquiries ?? []).map(toKaiCoreBluePassInquiry);
 }
 
+export type KaiCoreBluePassLedgerEntry = {
+  id: string;
+  kind: string;
+  amountCents: number;
+  currency: string;
+  status: "PENDING" | "FINALIZED" | "VOIDED";
+  paidOutAt: string | null;
+  paidOutReference: string | null;
+  paidOutBy: string | null;
+  createdAt: string;
+  inquiry: {
+    id: string;
+    selectedYachtName: string | null;
+    operatorName: string | null;
+    operatorPhone: string | null;
+    destination: string | null;
+    status: string;
+  } | null;
+};
+
+type KaiCoreBluePassLedgerEntryResponse = Omit<KaiCoreBluePassLedgerEntry, "inquiry"> & {
+  inquiry?: KaiCoreBluePassLedgerEntry["inquiry"];
+};
+
+export async function listKaiCoreBluePassLedger(
+  input: { tenantSlug: string; status?: "PENDING" | "FINALIZED" | "VOIDED"; take?: number },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCoreBluePassLedgerEntry[]> {
+  const config = resolveKaiCoreConfig(env);
+  const adminToken = env.KAI_CORE_ADMIN_TOKEN?.trim();
+
+  if (!adminToken) {
+    throw new Error("Kai Core admin token is not configured.");
+  }
+
+  const params = new URLSearchParams({ take: String(input.take ?? 100) });
+  if (input.status) {
+    params.set("status", input.status);
+  }
+
+  const response = await fetchKaiCoreWithRetry(
+    fetchImpl,
+    `${config.baseUrl}/api/admin/${encodeURIComponent(input.tenantSlug)}/bluepass-ledger?${params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        ...buildKaiCoreHeaders(config),
+        authorization: `Bearer ${adminToken}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Kai Core BluePass ledger request failed.");
+  }
+
+  const data = (await response.json()) as { entries?: KaiCoreBluePassLedgerEntryResponse[] };
+  return (data.entries ?? []).map((entry) => ({ ...entry, inquiry: entry.inquiry ?? null }));
+}
+
+export async function markKaiCoreBluePassLedgerEntryPaid(
+  input: { tenantSlug: string; entryId: string; paidOutReference: string; reviewerEmail: string },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCoreBluePassLedgerEntry> {
+  const config = resolveKaiCoreConfig(env);
+  const adminToken = env.KAI_CORE_ADMIN_TOKEN?.trim();
+
+  if (!adminToken) {
+    throw new Error("Kai Core admin token is not configured.");
+  }
+
+  const response = await fetchKaiCoreWithRetry(
+    fetchImpl,
+    `${config.baseUrl}/api/admin/${encodeURIComponent(input.tenantSlug)}/bluepass-ledger/${encodeURIComponent(input.entryId)}/mark-paid`,
+    {
+      method: "POST",
+      headers: {
+        ...buildKaiCoreHeaders(config),
+        authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({
+        paidOutReference: input.paidOutReference,
+        reviewerEmail: input.reviewerEmail,
+      }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+    throw new Error(errorBody?.error?.message ?? "Kai Core BluePass ledger mark-paid request failed.");
+  }
+
+  const data = (await response.json()) as { entry: KaiCoreBluePassLedgerEntryResponse };
+  return { ...data.entry, inquiry: data.entry.inquiry ?? null };
+}
+
+export async function releaseKaiCoreBluePassLedgerEntryPayoutViaStripe(
+  input: { tenantSlug: string; entryId: string; stripeConnectAccountId: string; reviewerEmail: string },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCoreBluePassLedgerEntry> {
+  const config = resolveKaiCoreConfig(env);
+  const adminToken = env.KAI_CORE_ADMIN_TOKEN?.trim();
+
+  if (!adminToken) {
+    throw new Error("Kai Core admin token is not configured.");
+  }
+
+  const response = await fetchKaiCoreWithRetry(
+    fetchImpl,
+    `${config.baseUrl}/api/admin/${encodeURIComponent(input.tenantSlug)}/bluepass-ledger/${encodeURIComponent(input.entryId)}/mark-paid`,
+    {
+      method: "POST",
+      headers: {
+        ...buildKaiCoreHeaders(config),
+        authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({
+        stripeConnectAccountId: input.stripeConnectAccountId,
+        reviewerEmail: input.reviewerEmail,
+      }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+    throw new Error(errorBody?.error?.message ?? "Kai Core BluePass ledger Stripe release request failed.");
+  }
+
+  const data = (await response.json()) as { entry: KaiCoreBluePassLedgerEntryResponse };
+  return { ...data.entry, inquiry: data.entry.inquiry ?? null };
+}
+
+export async function createKaiCoreOperatorStripeConnectAccount(
+  input: { existingStripeAccountId?: string | null },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<{ stripeAccountId: string; onboardingUrl: string }> {
+  const config = resolveKaiCoreConfig(env);
+  const adminToken = env.KAI_CORE_ADMIN_TOKEN?.trim();
+
+  if (!adminToken) {
+    throw new Error("Kai Core admin token is not configured.");
+  }
+
+  const response = await fetchKaiCoreWithRetry(
+    fetchImpl,
+    `${config.baseUrl}/api/admin/stripe/connect-accounts`,
+    {
+      method: "POST",
+      headers: {
+        ...buildKaiCoreHeaders(config),
+        authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ existingStripeAccountId: input.existingStripeAccountId ?? null }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+    throw new Error(errorBody?.error?.message ?? "Kai Core Stripe Connect account request failed.");
+  }
+
+  return (await response.json()) as { stripeAccountId: string; onboardingUrl: string };
+}
+
 export async function getKaiCoreBluePassQuote(
   input: { quoteId: string },
   env: KaiCoreClientEnv = process.env,
@@ -427,6 +601,36 @@ export async function approveKaiCoreBluePassQuote(
   }
 
   return data.quote;
+}
+
+export async function createKaiCoreBluePassCheckoutSession(
+  input: { quoteId: string },
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<{ checkoutUrl: string }> {
+  const config = resolveKaiCoreConfig(env);
+  const response = await fetchKaiCoreWithRetry(
+    fetchImpl,
+    `${config.baseUrl}/api/bluepass/quotes/${encodeURIComponent(input.quoteId)}`,
+    {
+      method: "POST",
+      headers: buildKaiCoreHeaders(config),
+      body: JSON.stringify({ action: "checkout" }),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+    throw new Error(errorBody?.error?.message ?? "Kai Core BluePass checkout session request failed.");
+  }
+
+  const data = (await response.json()) as { checkoutUrl?: string };
+  if (!data.checkoutUrl) {
+    throw new Error("Kai Core checkout response did not include a checkout URL.");
+  }
+
+  return { checkoutUrl: data.checkoutUrl };
 }
 
 async function createKaiCoreSession(input: {
@@ -588,6 +792,7 @@ function toBluePassChatMatch(match: KaiCoreBluePassMatch) {
     departuresPreview: [],
     score: match.score ?? 0,
     productUrl: match.productUrl ?? `/yachts/${match.slug}`,
+    heroImageUrl: match.imageUrl ?? undefined,
   };
 }
 
@@ -636,6 +841,7 @@ export async function buildBluePassCatalogSnapshot() {
     cabinBookable: yacht.cabinBookable,
     about: yacht.about,
     productUrl: buildBluePassProductUrl(yacht.slug),
+    imageUrl: yacht.images.card,
     departuresPreview: yacht.departures.slice(0, 3).map((departure) => departure.dates),
     interests: buildCatalogInterests(yacht),
   }));
@@ -668,6 +874,7 @@ export async function buildOperatorListingCatalogSnapshot() {
     cabinBookable: false,
     about: listing.description,
     productUrl: null,
+    imageUrl: listing.heroImageUrl,
     departuresPreview: [] as string[],
     interests: [] as string[],
   }));

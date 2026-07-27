@@ -10,6 +10,7 @@ const REFERRAL_LEDGER_KINDS = [
   "CREATOR_COMMISSION_ESTIMATE",
   "BLUEPASS_PLATFORM_COMMISSION",
   "CONSERVATION_ALLOCATION",
+  "PAYMENT_PROCESSING_ALLOCATION",
   "OPERATOR_PAYOUT_PLACEHOLDER",
 ] as const;
 
@@ -27,23 +28,18 @@ export type ReferralCommissionLedgerInput = {
 export async function syncReferralCommissionLedger(
   input: ReferralCommissionLedgerInput,
 ) {
-  if (!input.referralPartnerId) {
-    return;
-  }
-
   const budgetUsd = parseBudgetUsd(input.budget);
+  const hasReferral = Boolean(input.referralPartnerId);
   const split = splitBooking(budgetUsd, input.referralRole === "CREATOR");
-  const accountId = await findReferralAccountId(
-    input.referralPartnerId,
-    input.referralRole,
-  );
+  const accountId = hasReferral
+    ? await findReferralAccountId(input.referralPartnerId!, input.referralRole)
+    : undefined;
   const metadata = {
     referralLinkId: input.referralLinkId,
     referralCode: input.referralCode,
     referralRole: input.referralRole,
     budget: input.budget,
     budgetUsd,
-    capApplied: split.capApplied,
   } satisfies Prisma.InputJsonObject;
 
   await prisma.commissionLedgerEntry.deleteMany({
@@ -54,8 +50,35 @@ export async function syncReferralCommissionLedger(
     },
   });
 
-  await prisma.commissionLedgerEntry.createMany({
-    data: [
+  const entries = [
+    buildLedgerEntry(input, {
+      kind: "CONSERVATION_ALLOCATION",
+      amountCents: usdToCents(split.conservation),
+      metadata,
+    }),
+    buildLedgerEntry(input, {
+      kind: "PAYMENT_PROCESSING_ALLOCATION",
+      amountCents: usdToCents(split.paymentProcessing),
+      metadata,
+    }),
+    buildLedgerEntry(input, {
+      kind: "BLUEPASS_PLATFORM_COMMISSION",
+      amountCents: usdToCents(split.commission),
+      role: "ADMIN",
+      metadata,
+    }),
+    buildLedgerEntry(input, {
+      kind: "OPERATOR_PAYOUT_PLACEHOLDER",
+      amountCents: usdToCents(split.operatorNet),
+      role: "OPERATOR",
+      metadata,
+    }),
+  ];
+
+  // Only the partner/creator line is conditional on a referral being attached - conservation,
+  // payments, platform fee, and operator payout always post (see splitBooking).
+  if (hasReferral) {
+    entries.push(
       buildLedgerEntry(input, {
         kind: "CREATOR_COMMISSION_ESTIMATE",
         amountCents: usdToCents(split.creatorShare),
@@ -63,25 +86,10 @@ export async function syncReferralCommissionLedger(
         role: input.referralRole === "CREATOR" ? "CREATOR" : undefined,
         metadata,
       }),
-      buildLedgerEntry(input, {
-        kind: "BLUEPASS_PLATFORM_COMMISSION",
-        amountCents: usdToCents(split.bluepassNet),
-        role: "ADMIN",
-        metadata,
-      }),
-      buildLedgerEntry(input, {
-        kind: "CONSERVATION_ALLOCATION",
-        amountCents: usdToCents(split.conservation),
-        metadata,
-      }),
-      buildLedgerEntry(input, {
-        kind: "OPERATOR_PAYOUT_PLACEHOLDER",
-        amountCents: usdToCents(split.operatorNet),
-        role: "OPERATOR",
-        metadata,
-      }),
-    ],
-  });
+    );
+  }
+
+  await prisma.commissionLedgerEntry.createMany({ data: entries });
 }
 
 export function parseBudgetUsd(value?: string | null) {

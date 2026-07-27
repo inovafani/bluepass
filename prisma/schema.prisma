@@ -337,6 +337,15 @@ model CreatorProfile {
   @@index([referralPartnerId])
 }
 
+// Phase 1 foundation for real commission payouts (see kai's src/core/bluepass/ledger.ts and the
+// "Real commission payment collection" plan) - starts manual/admin-driven for every operator
+// regardless of region; STRIPE_CONNECT becomes usable once Phase 2's Stripe Connect onboarding
+// ships for AU operators specifically (Indonesia's cross-border support is unconfirmed with Stripe).
+enum OperatorPayoutMethod {
+  MANUAL_BANK_TRANSFER
+  STRIPE_CONNECT
+}
+
 model OperatorProfile {
   id          String            @id @default(cuid())
   accountId   String            @unique
@@ -349,6 +358,24 @@ model OperatorProfile {
   claimedYachtSlugs   String[]          @default([])
   claimedAt           DateTime?
   notes       String?
+  // ISO 3166-1 alpha-2 (e.g. "AU", "ID") - drives payout routing once Phase 2 Stripe Connect
+  // ships; not yet collected anywhere in the onboarding flow, so expect this to be null for
+  // existing operators until a follow-up backfill/onboarding-form step is built.
+  country             String?
+  payoutMethod        OperatorPayoutMethod @default(MANUAL_BANK_TRANSFER)
+  // Same encrypt-at-rest convention as OperatorIntegration.encryptedCredentials
+  // (lib/services/booking/adapters/credentials.ts's encryptCredentials/decryptCredentials) - this
+  // is real bank account data, never stored as plain JSON.
+  encryptedPayoutDetails String?
+  payoutContactEmail    String?
+  // Created by kai (which holds BluePass's own Stripe secret key) via the admin bridge when the
+  // operator starts Connect onboarding; bluepass-app never talks to Stripe's account-creation API
+  // directly. stripeChargesEnabled/stripePayoutsEnabled/stripeOnboardedAt are updated by this
+  // app's own account.updated webhook (a separate Stripe webhook endpoint, own signing secret).
+  stripeConnectAccountId String?  @unique
+  stripeChargesEnabled   Boolean  @default(false)
+  stripePayoutsEnabled   Boolean  @default(false)
+  stripeOnboardedAt      DateTime?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   account     BluePassAccount   @relation(fields: [accountId], references: [id], onDelete: Cascade)

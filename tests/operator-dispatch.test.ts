@@ -45,8 +45,8 @@ describe("operator dispatch builders", () => {
     });
 
     expect(message.body).toContain("Total price: $1000.00");
-    expect(message.body).toContain("Operator net: $750.00");
-    expect(message.body).toContain("BluePass commission: $200.00");
+    expect(message.body).toContain("Operator net: $820.00");
+    expect(message.body).toContain("BluePass commission: $100.00");
     expect(message.body).toContain("Conservation amount: $50.00");
     expect(message.body).toContain("Payment processor estimate: $29.30");
     expect(message.body).toContain("PMS reference: REZ-1");

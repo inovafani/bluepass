@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentTraveller } from "@/lib/services/auth/session";
+import { createKaiCoreOperatorStripeConnectAccount } from "@/lib/services/kai-core/client";
 import { buildOperatorDashboardClaimView } from "@/lib/services/operators/operator-dashboard-view";
 import {
   createDraftListing,
@@ -74,6 +75,9 @@ export default async function DashboardPage() {
           claimedOperatorSlug: true,
           claimedYachtSlugs: true,
           claimedAt: true,
+          stripeConnectAccountId: true,
+          stripeChargesEnabled: true,
+          stripePayoutsEnabled: true,
           referralPartner: {
             select: {
               links: {
@@ -232,6 +236,10 @@ export default async function DashboardPage() {
                     primaryHref={operatorClaimView.primaryHref}
                     referralCode={operatorLink?.code}
                     shareUrl={operatorShareUrl}
+                    stripePayoutsReady={Boolean(
+                      operatorProfile?.stripeChargesEnabled && operatorProfile?.stripePayoutsEnabled,
+                    )}
+                    stripeOnboardingStarted={Boolean(operatorProfile?.stripeConnectAccountId)}
                   />
                 ) : (
                   <DashboardPanel
@@ -271,6 +279,8 @@ function ClaimedOperatorDashboardPanel({
   primaryHref,
   referralCode,
   shareUrl,
+  stripePayoutsReady,
+  stripeOnboardingStarted,
 }: {
   companyName: string;
   websiteUrl?: string | null;
@@ -279,6 +289,8 @@ function ClaimedOperatorDashboardPanel({
   primaryHref: string;
   referralCode?: string;
   shareUrl?: string;
+  stripePayoutsReady: boolean;
+  stripeOnboardingStarted: boolean;
 }) {
   return (
     <article className="rounded-2xl border border-[#B89A5D]/22 bg-[#B89A5D]/10 p-5 backdrop-blur-md">
@@ -337,6 +349,20 @@ function ClaimedOperatorDashboardPanel({
         >
           Connect PMS
         </Link>
+        {stripePayoutsReady ? (
+          <span className="inline-flex h-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 text-xs font-bold text-emerald-200">
+            Payouts connected
+          </span>
+        ) : (
+          <form action={connectStripePayoutsAction}>
+            <button
+              type="submit"
+              className="bp-focus-ring inline-flex h-10 items-center justify-center rounded-full border border-white/16 bg-white/[0.06] px-4 text-xs font-bold text-white transition-colors hover:bg-white/12"
+            >
+              {stripeOnboardingStarted ? "Finish payout setup" : "Connect payouts"}
+            </button>
+          </form>
+        )}
         {websiteUrl && (
           <a
             href={websiteUrl}
@@ -797,6 +823,39 @@ async function publishListingAction(
   revalidatePath("/dashboard");
   revalidatePath("/discover");
   return { error: null };
+}
+
+async function connectStripePayoutsAction(): Promise<void> {
+  "use server";
+
+  const traveller = await getCurrentTraveller();
+  if (!traveller) redirect("/login?next=/dashboard");
+
+  const profile = await prisma.operatorProfile.findUnique({
+    where: { accountId: traveller.accountId },
+    select: { stripeConnectAccountId: true },
+  });
+
+  let onboardingUrl: string | null = null;
+  try {
+    const result = await createKaiCoreOperatorStripeConnectAccount({
+      existingStripeAccountId: profile?.stripeConnectAccountId ?? null,
+    });
+    onboardingUrl = result.onboardingUrl;
+
+    if (!profile?.stripeConnectAccountId) {
+      await prisma.operatorProfile.update({
+        where: { accountId: traveller.accountId },
+        data: { stripeConnectAccountId: result.stripeAccountId },
+      });
+    }
+  } catch {
+    // No inline error UI here (this is a plain redirect-only button, not a useActionState form) -
+    // send the operator back to the dashboard; the Connect status badge just won't have changed.
+    redirect("/dashboard?stripeConnectError=1");
+  }
+
+  redirect(onboardingUrl);
 }
 
 function buildReferralShareUrl(code: string, targetPath?: string | null) {

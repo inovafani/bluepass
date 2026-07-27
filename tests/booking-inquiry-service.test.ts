@@ -217,33 +217,40 @@ describe("BookingInquiry service", () => {
             "CREATOR_COMMISSION_ESTIMATE",
             "BLUEPASS_PLATFORM_COMMISSION",
             "CONSERVATION_ALLOCATION",
+            "PAYMENT_PROCESSING_ALLOCATION",
             "OPERATOR_PAYOUT_PLACEHOLDER",
           ],
         },
       },
     });
+    // Real 18% (5/5/3/5) split on a $2,000 referred booking: 5% conservation ($100), 5% partner
+    // ($100), 3% payments ($60), 5% platform fee ($100, referred rate), operator nets 82% ($1,640).
     expect(prismaMocks.commissionLedgerEntry.createMany).toHaveBeenCalledWith({
       data: expect.arrayContaining([
+        expect.objectContaining({
+          kind: "CONSERVATION_ALLOCATION",
+          amountCents: 10000,
+        }),
+        expect.objectContaining({
+          kind: "PAYMENT_PROCESSING_ALLOCATION",
+          amountCents: 6000,
+        }),
+        expect.objectContaining({
+          kind: "BLUEPASS_PLATFORM_COMMISSION",
+          amountCents: 10000,
+        }),
+        expect.objectContaining({
+          kind: "OPERATOR_PAYOUT_PLACEHOLDER",
+          amountCents: 164000,
+        }),
         expect.objectContaining({
           bookingInquiryId: "inq_referred",
           accountId: "account_creator",
           referralPartnerId: "ref_partner_123",
           role: "CREATOR",
           kind: "CREATOR_COMMISSION_ESTIMATE",
-          amountCents: 20000,
-          status: "PENDING",
-        }),
-        expect.objectContaining({
-          kind: "BLUEPASS_PLATFORM_COMMISSION",
-          amountCents: 20000,
-        }),
-        expect.objectContaining({
-          kind: "CONSERVATION_ALLOCATION",
           amountCents: 10000,
-        }),
-        expect.objectContaining({
-          kind: "OPERATOR_PAYOUT_PLACEHOLDER",
-          amountCents: 150000,
+          status: "PENDING",
         }),
       ]),
     });

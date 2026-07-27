@@ -126,18 +126,18 @@ function loadStripeScript() {
 const GREETING: Message = {
   role: "assistant",
   content:
-    "Hey, I'm Kai. Tell me what kind of trip you're after - a liveaboard in Indonesia, or a Gold Coast charter in Australia.",
+    "Hey, I'm Kai - BluePass's marine travel concierge. I match you with vetted surf, sail, and dive operators, and every booking gives 5% back to reef conservation. Where are you headed: a liveaboard in Komodo or Raja Ampat, or a Gold Coast charter?",
   suggestedReplies: [
     {
-      label: "Tell me about Komodo",
-      message: "Tell me about Komodo liveaboards",
+      label: "Find a Komodo liveaboard",
+      message: "I'm looking for a liveaboard trip in Komodo",
     },
     {
-      label: "Tell me about Raja Ampat",
-      message: "Tell me about Raja Ampat liveaboards",
+      label: "Find a Raja Ampat liveaboard",
+      message: "I'm looking for a liveaboard trip in Raja Ampat",
     },
     {
-      label: "Gold Coast, Australia",
+      label: "Find a Gold Coast charter",
       message: "I'm interested in a Gold Coast charter in Australia",
     },
   ],
@@ -1241,10 +1241,10 @@ function KaiYachtMatchCard({
         className="bp-focus-ring mt-3 inline-flex w-full items-center justify-center rounded-md bg-[#075e54] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#0b6f63] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isInquirySent
-          ? "Inquiry sent"
+          ? "Selected"
           : isSendingInquiry
-            ? "Sending..."
-            : "Send inquiry"}
+            ? "Selecting..."
+            : "Select this yacht"}
       </button>
       <a
         href={match.productUrl ?? `/yachts/${match.slug}`}

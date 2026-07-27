@@ -1,7 +1,8 @@
 import { revalidatePath } from "next/cache";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   approveKaiCoreBluePassQuote,
+  createKaiCoreBluePassCheckoutSession,
   getKaiCoreBluePassQuote,
   type KaiCoreBluePassQuote,
 } from "@/lib/services/kai-core/client";
@@ -119,7 +120,27 @@ function QuoteText({ label, value, fallback }: { label: string; value: string | 
 }
 
 function QuoteAction({ quote, step }: { quote: KaiCoreBluePassQuote; step: QuoteOperationalStep }) {
-  if (quote.operationalStatus === "BOOKING_CONFIRMED" || quote.operationalStatus === "PAYMENT_READY" || quote.status === "TRAVELLER_APPROVED") {
+  if (quote.operationalStatus === "PAYMENT_READY") {
+    return (
+      <div className="grid gap-2">
+        <div className={`rounded-xl border p-3 text-sm font-semibold leading-6 ${getQuoteStepPanelClass(step.tone)}`}>
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] opacity-70">{step.label}</p>
+          <p className="mt-1">{step.body}</p>
+        </div>
+        <form action={payNowAction}>
+          <input type="hidden" name="quoteId" value={quote.id} />
+          <button
+            type="submit"
+            className="bp-focus-ring inline-flex h-11 w-full items-center justify-center rounded-full bg-white px-5 text-sm font-black text-[#071827] transition-colors hover:bg-[#9fe8df]"
+          >
+            Pay now
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  if (quote.operationalStatus === "BOOKING_CONFIRMED" || quote.operationalStatus === "PAID" || quote.status === "TRAVELLER_APPROVED") {
     return (
       <div className={`rounded-xl border p-3 text-sm font-semibold leading-6 ${getQuoteStepPanelClass(step.tone)}`}>
         <p className="text-[10px] font-black uppercase tracking-[0.14em] opacity-70">{step.label}</p>
@@ -185,6 +206,16 @@ async function approveQuoteAction(formData: FormData) {
 
   await approveKaiCoreBluePassQuote({ quoteId });
   revalidatePath(`/quotes/${quoteId}`);
+}
+
+async function payNowAction(formData: FormData) {
+  "use server";
+
+  const quoteId = String(formData.get("quoteId") ?? "");
+  if (!quoteId) return;
+
+  const { checkoutUrl } = await createKaiCoreBluePassCheckoutSession({ quoteId });
+  redirect(checkoutUrl);
 }
 
 function formatMoney(cents: number | null, currency: string) {

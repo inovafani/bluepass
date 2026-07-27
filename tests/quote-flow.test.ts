@@ -26,7 +26,7 @@ describe("quote operational flow copy", () => {
         confirmationText: null,
       }),
     ).toEqual({
-      label: "Payment path received",
+      label: "Ready to pay",
       tone: "ready",
       body: "Slot held. Payment link: https://pay.example/cj-22.",
     });
@@ -42,6 +42,21 @@ describe("quote operational flow copy", () => {
       label: "Booking confirmed",
       tone: "done",
       body: "Payment received. Booking confirmed. Reference CJ-2207.",
+    });
+  });
+
+  it("shows a real Stripe payment as received while waiting for the operator to confirm the booking", () => {
+    expect(
+      formatQuoteOperationalStep({
+        status: "TRAVELLER_APPROVED",
+        operationalStatus: "PAID",
+        paymentText: null,
+        confirmationText: null,
+      }),
+    ).toEqual({
+      label: "Payment received",
+      tone: "ready",
+      body: "BluePass has received your payment and is waiting for the operator to confirm the booking.",
     });
   });
 });

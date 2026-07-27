@@ -20,11 +20,19 @@ export function formatQuoteOperationalStep(input: QuoteOperationalStepInput): Qu
     };
   }
 
+  if (input.operationalStatus === "PAID") {
+    return {
+      label: "Payment received",
+      tone: "ready",
+      body: "BluePass has received your payment and is waiting for the operator to confirm the booking.",
+    };
+  }
+
   if (input.operationalStatus === "PAYMENT_READY") {
     return {
-      label: "Payment path received",
+      label: "Ready to pay",
       tone: "ready",
-      body: input.paymentText || "BluePass has received payment instructions from the operator.",
+      body: input.paymentText || "The operator has confirmed final pricing - pay now to lock in this trip.",
     };
   }
 

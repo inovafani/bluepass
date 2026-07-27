@@ -6,7 +6,8 @@ export type AdminSectionKey =
   | "operator-outreach"
   | "listings"
   | "inquiries"
-  | "referrals";
+  | "referrals"
+  | "bluepass-ledger";
 
 const ADMIN_SECTIONS: {
   key: AdminSectionKey;
@@ -22,6 +23,7 @@ const ADMIN_SECTIONS: {
   { key: "listings", href: "/admin/listings", label: "Listings" },
   { key: "inquiries", href: "/admin/inquiries", label: "Inquiry pipeline" },
   { key: "referrals", href: "/admin/referrals", label: "Referral ledger" },
+  { key: "bluepass-ledger", href: "/admin/bluepass-ledger", label: "Commission payouts" },
 ];
 
 /**

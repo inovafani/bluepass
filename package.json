@@ -16,6 +16,7 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "stripe": "^22.3.2",
     "zod": "latest"
   },
   "devDependencies": {
