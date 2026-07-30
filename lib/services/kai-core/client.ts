@@ -52,7 +52,12 @@ export type KaiCorePaymentRequest = {
   productTitle: string | null;
   dateText: string | null;
   guests: number | null;
+  checkoutUrl: string | null;
   status: "PAYMENT_PENDING";
+};
+
+export type KaiCoreWidgetCapabilities = {
+  enabledFeatures: string[];
 };
 
 export type KaiCorePaymentIntent = {
@@ -70,7 +75,7 @@ export type KaiCorePaymentConfirmation = {
 type KaiCoreBluePassMatch = {
   slug: string;
   name: string;
-  region: "Komodo" | "Raja Ampat";
+  region: string;
   tier?: string;
   maxGuests?: number;
   cabins?: number;
@@ -238,7 +243,7 @@ export async function handleKaiCoreWebChat(
     key: config.widgetKey,
     conversationId,
     content: input.message,
-    ...(region === "indonesia" ? { bluepassCatalog: await buildBluePassCatalogSnapshot() } : {}),
+    bluepassCatalog: await buildBluePassCatalogSnapshot(),
     ...(input.referralAttribution
       ? {
           referral: {
@@ -319,6 +324,34 @@ export async function confirmKaiCorePayment(
   }
 
   return (await response.json()) as KaiCorePaymentConfirmation;
+}
+
+// Tenant-scoped capability flags (e.g. whether a direct-PMS booking's payment step should redirect
+// to a real BluePass-Stripe checkout instead of the embedded RezdyPay card form) live on Kai Core's
+// own TenantConfig, exposed read-only via its widget-config endpoint. Only meaningful for the
+// Australia region today (Indonesia's tenant never produces a paymentRequest at all).
+export async function getKaiCoreWidgetCapabilities(
+  input: { region?: KaiRegion } = {},
+  env: KaiCoreClientEnv = process.env,
+  fetchImpl: FetchLike = fetch,
+): Promise<KaiCoreWidgetCapabilities> {
+  const config = resolveKaiCoreConfig(env, input.region);
+  const response = await fetchKaiCoreWithRetry(
+    fetchImpl,
+    `${config.baseUrl}/api/widget/config?key=${encodeURIComponent(config.widgetKey)}`,
+    {
+      method: "GET",
+      headers: buildKaiCoreHeaders(config),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Kai Core widget config request failed.");
+  }
+
+  const data = (await response.json()) as { capabilities?: { enabledFeatures?: string[] } };
+
+  return { enabledFeatures: data.capabilities?.enabledFeatures ?? [] };
 }
 
 export async function forwardWhatsAppWebhookToKaiCore(

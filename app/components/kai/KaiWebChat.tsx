@@ -28,7 +28,7 @@ interface TripMatchCard {
 interface YachtMatchCard {
   slug: string;
   name: string;
-  region: "Komodo" | "Raja Ampat";
+  region: string;
   heroImageUrl?: string;
   tier: string;
   cabinBookable: boolean;
@@ -61,8 +61,11 @@ interface PaymentRequest {
   productTitle: string | null;
   dateText: string | null;
   guests: number | null;
+  checkoutUrl: string | null;
   status: "PAYMENT_PENDING";
 }
+
+const BLUEPASS_STRIPE_PMS_CHECKOUT_FEATURE = "bluepass_stripe_pms_checkout";
 
 interface PaymentIntent {
   provider: "REZDYPAY_STRIPE";
@@ -123,25 +126,36 @@ function loadStripeScript() {
   });
 }
 
-const GREETING: Message = {
+// Deliberately generic - names no specific region, so it never goes stale as operators/regions are
+// added or removed. Shown immediately on mount; replaced by buildGreeting() once the live catalog's
+// regions load (see the mount effect below), so returning visitors on a fast connection barely see it.
+const FALLBACK_GREETING: Message = {
   role: "assistant",
   content:
-    "Hey, I'm Kai - BluePass's marine travel concierge. I match you with vetted surf, sail, and dive operators, and every booking gives 5% back to reef conservation. Where are you headed: a liveaboard in Komodo or Raja Ampat, or a Gold Coast charter?",
-  suggestedReplies: [
-    {
-      label: "Find a Komodo liveaboard",
-      message: "I'm looking for a liveaboard trip in Komodo",
-    },
-    {
-      label: "Find a Raja Ampat liveaboard",
-      message: "I'm looking for a liveaboard trip in Raja Ampat",
-    },
-    {
-      label: "Find a Gold Coast charter",
-      message: "I'm interested in a Gold Coast charter in Australia",
-    },
-  ],
+    "Hey, I'm Kai - BluePass's marine travel concierge. I match you with vetted surf, sail, and dive operators, and every booking gives 5% back to reef conservation. Where are you headed?",
 };
+
+// Narrates whatever regions the live catalog (static yachts + live operator listings) actually has
+// today - the same source of truth Kai's own backend reply engine uses - instead of a hardcoded
+// destination list that silently goes stale the moment a new region's operators go live.
+function buildGreeting(regions: string[]): Message {
+  if (regions.length === 0) return FALLBACK_GREETING;
+
+  const shortlist = regions.slice(0, 4);
+  const destinationsText =
+    shortlist.length === 1
+      ? shortlist[0]
+      : `${shortlist.slice(0, -1).join(", ")} or ${shortlist[shortlist.length - 1]}`;
+
+  return {
+    role: "assistant",
+    content: `Hey, I'm Kai - BluePass's marine travel concierge. I match you with vetted surf, sail, and dive operators, and every booking gives 5% back to reef conservation. Where are you headed: ${destinationsText}?`,
+    suggestedReplies: shortlist.map((region) => ({
+      label: `Find a ${region} trip`,
+      message: `I'm looking for a trip in ${region}`,
+    })),
+  };
+}
 
 const LS_KEY = "bluepass:kaiSessionId";
 const LS_REGION_KEY = "bluepass:kaiRegion";
@@ -150,7 +164,8 @@ const WA_HREF = "https://wa.me/628213143343";
 
 export function KaiWebChat() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([GREETING]);
+  const [messages, setMessages] = useState<Message[]>([FALLBACK_GREETING]);
+  const [catalogRegions, setCatalogRegions] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendingInquirySlug, setSendingInquirySlug] = useState<string | null>(
@@ -178,6 +193,7 @@ export function KaiWebChat() {
   >("idle");
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [cardholderName, setCardholderName] = useState("");
+  const [hostedCheckoutRedirectEnabled, setHostedCheckoutRedirectEnabled] = useState(false);
 
   // sessionId drives no rendering — ref avoids synchronous setState in effects
   const sessionIdRef = useRef<string | null>(null);
@@ -187,6 +203,30 @@ export function KaiWebChat() {
   const didInit = useRef(false);
   const stripeRef = useRef<StripeInstance | null>(null);
   const cardElementRef = useRef<StripeCardElement | null>(null);
+
+  // Fetch the live catalog's regions once on mount and swap in a destination-aware greeting -
+  // guarded so it never overwrites a conversation the traveller has already started typing into.
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/kai/regions")
+      .then((response) => (response.ok ? response.json() : { regions: [] }))
+      .then((data: { regions?: string[] }) => {
+        if (!active) return;
+        const regions = data.regions ?? [];
+        setCatalogRegions(regions);
+        setMessages((current) =>
+          current.length === 1 && current[0].role === "assistant" && !current[0].suggestedReplies?.length
+            ? [buildGreeting(regions)]
+            : current,
+        );
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // On mount: restore session from localStorage and fetch history.
   // All setState calls happen inside async .then()/.catch() — not synchronously
@@ -234,7 +274,7 @@ export function KaiWebChat() {
         .catch(() => {
           localStorage.removeItem(LS_KEY);
           sessionIdRef.current = null;
-          // History unavailable; messages stays as [GREETING].
+          // History unavailable; messages stays as the initial greeting.
         });
     }
 
@@ -339,6 +379,30 @@ export function KaiWebChat() {
     setPaymentError(null);
     setPaymentIntent(null);
     setCardholderName("");
+
+    if (!paymentRequest) {
+      setHostedCheckoutRedirectEnabled(false);
+      return;
+    }
+
+    let active = true;
+    const region = regionRef.current ?? "indonesia";
+
+    fetch(`/api/kai/web-chat/capabilities?region=${region}`)
+      .then((response) => (response.ok ? response.json() : { enabledFeatures: [] }))
+      .then((data: { enabledFeatures?: string[] }) => {
+        if (!active) return;
+        setHostedCheckoutRedirectEnabled(
+          Boolean(data.enabledFeatures?.includes(BLUEPASS_STRIPE_PMS_CHECKOUT_FEATURE)),
+        );
+      })
+      .catch(() => {
+        if (active) setHostedCheckoutRedirectEnabled(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [paymentRequest]);
 
   const sendMessage = useCallback(
@@ -589,7 +653,7 @@ export function KaiWebChat() {
     localStorage.removeItem(LS_REGION_KEY);
     sessionIdRef.current = null;
     regionRef.current = null;
-    setMessages([GREETING]);
+    setMessages([buildGreeting(catalogRegions)]);
     setInput("");
     setError(null);
     setContactRequest(null);
@@ -883,7 +947,45 @@ export function KaiWebChat() {
                 </form>
               )}
 
-              {paymentRequest && (
+              {paymentRequest && hostedCheckoutRedirectEnabled && (
+                <section
+                  aria-label="Secure payment"
+                  className="ml-7 grid gap-2 rounded-xl border border-white/12 bg-[#071a29] p-3 text-white shadow-sm"
+                >
+                  <p className="text-[12px] font-semibold leading-tight">
+                    Redirecting you to secure payment
+                  </p>
+                  <p className="text-[11px] leading-snug text-white/60">
+                    {paymentRequest.productTitle ?? "Selected booking"}
+                    {paymentRequest.dateText ? ` - ${paymentRequest.dateText}` : ""}
+                    {paymentRequest.guests
+                      ? ` - ${paymentRequest.guests} guest${paymentRequest.guests === 1 ? "" : "s"}`
+                      : ""}
+                  </p>
+                  <p className="text-[11px] leading-snug text-white/50">
+                    You&apos;ll be taken to a secure BluePass payment page; Kai never sees or stores your
+                    card details.
+                  </p>
+                  {paymentRequest.checkoutUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.location.href = paymentRequest.checkoutUrl as string;
+                      }}
+                      className="bp-focus-ring mt-1 inline-flex h-9 items-center justify-center rounded-lg bg-[#075e54] px-3 text-[12px] font-semibold text-white transition-colors hover:bg-[#0b6f63]"
+                    >
+                      Continue to secure payment
+                    </button>
+                  ) : (
+                    <p className="text-[11px] leading-snug text-white/50">
+                      I could not prepare the secure payment link just now - the operator will follow up
+                      to complete payment.
+                    </p>
+                  )}
+                </section>
+              )}
+
+              {paymentRequest && !hostedCheckoutRedirectEnabled && (
                 <section
                   aria-label="Secure payment"
                   className="ml-7 grid gap-2 rounded-xl border border-white/12 bg-[#071a29] p-3 text-white shadow-sm"

@@ -318,7 +318,7 @@ describe("handleKaiCoreWebChat", () => {
     });
   });
 
-  it("routes an Australia-specific first message to the AU widget key without the BluePass catalog", async () => {
+  it("routes an Australia-specific first message to the AU widget key, still attaching the BluePass catalog", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(Response.json({ conversation: { id: "core_conversation_au" } }))
@@ -341,7 +341,9 @@ describe("handleKaiCoreWebChat", () => {
     const messageRequest = fetchMock.mock.calls[1]?.[1] as RequestInit;
     const messageBody = JSON.parse(String(messageRequest.body));
     expect(messageBody.key).toBe("pk_test_bluepass_au");
-    expect(messageBody.bluepassCatalog).toBeUndefined();
+    expect(messageBody.bluepassCatalog).toEqual(
+      expect.arrayContaining([expect.objectContaining({ slug: "calico-jack", region: "Komodo" })]),
+    );
     expect(result).toEqual({
       sessionId: "core_conversation_au",
       region: "australia",
